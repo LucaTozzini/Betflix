@@ -1,0 +1,67 @@
+#top{
+    height: var(--topHeight);
+    width: 100%;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    z-index: 1000;
+}
+#top .section{
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+#top .section #sandwich{
+    height: 30px;
+    width: 30px;
+    margin: 0 5px 0 5px;
+
+    background-position: center;
+    background-image: url(../img/icons/lines.png);
+    background-size: 70% auto;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#top .section #sandwich:hover{
+    background-color: rgba(255, 255, 255, 0.2);
+}
+#top .section #title{
+    color: white;
+    display: flex;
+    font-size: 25px;
+    margin: 0 30px 0 var(--browseMarginWidth);
+}
+#top #user{
+    height: 45px;
+    width: 45px;
+    border-radius: 50%;
+    background-color: greenyellow;
+    margin: 0 var(--browseMarginWidth) 0 10px;
+    background-position: center;
+    background-size: cover;
+    cursor: pointer;
+}
+
+#top .insert{
+    /* background-color: aquamarine; */
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 12px 0 0;
+}
+#top .insert:hover{
+    opacity: .9;
+}
+#top .insert .text{
+    color: var(--navTextColor);
+    font-size: 18px;
+    font-weight: normal;
+}

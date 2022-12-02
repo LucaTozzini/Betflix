@@ -1,0 +1,33 @@
+#settings{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.colorPicker{
+    height: 20px;
+    width: 50px;
+    border: 2px solid rgb(255, 255, 255);
+    margin-left: 10px;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+}
+#settings .section{
+    margin-top: 10px;
+    width: calc(100% - (var(--browseMarginWidth) * 2) - 10px);
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    color: white;
+    font-size: 15px;
+}
