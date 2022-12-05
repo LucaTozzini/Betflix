@@ -595,8 +595,7 @@ const database = new databaseManager()
 function html_insert(type, id, title, year, poster_img, bookmark_img, index){
     return new Promise((resolve)=>{
         const html = `
-            <div class="frame">
-                <div class="metadata">${JSON.stringify({id:id, type:type, episodeID:-1})}</div>
+            <div class="frame" data-type="${type}" data-id="${id}">
                 <div class="box">
                     <div class="itemInsert" style="background-image: url(${poster_img})" tabindex="${index}">
                         <div class="overlay">
@@ -655,16 +654,25 @@ $(document).on('mouseenter', '.itemScroll .frame .itemInsert', function(){
 
 // ITEM: ON CLICK
 $(document).on('click', '.itemScroll .frame .itemInsert .overlay', async function(e){
-    let data = $(this).parent().parent().parent().find('.metadata').text()
-    data = JSON.parse(data)
+    const frame = $(this).parent().parent().parent()
+    let data = {type:frame.attr("data-type"), id:frame.data("id"), episodeID:-1}
+
     if(e.target.className == 'button overlayWatchlist'){
+        const all_el = $(`.frame[data-id='${data.id}'][data-type='${data.type}']`).find('.button.overlayWatchlist')
+        const all_cont = $(`#continueContainer .insert[data-id='${data.id}'][data-type='${data.type}']`).find('#watchlist_button')
         if(await user.isInWatchlist(data.type, data.id)){
             const success = await user.removeFromWatchlist(data.type, data.id)
-            if(success) $(e.target).css('background-image', 'url(../img/icons/bookmark_empty.png)')
+            if(success){
+                all_el.css('background-image', 'url(../img/icons/bookmark_empty.png)')
+                all_cont.css('background-image', 'url(../img/icons/bookmark_empty.png)')
+            }
         }
         else{
             const success = await user.addToWatchlist(data.type, data.id)
-            if(success) $(e.target).css('background-image', 'url(../img/icons/bookmark.png)')
+            if(success){
+                all_el.css('background-image', 'url(../img/icons/bookmark.png)')
+                all_cont.css('background-image', 'url(../img/icons/bookmark.png)')
+            }
         }
     }
     else if(e.target.className == 'button overlayPlay'){
@@ -677,8 +685,9 @@ $(document).on('click', '.itemScroll .frame .itemInsert .overlay', async functio
     else pM.newPage('item', data)
 })
 $(document).on('click', '.itemScroll .frame .info .title', async function(){
-    let data = $(this).parent().parent().parent().find('.metadata').text()
-    data = JSON.parse(data)
+    const frame = $(this).parent().parent()
+    let data = {type:frame.attr("data-type"), id:frame.data("id"), episodeID:-1}
+
     if(data.type == 'show'){
         const cur = await user.currentEpisode(data.id)
         data.episodeID = cur.id

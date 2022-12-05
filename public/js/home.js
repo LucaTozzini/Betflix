@@ -15,8 +15,7 @@ class populateHome{
                 this.index++
                 const bookmarkIcon = await user.isInWatchlist(data[i].item.type, data[i].item.id) ? 'url(../img/icons/bookmark.png)' : 'url(../img/icons/bookmark_empty.png)'
                 const html = `
-                    <div class="insert">
-                        <div class="metadata">${JSON.stringify({type:data[i].item.type, id:data[i].item.id, episodeID:data[i].progress.episodeID})}</div>
+                    <div class="insert" data-type="${data[i].item.type}" data-id="${data[i].item.id}" data-episodeID="${data[i].progress.episodeID}">
                         <div class="poster" style="background-image:url(${data[i].item.backdrop})" tabindex="${this.index}">
                             <div class="overlay">
                                 <div class="top"></div>
@@ -90,7 +89,6 @@ class populateHome{
     }
 }
 
-
 // ON CLICK
 $('#continueWatching_SectionTitle .Nav .left, #continueWatching_SectionTitle .Nav .right').click(function(){
     const e = $('#home #continueWatching')
@@ -103,18 +101,25 @@ $('#continueWatching_SectionTitle .Nav .left, #continueWatching_SectionTitle .Na
 $(document).on('click', '#home #continueWatching .insert .poster', async function(e){
     
     const target = e.target.id
-    const wlb = $(this).find('#watchlist_button')
-    let data = $(this).parent().find('.metadata').text()
-    data = JSON.parse(data)
+    const frame = $(this).parent() //.insert
+    let data = {type:frame.attr("data-type"), id:frame.data("id"), episodeID:parseInt(frame.attr("data-episodeID"))}
 
     if(target == 'watchlist_button'){
+        const all_el = $(`.frame[data-id='${data.id}'][data-type='${data.type}']`).find('.button.overlayWatchlist')
+        const all_cont = $(`#continueContainer .insert[data-id='${data.id}'][data-type='${data.type}']`).find('#watchlist_button')
         if(await user.isInWatchlist(data.type, data.id)){
             const success = await user.removeFromWatchlist(data.type, data.id)
-            if(success) wlb.css('background-image', 'url(../img/icons/bookmark_empty.png)')
+            if(success){
+                all_el.css('background-image', 'url(../img/icons/bookmark_empty.png)')
+                all_cont.css('background-image', 'url(../img/icons/bookmark_empty.png)')
+            }
         }
         else{
             const success = await user.addToWatchlist(data.type, data.id)
-            if(success) wlb.css('background-image', 'url(../img/icons/bookmark.png)')
+            if(success){
+                all_el.css('background-image', 'url(../img/icons/bookmark.png)')
+                all_cont.css('background-image', 'url(../img/icons/bookmark.png)')
+            }
         }
     }
     else if (target == 'info_button') pM.newPage('item', {type:data.type, id:data.id})
@@ -127,7 +132,6 @@ $(document).on('click', '#home #continueWatching .insert .poster', async functio
     else pM.newPage('videoPlayer', data)
     
 })
-
 
 // ON SCROLL
 $('#home #continueWatching').scroll(()=>{
