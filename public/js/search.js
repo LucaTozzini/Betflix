@@ -1,20 +1,15 @@
 async function populateSearch(title){
     return new Promise(async (resolve)=>{
         const data = await media.searchTitle(title)
-        let html = '<div class="browseMargin"></div>'
+        let html = ''
         if(data.length > 0){
             for(let i = 0; i < data.length; i++){
                 const bookmark_img = await user.isInWatchlist(data[i].type, data[i].id) ?  '../img/icons/bookmark.png' : '../img/icons/bookmark_empty.png' 
                 html += await html_insert(data[i].type, data[i].id, data[i].title, data[i].year, data[i].poster, bookmark_img, this.index)
-                // ADD BORDER OR MARGIN
-                if(i+1 < data.length) html +='<div class="dividor"></div>'
-                else{
-                    html += '<div class="browseMargin"></div></div>'
-                }
             }
         }
         else if(title.length >= 3){
-            html += '<div style="width: 5px; height: 80px"></div>No results'
+            html += '<div style="margin-left: var(--browseMarginWidth); height: 80px; font-size: 25px" >No matches found</div>'
 
         }
         $('#search .itemScroll').html(html)

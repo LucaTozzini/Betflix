@@ -24,12 +24,6 @@ class itemPageManager{
                         </div>
                     </div>
                 `
-                if(i < directors.length -1){
-                    insertHTML+='<div class="dividor"></div>'
-                }
-                else{
-                    insertHTML+='<div class="browseMargin"></div>'
-                }
                 $('#item #info #director').append(insertHTML)
             }
             $('#item #info #seasonBar, #item #info #seasonScroll').hide()
@@ -91,7 +85,7 @@ class itemPageManager{
         $('#item #info #seasonBar #dropDown').hide()
 
         const cast = await media.getCast(id, data.type)
-        $('#item #info #cast').html('<div class="browseMargin"></div>')
+        $('#item #info #cast').html('')
         for(let i = 0; i < cast.length; i++){
             let insertHTML = `
                 <div class="insert">
@@ -103,20 +97,13 @@ class itemPageManager{
                     </div>
                 </div>
             `
-            if(i < cast.length -1){
-                insertHTML+='<div class="dividor"></div>'
-            }
-            else{
-                insertHTML+='<div class="browseMargin"></div>'
-            }
             $('#item #info #cast').append(insertHTML)
         }
     }
     async setSeason(season){
         
         $('#item #info #seasonBar .insert').text(`Season ${season}`)
-        $('#item #info #seasonScroll').scrollLeft(0)
-        $('#item #info #seasonScroll #content').html('')
+        $('#item #info #seasonScroll').scrollLeft(0).html('')
         $('#item #info #seasonBar #dropDown').fadeOut(0)
 
         const month = ['','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -146,8 +133,7 @@ class itemPageManager{
                     <div class="date">${month[parseInt(String(data[i].date).slice(4,6))]} ${parseInt(String(data[i].date).slice(6,8))}, ${String(data[i].date).slice(0,4)}</div>
                 </div>
             `
-            if(i < data.length - 1) html += '<div class="dividor"></div>'
-            $('#item #info #seasonScroll #content').append(html)
+            $('#item #info #seasonScroll').append(html)
         } 
         $('#item #seasonBar .Nav .left').css({opacity:'0.2', cursor:'default', pointerEvents:'none'})
         $('#item #seasonBar .Nav .right').css({opacity: '1', cursor:'pointer', pointerEvents:'all'})

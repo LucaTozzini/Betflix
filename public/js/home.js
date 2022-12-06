@@ -3,6 +3,7 @@ class populateHome{
     buildContinue(){
         return new Promise( async (resolve)=>{
             const data = await user.getContinue()
+            console.log(data)
             if(data.length > 0) $('#home #continueContainer').css('display', 'flex')
             for(let i = 0; i < data.length; i++){
                 
@@ -49,7 +50,7 @@ class populateHome{
             let data = await media.getGenre(genre)
     
             let html = `
-                <div class="sectionContainer">
+                <div class="section-container">
                     <div class="sectionTitle">
                         ${sectionTitle}
                         <div class="Nav">
@@ -58,16 +59,12 @@ class populateHome{
                         </div>
                     </div>
                     <div class="itemScroll">
-                        <div class="browseMargin"></div>
+                        
             `
             for(let i = 0; i < data.length; i++){
                 const bookmark_img = (await user.isInWatchlist(data[i].type, data[i].id)) ?  '../img/icons/bookmark.png' : '../img/icons/bookmark_empty.png' 
                 this.index++
                 html += await html_insert(data[i].type, data[i].id, data[i].title, data[i].year, data[i].poster, bookmark_img, this.index)
-                if(i+1 < data.length) html +='<div class="dividor"></div>'
-                else{
-                    html += '<div class="browseMargin"></div></div></div>'
-                }
             }
             if(data.length >= MIN_ITEMS_IN_SECTION) $('#homeSections').append(html)
             resolve()

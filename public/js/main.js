@@ -770,18 +770,18 @@ $( "#home, #watchlist, #setting, #item, #setting, #search, #actor_director" ).sc
 
 
 // SCREEN_BLOCKER
-$('#screen_blocker .content.backdrops, #screen_blocker .content.logos').hide()
-$('#screen_blocker #tabs .insert').click((e)=>{
+$('#screen-blocker .content.backdrops, #screen-blocker .content.logos').hide()
+$('#screen-blocker #tabs .insert').click((e)=>{
     const target = e.target.className
     console.log(target)
-    $('#screen_blocker .content').hide()
+    $('#screen-blocker .content').hide()
     if(target == 'insert posters'){
-        $('#screen_blocker .content.posters').show()
+        $('#screen-blocker .content.posters').show()
     }
     else if(target == 'insert backdrops'){
-        $('#screen_blocker .content.backdrops').show()
+        $('#screen-blocker .content.backdrops').show()
     }
     else if(target == 'insert logos'){
-        $('#screen_blocker .content.logos').show()
+        $('#screen-blocker .content.logos').show()
     }
 })

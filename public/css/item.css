@@ -263,23 +263,23 @@
 #item #info #seasonScroll{
     margin-top: 10px;
     height: 250px;
-    /* background-color: aqua; */
     width: calc(100% + (var(--browseMarginWidth) * 2));
     margin-left: calc(var(--browseMarginWidth) * -1);
     margin-bottom: 20px;
-    
+    column-gap: 10px;
+
     display: flex;
     justify-content: left;
     align-items: flex-start;
     overflow-x: auto;
 }
-#item #info #seasonScroll #content{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+#item #info #seasonScroll .insert:first-child{
+    margin-left: var(--browseMarginWidth);
 }
-#item #info #seasonScroll #content .insert{
+#item #info #seasonScroll .insert:last-child{
+    margin-right: var(--browseMarginWidth);
+}
+#item #info #seasonScroll .insert{
     height: fit-content;
     width: var(--episodeWidth);
     display: flex;
@@ -290,7 +290,7 @@
     padding: 5px;
     cursor: pointer;
 }
-#item #info #seasonScroll #content .insert .still{
+#item #info #seasonScroll .insert .still{
     width: 100%;
     height: calc(var(--episodeWidth) * (2 / 3.6));
     background-position: center center;
@@ -304,13 +304,13 @@
     justify-content: flex-end;
     align-items: flex-end;
 }
-#item #info #seasonScroll #content .insert .still .button{
+#item #info #seasonScroll .insert .still .button{
     margin-bottom: 8px;
     background-image: url(../img/icons/info.png);
     height: 30px;
     width: 30px;
 }
-#item #info #seasonScroll #content .insert .still .progressFrame{
+#item #info #seasonScroll .insert .still .progressFrame{
     height: 6px;
     background-color: rgba(81, 81, 81, 0.874);
     width: 100%;
@@ -319,11 +319,11 @@
     justify-content: left;
     box-shadow: 0 0 40px 10px rgb(0, 0, 0);
 }
-#item #info #seasonScroll #content .insert .still .progress{
+#item #info #seasonScroll .insert .still .progress{
     height: 100%;
     background-color: white;
 }
-#item #info #seasonScroll #content .insert .title{
+#item #info #seasonScroll .insert .title{
     color: white;
     font-size: 14px;
     text-align: left;
@@ -336,7 +336,7 @@
     font-weight: bolder;
 }
 
-#item #info #seasonScroll #content .insert .date{
+#item #info #seasonScroll .insert .date{
     color: rgb(196, 196, 196);
     font-size: 12px;
     text-align: left;
@@ -374,6 +374,7 @@
     height: 180px;
     width: calc(100% + (var(--browseMarginWidth) * 2));
     margin-left: calc(var(--browseMarginWidth) * -1);
+    column-gap: 10px;
     
     display: flex;
     justify-content: left;
@@ -389,6 +390,12 @@
     align-items: center;
     padding: 5px;
     cursor: pointer;
+}
+#item #info #cast .insert:first-child, #item #info #director .insert:first-child{
+    margin-left: var(--browseMarginWidth);
+}
+#item #info #cast .insert:last-child, #item #info #director .insert:last-child{
+    margin-right: var(--browseMarginWidth);
 }
 #item #info #cast .insert:hover, #item #info #director .insert:hover{
     background: rgba(255, 255, 255, 0.2);

@@ -75,10 +75,9 @@ class pageManager{
                 const item = await media.search(catalog[i].type, catalog[i].id)
                 const bookmark_img = (await user.isInWatchlist(item.type, item.id)) ?  '../img/icons/bookmark.png' : '../img/icons/bookmark_empty.png' 
                 html += await html_insert(item.type, item.id, item.title, item.year, item.poster, bookmark_img, i+1)
-                html += i+1 < catalog.length ? '<div class="dividor"></div>' : '<div class="browseMargin"></div>' 
             }
-            if(catalog.length == 0) $('#main #browse #actor_director .sectionContainer.acted').hide()
-            else $('#main #browse #actor_director .sectionContainer.acted .itemScroll').append(html)
+            if(catalog.length == 0) $('#main #browse #actor_director .section-container.acted').hide()
+            else $('#main #browse #actor_director .section-container.acted .itemScroll').append(html)
 
             const dir_catalog = await media.getCatalog('director', history.state.item.id)
             html = ''
@@ -86,11 +85,10 @@ class pageManager{
                 const item = await media.search(dir_catalog[i].type, dir_catalog[i].id)
                 const bookmark_img = (await user.isInWatchlist(item.type, item.id)) ?  '../img/icons/bookmark.png' : '../img/icons/bookmark_empty.png' 
                 html += await html_insert(item.type, item.id, item.title, item.year, item.poster, bookmark_img, i+1)
-                html += i+1 < dir_catalog.length ? '<div class="dividor"></div>' : '<div class="browseMargin"></div>' 
             }
             console.log(dir_catalog.length)
-            if(dir_catalog.length == 0) $('#main #browse #actor_director .sectionContainer.directed').hide()
-            else $('#main #browse #actor_director .sectionContainer.directed .itemScroll').append(html)
+            if(dir_catalog.length == 0) $('#main #browse #actor_director .section-container.directed').hide()
+            else $('#main #browse #actor_director .section-container.directed .itemScroll').append(html)
 
         }
         this.pageAutoCheck(.5)
@@ -117,14 +115,14 @@ class pageManager{
         }
     }
     async screen_blocker(type, itemType, itemID){
-        $('#screen_blocker').css('display', 'flex')
-        $('#screen_blocker').children().hide()
+        $('#screen-blocker').css('display', 'flex')
+        $('#screen-blocker').children().hide()
 
         if(type == 'overview'){
             const data = await media.search(itemType, itemID)
-            $('#screen_blocker #overview .title').text(data.title)
-            $('#screen_blocker #overview .text').text(data.overview)
-            $('#screen_blocker #overview').show()
+            $('#screen-blocker #overview .title').text(data.title)
+            $('#screen-blocker #overview .text').text(data.overview)
+            $('#screen-blocker #overview').show()
         }
         else if(type == 'edit'){
             const title = await media.getTitle(itemType, itemID)
@@ -132,7 +130,7 @@ class pageManager{
             const backdrops = await database.getBackdrops(itemType, itemID)
             const logos = await database.getLogos(itemType, itemID)
 
-            $('#screen_blocker #edit .title').text(title)
+            $('#screen-blocker #edit .title').text(title)
 
             let p_html = ''
             for(let i = 0; i < posters.length; i++){
@@ -141,7 +139,7 @@ class pageManager{
                         <div class="overlay"> SET </div>
                     </div>`
             }
-            $('#screen_blocker #edit .content.posters').html(p_html)
+            $('#screen-blocker #edit .content.posters').html(p_html)
 
             let b_html = ''
             for(let i = 0; i < backdrops.length; i++){
@@ -150,7 +148,7 @@ class pageManager{
                     <div class="overlay"> SET </div>
                 </div>`
             }
-            $('#screen_blocker #edit .content.backdrops').html(b_html)
+            $('#screen-blocker #edit .content.backdrops').html(b_html)
 
             let l_html = ''
             for(let i = 0; i < logos.length; i++){
@@ -159,9 +157,9 @@ class pageManager{
                     <div class="overlay"> SET </div>
                 </div>`
             }
-            $('#screen_blocker #edit .content.logos').html(l_html)
+            $('#screen-blocker #edit .content.logos').html(l_html)
 
-            $('#screen_blocker #edit').show()
+            $('#screen-blocker #edit').show()
         }
     }
 }

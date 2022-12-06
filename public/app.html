@@ -11,14 +11,13 @@
         <link href="css/item.css" rel="stylesheet">
         <link href="css/actor_director.css" rel="stylesheet">
         <link href="css/videoPlayer.css" rel="stylesheet">
-        <!-- IMPORT JQUERY -->
-        <script src="lib/jquery.min.js"></script>
     </head>
     <body>
         <!-- MAIN SECTION -->
         <div id="main">
             <!-- PAGE TOP -->
             <div id="top">
+                <!-- TOP LEFT -->
                 <div class="section" style="justify-content: left">
                     <!-- <div id="sandwich" onclick="navBarToggle()"></div> -->
                     <div id="title">Betfli<span style="color: var(--theme); font-weight: bolder;">x</span></div>
@@ -28,21 +27,21 @@
                     <div class="insert" id="watchlistTab" onclick="pM.newPage('watchlist', {})"><div class="text">Watchlist</div></div>
                     <!-- <div class="insert" id="settingsTab"  onclick="pM.newPage('settings',  {})"><div class="text">Settings </div></div> -->
                 </div>
-                <div class="section">
-                    
-                </div>
+                <!-- TOP MIDDLE -->
+                <div class="section"></div>
+                <!-- TOP RIGHT -->
                 <div class="section" style="justify-content: right">
                     <div id="user" onclick="if(history.state.page != 'home'){window.location.href = 'logIn.html'} else{window.location.replace('logIn.html')}"></div>
                 </div>
             </div>
-            <!-- BROWSE WINDOW -->
-            <div id="screen_blocker">
+            <!-- SCREEN BLOCKER -->
+            <div id="screen-blocker">
                 <div id="overview">
-                    <div class="top"><div class="title"></div><div id="exit" onclick="$('#screen_blocker').css('display', 'none')"></div></div>
+                    <div class="top"><div class="title"></div><div id="exit" onclick="$('#screen-blocker').css('display', 'none')"></div></div>
                     <div class="text"></div>
                 </div>
                 <div id="edit">
-                    <div class="top"><div class="title"></div><div id="exit" onclick="$('#screen_blocker').css('display', 'none')"></div></div>
+                    <div class="top"><div class="title"></div><div id="exit" onclick="$('#screen-blocker').css('display', 'none')"></div></div>
                     <div id="tabs">
                         <div class="insert posters">Posters</div>
                         <div class="insert backdrops">Backdrops</div>
@@ -59,12 +58,13 @@
                     </div>
                 </div>
             </div>
+            <!-- BROWSE WINDOW -->
             <div id="browse">
                 <!-- HOME PAGE -->
                 <div id="home">
-                    <div class="browseMarginTop"></div>
+                    <div class="browse-margin-top"></div>
                     <!-- CONTINUE WATCHING -->
-                    <div class="sectionContainer" id="continueContainer">
+                    <div class="section-container" id="continueContainer">
                         <div class="sectionTitle" id="continueWatching_SectionTitle">
                             Continue Watching
                             <div class="Nav">
@@ -85,9 +85,9 @@
                 </div>
                 <!-- WATCHLIST PAGE -->
                 <div id="watchlist">
-                    <div class="browseMarginTop"></div>
+                    <div class="browse-margin-top"></div>
                     <!-- CONTINUE WATCHING SECTION -->
-                    <div class="sectionContainer">
+                    <div class="section-container">
                         <div class="sectionTitle">
                             In Your Watching
                             <div class="Nav">
@@ -103,11 +103,11 @@
                 <!-- SEARCH PAGE -->
                 <div id="search">
                     <!-- MARGIN TOP -->
-                    <div class="browseMarginTop"></div>
+                    <div class="browse-margin-top"></div>
                     <!-- SEARCHBAR -->
                     <input type="text" placeholder="Search Title" spellcheck="false">
                     <!-- RESULTS -->
-                    <div class="sectionContainer">
+                    <div class="section-container">
                         <!-- NAV BUTTONS -->
                         <div class="sectionTitle" style="margin-top: 10px; justify-content: right;">
                             <div class="Nav">
@@ -124,7 +124,7 @@
                 <!-- SETTINGS PAGE -->
                 <div id="settings">
                     <!-- MARGIN TOP -->
-                    <div class="browseMarginTop"></div>
+                    <div class="browse-margin-top"></div>
                     <!--  -->
                     <div class="sectionTitle">Theme Color</div>
                     <div class="section">
@@ -173,13 +173,8 @@
                             </div>
                         </div>
                         <div id="seasonScroll">
-                            <div class="browseMargin"></div>
-                            <div id="content">
                                 <!-- EPISODES GENERATED HERE -->
-                            </div>
-                            <div class="browseMargin"></div>
                         </div>
-
                         <div id="tabBar">
                             <div style="display: flex; flex-direction: row">
                                 <div class="insert" onclick="setTab('cast')">Cast</div>
@@ -195,7 +190,6 @@
                             <!-- CAST GENERATED HERE -->
                         </div>
                         <div id="director">
-                            <div class="browseMargin"></div>
                             <!-- CAST GENERATED HERE -->
                         </div>
                         <div id="details">
@@ -216,7 +210,7 @@
                 <!-- ACTOR/DIRECTOR PAGE -->
                 <div id="actor_director">
                     <!-- MARGIN TOP -->
-                    <div class="browseMarginTop"></div>
+                    <div class="browse-margin-top"></div>
                     <!-- HEADER -->
                     <div id="header">
                         <img>
@@ -227,7 +221,7 @@
                         </div>
                     </div>
                     <!-- RESULTS FOR ACTED-->
-                    <div class="sectionContainer acted" style="margin-bottom: 15px;">
+                    <div class="section-container acted" style="margin-bottom: 15px;">
                         <!-- NAV BUTTONS -->
                         <div class="sectionTitle" style="margin-top: 10px">
                             Acted In
@@ -238,12 +232,11 @@
                         </div>
                         <!-- MAIN RESULTS -->
                         <div class="itemScroll">
-                            <div class="browseMargin"></div>
                             <!-- CATALOG GENERATED HERE -->
                         </div>
                     </div>
                     <!-- RESULTS FOR DIRECTED-->
-                    <div class="sectionContainer directed">
+                    <div class="section-container directed">
                         <!-- NAV BUTTONS -->
                         <div class="sectionTitle" style="margin-top: 10px">
                             Directed
@@ -254,7 +247,6 @@
                         </div>
                         <!-- MAIN RESULTS -->
                         <div class="itemScroll">
-                            <div class="browseMargin"></div>
                             <!-- CATALOG GENERATED HERE -->
                         </div>
                     </div>
@@ -315,13 +307,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- IMPORT JQUERY -->
+        <script src="lib/jquery.min.js"></script>
+
+        <!-- IMPORT JS SCRIPTS -->
+        <script src="js/main.js"></script>
+        <script src="js/home.js"></script>
+        <script src="js/watchlist.js"></script>
+        <script src="js/search.js"></script>
+        <script src="js/item.js"></script>
+        <script src="js/videoPlayer.js"></script>
+        <script src="js/pageManager.js"></script>
     </body>
-    <!-- IMPORT JS SCRIPTS -->
-    <script src="js/main.js"></script>
-    <script src="js/home.js"></script>
-    <script src="js/watchlist.js"></script>
-    <script src="js/search.js"></script>
-    <script src="js/item.js"></script>
-    <script src="js/videoPlayer.js"></script>
-    <script src="js/pageManager.js"></script>
 </html>
