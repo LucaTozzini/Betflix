@@ -1,0 +1,86 @@
+.container-title{
+    color: white;
+    font-size: 1.6rem;
+    padding: 1rem 0 0 5vw;
+}
+
+.media-container{
+    display: flex;
+    gap: clamp(.5vw, 1.5rem, 3vw);
+    padding: 1rem 5vw 2rem 5vw;
+    overflow: auto;
+    overflow: overlay;
+}
+
+.media-item{
+    color: white;   
+    width: 11rem;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.media-item:hover{
+    scale: 1.08;
+}
+
+.media-poster{
+    width: 11rem;
+    height: 16rem;
+    border-radius: .4rem;
+    background-color: rgb(60, 60, 60);
+    margin-bottom: 1rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.media-title, .media-year{
+    font-size: 1rem;
+    max-width: 98%;
+    margin-left: 1%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.media-overlay{
+    height: calc(100% - .3rem);
+    width: calc(100% - .3rem);
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: .5rem;
+    opacity: 0;
+    transition: all 500ms ease;
+}
+
+.media-overlay:hover{
+    opacity: 1;
+}
+
+.media-overlay-button{
+    height: 2.5rem;
+    width: 2.5rem;
+    background-color: rgba(138, 138, 138, 0.973);
+    border-radius: 50%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 40%;
+    transition: all 200ms ease;
+}
+
+.media-overlay-button:hover{
+    scale: 1.1;
+}
+
+.media-overlay-button.play{
+    background-image: url(../../img/icons/play.png);
+}
+
+.media-overlay-button.watchlist-add{
+    background-image: url(../../img/icons/bookmark_empty.png);
+}
+
+.media-overlay-button.watchlist-rem{
+    background-image: url(../../img/icons/bookmark.png);
+}

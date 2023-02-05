@@ -1,0 +1,17 @@
+<% if(data.length > 0 || forceShow){ %> 
+    <div class="container-title"><%= title %></div>
+    <div class="media-container">
+        <% for(item of data){ %>
+            <a class="media-item" data-id="<%= item.id %>" data-type="<%= item.type %>">
+                <div class="media-poster" style="background-image: url('<%= item.poster %>')">
+                    <div class="media-overlay">
+                        <div class="media-overlay-button watchlist-add"></div>
+                        <div class="media-overlay-button play"></div>
+                    </div>
+                </div>
+                <div class="media-title"><%= item.title %></div>
+                <div class="media-year"><%= item.year %></div>
+            </a>
+        <% } %>
+    </div>
+<% } %> 

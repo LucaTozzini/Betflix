@@ -1,0 +1,17 @@
+<div id="cast-container">
+    <% for(const person of cast){ %>
+        <div class="person-insert">
+            <div class="person-image" 
+                <% if(person.data.profile != './img/missing-profile.png'){ %>
+                    style="background-image: url('<%= person.data.profile %>');"
+                <% } %> >
+            </div>
+            <div class="person-name">
+                <%= person.data.name %>
+            </div>
+            <div class="person-role">
+                <%= person.role %>
+            </div>
+        </div>
+    <% } %>
+</div>
