@@ -1,0 +1,141 @@
+body{
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    background: black;
+}
+
+header{
+    z-index: 200;
+    width: 100vw;
+    height: 6rem;
+    padding-bottom: 3rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(black, transparent);
+}
+
+header > span{
+    cursor: pointer;
+    height: inherit;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: opacity 300ms;
+}
+
+header > span:hover{
+    opacity: 0.7;
+}
+
+header button{
+    cursor: inherit;
+    height: 2rem;
+    width: 2rem;
+    margin-left: var(--margin);
+    background: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-image: url(/img/icons/arrowLeft.png);
+}
+
+h1{
+    color: white;
+    font-size: 2rem;
+}
+
+#controls{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 3rem var(--margin) 1.5rem var(--margin);
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.53));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+}
+
+.controls-section{
+    min-height: .9rem;
+    width: inherit;
+
+    display: flex;
+    align-items: center;
+    gap: 1.5vw;
+}
+
+.controls-section button{
+    height: 1.7rem;
+    width: 1.7rem;
+    cursor: pointer;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 300ms;
+}
+
+.controls-section button:hover{
+    opacity: .9;
+}
+
+.controls-section button > img{
+    cursor: inherit;
+    height: 100%;
+    width: 100%;
+}
+
+#timer{
+    color: white;
+    font-size: 1rem;
+}
+
+#seek-bar{
+    flex: 1;
+    height: .4rem;
+    background-color: rgba(130, 130, 130, 0.775);
+    cursor: pointer;
+    border-radius: .15rem;
+    transition: all 200ms;
+}
+
+#seek-bar:hover{
+    border-radius: .4rem;
+    height: .9rem;
+}
+
+#fill{
+    pointer-events: none;
+    height: 100%;
+    width: 0%;
+    background: rgb(255, 0, 119);
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#handle{
+    flex-shrink: 0;
+    height: .6rem;
+    width: .6rem;
+    margin-right: -.3rem;
+    border-radius: 50%;
+
+    background: inherit;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.399);
+
+    transition: all 200ms;
+}
+
+#seek-bar:hover #handle{
+    height: 1.2rem;
+    width: 1.2rem;
+    margin-right: -.5rem;   
+}

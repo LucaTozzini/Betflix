@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/all.css">
+        <link rel="stylesheet" href="/font.css">
+        <link rel="stylesheet" href="/views/video-player/style.css">
+    </head>
+    <body>
+        <header>
+            <span onclick="history.back()"> 
+                <button></button>
+                <h1><%= itemData.title %></h1>
+            </span>
+        </header>
+        
+        <video id="video-player"
+            <% if(itemData.type == 'movie'){ %>
+                src="/media/stream/movie/<%= itemData.id %>"
+            <% } else { %>
+                src="/media/stream/show/<%= showId %>/<%= itemData.id %>"
+            <% } %>     
+            height="100%" 
+            width="100%" 
+            data-id=<%= itemData.id %> 
+            
+            data-resume=<%= resume %> 
+            data-duration=<%= itemData.duration %>>
+        </video>
+
+        <div id="controls">
+            <div class="controls-section">
+                <div id="seek-bar">
+                    <div id="fill">
+                        <div id="handle"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-section" style="justify-content: space-between;">
+
+                <div class="controls-section" style="width:fit-content">
+                    <button id="playButton" onclick="togglePlay()">
+                        <img id="playButtonImg" src="/img/icons/play.png">
+                    </button>
+                    <div id="timer"></div>
+                </div>
+
+                <div class="controls-section" style="width:fit-content">
+                    
+                    <button onclick="">
+                        <img src="/img/icons/volume.png">
+                    </button>
+
+                    <button id="screenButton" onclick="toggleFullScreen()">
+                        <img id="screenButtonImg" src="/img/icons/fullscreen.png">
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </body>
+    <script src="/lib/jquery.min.js"></script>
+    <script src="/views/video-player/script.js"></script>
+
+    <% if(itemData.type == 'movie'){ %>
+        <script src="/views/video-player/updateContinueMovie.js"></script>
+    <% } else { %>
+        <script src="/views/video-player/updateContinueShow.js"></script>
+    <% } %>   
+</html>
