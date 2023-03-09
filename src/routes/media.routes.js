@@ -1,23 +1,23 @@
-import express from 'express'
-import fs from 'fs'
+import express from 'express';
+import fs from 'fs';
 
-import getSeason from '../helpers/get-season.helpers.js'
-import searchShow from '../helpers/search-show.helpers.js'
-import searchMovie from '../helpers/search-movie.helpers.js'
-import searchActor from '../helpers/search-actor.helpers.js'
-import availableSeasons from '../helpers/available-seasons.helpers.js'
+import getSeason from '../helpers/get-season.helpers.js';
+import searchShow from '../helpers/search-show.helpers.js';
+import searchMovie from '../helpers/search-movie.helpers.js';
+import searchActor from '../helpers/search-actor.helpers.js';
+import availableSeasons from '../helpers/available-seasons.helpers.js';
 
-import authUser from '../middleware/auth-user.middleware.js'
-import getMovieData from '../middleware/get-movie-data.middleware.js'
-import getUserSeason from '../middleware/get-user-season.middleware.js'
-import getEpisodeData from '../middleware/get-episode-data.middleware.js'
-import userMovieResume from '../middleware/user-movie-resume.middleware.js'
-import showIdFromParam from '../middleware/show-id-from-param.middleware.js'
-import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js'
-import movieIdFromParam from '../middleware/movie-id-from-param.middleware.js'
-import showEpisodeIdFromParam from '../middleware/show-episode-id-from-param.middleware.js'
+import authUser from '../middleware/auth-user.middleware.js';
+import getMovieData from '../middleware/get-movie-data.middleware.js';
+import getUserSeason from '../middleware/get-user-season.middleware.js';
+import getEpisodeData from '../middleware/get-episode-data.middleware.js';
+import userMovieResume from '../middleware/user-movie-resume.middleware.js';
+import showIdFromParam from '../middleware/show-id-from-param.middleware.js';
+import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js';
+import movieIdFromParam from '../middleware/movie-id-from-param.middleware.js';
+import showEpisodeIdFromParam from '../middleware/show-episode-id-from-param.middleware.js';
 
-const router = express.Router()
+const router = express.Router();
 
 router.get('/movie/:movieId', 
     userIdFromCookie,
@@ -28,7 +28,7 @@ router.get('/movie/:movieId',
             const movie = await searchMovie(id)
             
             if(movie.status == 404){
-                return res.status(404).send()
+                return res.sendStatus(404)
             }
             else if(movie.status == 500){
                 throw new Error()
@@ -61,7 +61,7 @@ router.get('/movie/:movieId',
             res.sendStatus(500)
         }
     }
-)
+);
 
 router.get('/show/:showId', 
     userIdFromCookie,
@@ -76,7 +76,7 @@ router.get('/show/:showId',
             res.sendStatus(500)
         }
     }
-)
+);
 
 router.get('/show/:showId/:season', 
     userIdFromCookie,
@@ -141,7 +141,7 @@ router.get('/show/:showId/:season',
             res.sendStatus(500)
         }
     }
-)
+);
 
 router.get('/stream/movie/:movieId', 
     userIdFromCookie,
@@ -180,7 +180,7 @@ router.get('/stream/movie/:movieId',
         console.error('stream', err.message)
         res.sendStatus(500)
     }
-})
+});
 
 router.get('/stream/show/:showId/:episodeId', 
     userIdFromCookie,
@@ -214,7 +214,7 @@ router.get('/stream/show/:showId/:episodeId',
         const videoStream = fs.createReadStream(videoPath, { start, end })
         videoStream.pipe(res)
     }
-)
+);
 
 router.get('/player/movie/:movieId', 
     userIdFromCookie,
@@ -229,7 +229,7 @@ router.get('/player/movie/:movieId',
         catch{
             res.sendStatus(500)
         }
-})
+});
 
 router.get('/player/show/:showId/:episodeId', 
     userIdFromCookie,
@@ -244,6 +244,20 @@ router.get('/player/show/:showId/:episodeId',
             res.sendStatus(500)
         }
     }
-)
+);
+
+router.get('/player/show/:showId',
+    userIdFromCookie,
+    authUser,
+    showIdFromParam,
+    getUserSeason,
+    (req, res) => {
+        res.redirect(`/media/player/show/${req.params.showId}/${res.locals.userEpisodeId}`)
+    }
+);
+
+
+
+
 
 export default router

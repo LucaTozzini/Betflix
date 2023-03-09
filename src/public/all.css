@@ -11,7 +11,7 @@
     border: none;
 }
 
-body, html{
+body{
     background: rgb(27, 27, 27);
     overflow-y: auto;
     overflow-x: hidden;
