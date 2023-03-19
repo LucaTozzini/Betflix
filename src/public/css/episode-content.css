@@ -1,0 +1,46 @@
+#episode-container{
+    padding-bottom: 2rem;
+    width: 100%;
+    overflow: auto;
+    overflow: overlay;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.episode{
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 16rem;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.episode:hover{
+    scale: 1.05;
+}
+
+.episode-thumbnail{
+    height: 9.5rem;
+    width: 16rem;
+    border-radius: .4rem;
+    margin: .5rem 0;
+    background-color: rgb(73, 73, 73);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.episode-title, .episode-date{
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: white;
+    font-size: 1rem;
+}
+
+.episode-date{
+    color: rgb(209, 209, 209);
+    font-size: 0.8rem;
+}

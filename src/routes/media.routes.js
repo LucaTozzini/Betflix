@@ -1,162 +1,57 @@
 import express from 'express';
 import fs from 'fs';
 
-import getSeason from '../helpers/get-season.helpers.js';
-import searchShow from '../helpers/search-show.helpers.js';
-import searchMovie from '../helpers/search-movie.helpers.js';
-import searchActor from '../helpers/search-actor.helpers.js';
-import availableSeasons from '../helpers/available-seasons.helpers.js';
-
-import authUser from '../middleware/auth-user.middleware.js';
-import getMovieData from '../middleware/get-movie-data.middleware.js';
-import getUserSeason from '../middleware/get-user-season.middleware.js';
-import getEpisodeData from '../middleware/get-episode-data.middleware.js';
-import userMovieResume from '../middleware/user-movie-resume.middleware.js';
-import showIdFromParam from '../middleware/show-id-from-param.middleware.js';
-import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js';
-import movieIdFromParam from '../middleware/movie-id-from-param.middleware.js';
-import showEpisodeIdFromParam from '../middleware/show-episode-id-from-param.middleware.js';
+import dataSearch from '../helpers/data-search.helpers.js';
+import mediaManager from '../helpers/media-manager.helpers.js';
+import usersManager from '../helpers/users-manager.helpers.js';
 
 const router = express.Router();
 
-router.get('/movie/:movieId', 
-    userIdFromCookie,
-    authUser,
-    async (req, res) => {
-        try{
-            const id = req.params.movieId
-            const movie = await searchMovie(id)
-            
-            if(movie.status == 404){
-                return res.sendStatus(404)
-            }
-            else if(movie.status == 500){
-                throw new Error()
-            }
+router.get('/i/:media_id', async(req, res) => {
+    try{
+        // Authenticate User
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
 
-            const castJson = await JSON.parse(movie.data.cast)
-            const cast = []
-            for(const a of castJson){
-                const search = await searchActor(a.actor)
-                if(search.status == 500){
-                    throw new Error()
-                } 
-                else if(search.status == 404){
-                    continue
-                }
+        // Get User Data
+        const user = await usersManager.user(req.cookies.user_id);
 
-                const actor = {
-                    data: search.data, 
-                    role: a.character
-                }
-                
-                cast.push(actor)
-            }
+        // Get Media Data
+        let data = await dataSearch.media(req.params.media_id);
+        const cast = await dataSearch.credits(data.media_id);
+        data.cast = cast;
 
-            movie.data.cast = cast
-            res.render('media-page', {user: res.locals.userData, data: movie.data})
+        if(data.item_type == 2){
+            data.av_seasons = await dataSearch.availableSeasons(req.params.media_id);
+            const season_num = req.query.s || data.av_seasons[0];
+            data.season_num = season_num;
+            data.episodes = await dataSearch.season(req.params.media_id, season_num);
+
         }
-        catch(e){
-            console.error('/media/movie/id .get', e.message)
-            res.sendStatus(500)
-        }
+        res.render('media-page', {user, data});
     }
-);
-
-router.get('/show/:showId', 
-    userIdFromCookie,
-    authUser,
-    showIdFromParam,
-    getUserSeason,
-    async (req, res) => {
-        try{
-            res.redirect(`${res.locals.showId}/${res.locals.userSeason}`)
-        }
-        catch{
-            res.sendStatus(500)
-        }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
     }
-);
+})
 
-router.get('/show/:showId/:season', 
-    userIdFromCookie,
-    authUser,
-    showIdFromParam,
-    async (req, res) => {
-        try{
-            const season = parseInt(req.params.season)
-
-            // Get Show Data From Database
-            const show = await searchShow(res.locals.showId)
-
-            // Get Season Data From Database
-            const episodes = await getSeason(res.locals.showId, season)
-            
-            // If Show Or Season Is Not In Database
-            // Respond With Not Found (404)
-            if(show.status == 404 || episodes.status == 404){
-                return res.status(404).send()
-            }
-
-            const allSeasons = await availableSeasons(res.locals.showId)
-
-            // If An Error Occurs Retrieving Data
-            // Throw Error
-            if(show.status == 500 || episodes.status == 500 || allSeasons.status == 500){
-                throw new Error()
-            }
-
-            // Parse Show Cast
-            const castJson = await JSON.parse(show.data.cast)
-
-            // Get Actor Info
-            const cast = []
-            for(const a of castJson){
-                const search = await searchActor(a.actor)
-                if(search.status == 500){
-                    throw new Error()
-                } 
-                else if(search.status == 404){
-                    continue
-                }
-
-                const actor = {
-                    data: search.data, 
-                    role: a.character
-                }
-                
-                cast.push(actor)
-            }
-
-            show.data.cast = cast
-
-            // Render Media Page
-            res.render('media-page', {user: res.locals.userData, data: show.data, episodes: episodes.data, season, allSeasons: allSeasons.data})
-        }
-
-        // If An Error Occurs
-        // Respond With Internal Server Error (500)
-        catch(e){
-            console.error(e.message)
-            res.sendStatus(500)
-        }
-    }
-);
-
-router.get('/stream/movie/:movieId', 
-    userIdFromCookie,
-    authUser,
-    movieIdFromParam,
-    getMovieData,
-    (req, res)=>{
+router.get('/s/:media_id', async (req, res)=>{
     try{
         const range = req.headers.range
 
         if (!range) {
             res.status(400).send("Requires Range header");
         }
+
+        const media = await dataSearch.media(req.params.media_id);
+        let videoPath = media.path;
         
-        const videoPath = res.locals.movieData.path
+        if(media.item_type == 2){
+            const episode = await dataSearch.episode(req.query.e);
+            videoPath = episode.path;
+        }
+
         const videoSize = fs.statSync(videoPath).size;
     
         const CHUNK_SIZE = 10 ** 6; // 1MB
@@ -182,82 +77,86 @@ router.get('/stream/movie/:movieId',
     }
 });
 
-router.get('/stream/show/:showId/:episodeId', 
-    userIdFromCookie,
-    authUser,
-    showEpisodeIdFromParam,
-    getEpisodeData,
-    (req, res) => {
-        const range = req.headers.range
-
-        if (!range) {
-            res.status(400).send("Requires Range header");
-        }
+router.get('/p/:media_id', async (req, res) => {
+    try{
+        const user_id = req.cookies.user_id;
+        const media_id = req.params.media_id;
+        const auth = usersManager.authenticate(user_id);
+        if(!auth) res.redirect('/user');
         
-        const videoPath = '../'+res.locals.episodeData.path
-        const videoSize = fs.statSync(videoPath).size;
-    
-        const CHUNK_SIZE = 10 ** 6; // 1MB
-        const NUM_CHUNKS = 1 //how many chunks to send
-        const start = Number(range.replace(/\D/g, ""));
-        const end = Math.min(start + (CHUNK_SIZE * NUM_CHUNKS), videoSize - 1) //subtract 1 because start at 0
-        const contentLength = end - start + 1
-    
-        const headers = {
-            "Content-Range": `bytes ${start}-${end}/${videoSize}`,
-            "Accept-Ranges": "bytes",
-            "Content-Length": contentLength,
-            "Content-Type": "video/mp4",
-        }
-    
-        res.writeHead(206, headers)
-        const videoStream = fs.createReadStream(videoPath, { start, end })
-        videoStream.pipe(res)
-    }
-);
+        const data = await dataSearch.media(media_id);
 
-router.get('/player/movie/:movieId', 
-    userIdFromCookie,
-    authUser,
-    movieIdFromParam,
-    getMovieData,
-    userMovieResume,
-    (req, res) => {
-        try{
-            res.render('video-player', {itemData: res.locals.movieData, resume: res.locals.movieResume})
+        if(data.item_type == 2){
+            const episode = req.query.e == undefined ? await dataSearch.firstAvailableEpisode(media_id) : await dataSearch.episode(req.query.e);
+            data.title = `${data.title} - S${episode.season_num}E${episode.episode_num} ${episode.title}`            
+            data.path = episode.path;
+            data.episode_id = episode.episode_id;
         }
-        catch{
-            res.sendStatus(500)
-        }
+
+        const resume = await usersManager.getResume(user_id, media_id, data.episode_id || -1);
+        res.render('video-player', {data, resume})
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
 });
 
-router.get('/player/show/:showId/:episodeId', 
-    userIdFromCookie,
-    authUser,
-    showEpisodeIdFromParam,
-    getEpisodeData,
-    (req, res) => {
-        try{
-            res.render('video-player', {itemData: res.locals.episodeData, showId: res.locals.showId, resume: 0})
-        }
-        catch{
-            res.sendStatus(500)
-        }
+router.get('/manager', async (req, res) => {
+    try{
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
+        const user = await usersManager.user(req.cookies.user_id);
+        res.render('media-manager', {user});
     }
-);
-
-router.get('/player/show/:showId',
-    userIdFromCookie,
-    authUser,
-    showIdFromParam,
-    getUserSeason,
-    (req, res) => {
-        res.redirect(`/media/player/show/${req.params.showId}/${res.locals.userEpisodeId}`)
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
     }
-);
+});
 
+router.get('/manager/reset', async (req, res) => {
+    try{
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
+        mediaManager.resetMedia();
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
 
+router.get('/manager/add/:action', async (req, res) => {
+    try{
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
+        const action = req.params.action;
+        if(action == 'shows') mediaManager.addShows();
+        else if(action == 'movies') mediaManager.addMovies();
+        else if(action == 'credits') mediaManager.addCredits();
+        res.sendStatus(200);
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
 
+router.get('/manager/updater', async (req, res) => {
+    try{
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
+        res.json({
+            progress: mediaManager.PROGRESS,
+            update: mediaManager.UPDATE,
+            busy: mediaManager.BUSY
+        })
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
 
-
-export default router
+export default router;

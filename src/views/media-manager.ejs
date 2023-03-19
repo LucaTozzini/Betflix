@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/css/all.css">
+        <link rel="stylesheet" href="/css/menu.css">
+        <link rel="stylesheet" href="/css/font.css">
+        <link rel="stylesheet" href="/css/media-manager.css">
+    </head>
+    <body>
+        <%- include('./partials/menu', {user}) %>
+        <div id="main-cont">
+            <div id="header-title">
+                Media Manager
+            </div>
+            <div id="controls">
+                <button onclick="addMovies()">Scan Movies</button>
+                <button onclick="addShows()">Scan Shows</button>
+                <button onclick="addCredits()">Scan Credits</button>
+                <button onclick="reset()">Reset DB</button>
+            </div>
+            <div id="updates">
+                
+            </div>
+            <div id="progress">
+                <div id="progress-fill"></div>
+            </div>
+        </div>
+    </body>
+    <script src="/lib/jquery.min.js"></script>
+    <script src="/js/media-manager.js"></script>
+    <script src="/js/menu.js"></script>
+</html>

@@ -1,21 +1,14 @@
-<% if(data.length > 0 || forceShow){ %> 
-    <div class="container-title"><%= title %></div>
-    <div class="media-container">
-        <% for(item of data){ %>
-            <a class="media-item" data-id="<%= item.id %>" data-type="<%= item.type %>">
-                <div class="media-poster" style="background-image: url('<%= item.poster %>')">
-                    <div class="media-overlay">
-                        <div class="media-overlay-button watchlist-add">
-                            <img src="/img/icons/plus.png" alt="+">
-                        </div>
-                        <div class="media-overlay-button play">
-                            <img src="/img/icons/play.png" alt=">">
-                        </div>
-                    </div>
-                </div>
-                <div class="media-title"><%= item.title %></div>
-                <div class="media-year"><%= item.year %></div>
-            </a>
-        <% } %>
+<% if(data.length > 0 || forceShow){ %>
+    <div class="media-content">
+        <div class="container-header">
+            <div class="container-title"><%= title %></div>
+            <div class="container-nav">
+                <button class="nav left"></button>
+                <button class="nav right"></button>
+            </div>
+        </div> 
+        <div class="media-container">
+            <%- include('media-items', {data}) %>
+        </div>
     </div>
 <% } %> 

@@ -3,9 +3,9 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 
 import home_routes from './routes/home.routes.js'
+import media_routes from './routes/media.routes.js'
 import user_routes from './routes/user.routes.js'
 import search_routes from './routes/search.routes.js'
-import media_routes from './routes/media.routes.js'
 
 const app = express()
 
@@ -20,13 +20,10 @@ app.get('/', (req, res) => {
     res.redirect('/home')
 })
 
-app.use('/user', user_routes)
-
 app.use('/home', home_routes)
-
-app.use('/search', search_routes)
-
 app.use('/media', media_routes)
+app.use('/user', user_routes)
+app.use('/search', search_routes)
 
 // Start Server
 app.listen(PORT, ()=> {

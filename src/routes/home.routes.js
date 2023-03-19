@@ -1,42 +1,61 @@
 import express from 'express'
 
-import getGenre from '../helpers/get-genre.helpers.js'
-
-import authUser from '../middleware/auth-user.middleware.js'
-import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js'
+import dataSearch from '../helpers/data-search.helpers.js';
+import usersManager from '../helpers/users-manager.helpers.js';
 
 const router = express.Router()
 
-router.get('/', 
-    userIdFromCookie, 
-    authUser, 
-    async (req, res) => {
-        try{
-            // Array Of All Genres In Database
-            const genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Sci_Fi', 'Thriller', 'War']
+router.get('/', async (req, res) => {
+    try{
+        // Authenticate User
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
 
-            // Get Data For Each Genre
-            let media = {}
-            for(const genre of genres){
-                media[genre] = await getGenre(genre, 0)
+        // Get User Data
+        const user = await usersManager.user(req.cookies.user_id);
+        const resume = await usersManager.allResume(req.cookies.user_id, 20);
 
-                // If An Error Occurs Retrieving Data
-                // Throw Error
-                if(media[genre].status == 500){
-                    throw new Error()
-                }
+        // Array Of All Genres In Database
+        const genres = [
+            'Action', 
+            'Adventure', 
+            'Animation', 
+            'Comedy', 
+            'Crime', 
+            'Documentary', 
+            'Drama', 
+            'Family', 
+            'Fantasy', 
+            'History', 
+            'Horror', 
+            'Music', 
+            'Mystery', 
+            'Romance', 
+            'Sci-Fi', 
+            'Thriller', 
+            'War'
+        ];
+
+        // Get Data For Each Genre
+        let media = {};
+        for(const genre of genres){
+            try{
+                media[genre] = await dataSearch.genre(genre);
             }
+            catch(err){
+                console.error(err.message);
+            }
+        };
 
-            res.render('home', {user: res.locals.userData, media})
-        }
-
-        // If An Error Occurs
-        // Respond With Internal Server Error (500)
-        catch(err){
-            console.error('/home/ .get', err.message)
-            res.sendStatus(500)
-        }
+        res.render('home', {user, media, resume});
     }
-)
+
+    // If An Error Occurs
+    // Respond With Internal Server Error (500)
+    catch(err){
+        console.error('/home:', err.message)
+        res.sendStatus(500)
+    }
+})
 
 export default router

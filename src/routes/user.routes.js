@@ -1,16 +1,6 @@
 import fs from 'fs'
-import ejs from 'ejs'
 import express from 'express'
-
-import createUser from '../helpers/create-user.helper.js'
-import updateContinueMovie from '../helpers/update-continue-movie.helpers.js'
-
-import authUser from '../middleware/auth-user.middleware.js'
-import getUsers from '../middleware/get-users.middleware.js'
-import userIdFromBody from '../middleware/user-id-from-body.middleware.js'
-import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js'
-
-const USER_PROFILE_IMG_PATH = '/img/profilePictures/'
+import usersManager from '../helpers/users-manager.helpers.js';
 
 const router = express.Router()
 
@@ -28,12 +18,14 @@ router.post('/', async (req, res) => {
         }
 
         // Create User
-        const user = await createUser(name, image, child)
-
-        // If An Error Occurs Creating User
+        try{
+            await usersManager.createUser(name, image, child);
+        }
+        // If Promise Is Rejected
         // Throw Error
-        if(user.status == 500){
-            throw new Error()
+        catch(err){
+            console.error(err.message);
+            throw new Error();
         }
 
         // If User Is Created Successfully
@@ -49,66 +41,71 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/', 
-    getUsers,
-    (req, res) => {
-        try{
-            // Render Page
-            res.render('select-user', {data: res.locals.userList}) 
-        }
+router.get('/', async (req, res) => {
+    try{
+        const data = await usersManager.userList();
+        res.render('select-user', {data});
+    }
 
-        // If An Error Occurs
-        // Respond With Internal Server Error (500)
-        catch{
-            res.sendStatus(500)
-        }
+    catch{
+        res.sendStatus(500)
+    }
     }
 )
 
-router.post('/log/in', 
-    userIdFromBody,
-    authUser,
-    async (req, res) => {
-        try{
-            res.cookie('userId', res.locals.userData.id, { maxAge: 100000000 })
-            res.status(200).send()
-        }
+router.post('/log/in', async (req, res) => {
+    try{
+        // Authenticate User
+        const auth = await usersManager.authenticate(req.body.user_id);
+        if(!auth) return res.status(401).redirect('/user');
 
-        catch{
-            res.status(500).send()
-        }
+        const user = await usersManager.user(req.body.user_id);
+
+        res.cookie('user_id', user.user_id, { maxAge: 100000000 });
+        res.sendStatus(200);
     }
-)
+
+    catch{
+        res.sendStatus(500);
+    }
+});
 
 router.get('/log/out', async (req, res) => {
     try{
-        res.cookie('userId', null, { maxAge: 1 });
+        res.cookie('user_id', null, { maxAge: 1 });
         res.status(200).send()
     }
     catch{
         res.status(500).send()
     }
-})
+});
 
 router.get('/create', (req, res) => {
     try{
-        let images = fs.readdirSync('public'+USER_PROFILE_IMG_PATH)
-        images = images.map(image => USER_PROFILE_IMG_PATH + image)
-        res.render('create-user', {images})
+        let images = fs.readdirSync('public/img/profilePictures/');
+        images = images.map(image => '/img/profilePictures/' + image);
+        res.render('create-user', {images});
     }
     catch(err){
-        console.error(err.message)
-        res.sendStatus(500)
+        console.error(err.message);
+        res.sendStatus(500);
     }
-})
+});
 
-router.post('/update/continue/movie', 
-    userIdFromCookie,
-    authUser,
+router.post('/update/continue', 
     async (req, res) => {
-        await updateContinueMovie(res.locals.userId, req.body.movieId, req.body.percent)
+        const user_id = req.cookies.user_id;
+        const episode_id = req.body.episode_id || -1;
+        const media_id = req.body.media_id;
+        const percent = req.body.percent;
+        
+        // Authenticate User
+        const auth = await usersManager.authenticate(user_id);
+        if(!auth) return res.status(401);
+
+        await usersManager.updateContinue(user_id, media_id, percent, episode_id)
         res.sendStatus(200)
     }
-)
+);
 
-export default router
+export default router;

@@ -1,59 +1,39 @@
 import express from 'express'
 
-import searchMedia from '../helpers/search-media.helpers.js'
-
-import authUser from '../middleware/auth-user.middleware.js'
-import userIdFromCookie from '../middleware/user-id-from-cookie.middleware.js'
+import dataSearch from '../helpers/data-search.helpers.js';
+import usersManager from '../helpers/users-manager.helpers.js';
 
 const router = express.Router()
 
-router.get('/',
-    userIdFromCookie,
-    authUser,
-    async (req, res) => {
-        try{
-            res.render('search', {user: res.locals.userData})
-        }
-        catch{
-            res.status(500)
-        }
+router.get('/', async (req, res) => {
+    try{
+        // Authenticate User
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401).redirect('/user');
+
+        // Get User Data
+        const user = await usersManager.user(req.cookies.user_id);
+
+        res.render('search', {user})
     }
-)
+    catch{
+        res.sendStatus(500);
+    }
+})
 
 router.post('/', async (req, res) => {
     try{
         const value = req.body.value
 
-        if(value.length == 0){
-            return res.json({html: ``})
-        }
+        // If Empty Value
+        if(value.length == 0) return res.json({html: ``})
 
-        const results = await searchMedia(value)
+        const data = await dataSearch.title(value);
 
-        if(results.status == 500){
-            throw new Error()
-        }
-
-        let html = ''
-        for(const item of results.data){
-            html += `
-            <a class="media-item" data-id="${item.id}" data-type="${item.type}">
-                <div class="media-poster" style="background-image: url('${item.poster}')">
-                    <div class="media-overlay">
-                        <div class="media-overlay-button watchlist-add"></div>
-                        <div class="media-overlay-button play"></div>
-                    </div>
-                </div>
-                <div class="media-title">${item.title}</div>
-                <div class="media-year">${item.year}</div>
-            </a>
-            `
-        }
-
-        res.json({html})
+        res.render('partials/media-items', {data})
     }
-    catch(e){
-        console.error(e.message)
+    catch(err){
+        console.error(err.message)
         res.sendStatus(500)
     }
 })

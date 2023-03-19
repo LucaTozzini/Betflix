@@ -2,17 +2,17 @@
 <html>
     <head>
         <title>Who's Watching | Betflix</title>
-        <link rel="stylesheet" href="/all.css">
-        <link rel="stylesheet" href="/font.css">
-        <link rel="stylesheet" href="/views/select-user/style.css">
+        <link rel="stylesheet" href="/css/all.css">
+        <link rel="stylesheet" href="/css/font.css">
+        <link rel="stylesheet" href="/css/select-user.css">
     </head>
     <body>
         <h1>Who's Watching?</h1>
         <div id="user-container">
             <% for(const user of data){ %>
                 <div class="user">
-                    <div data-id="<%= user.id %>" class="user-image" style="background-image: url('<%= user.image %>');"></div>
-                    <div class="user-name"><%= user.name %></div>
+                    <div data-id="<%= user.user_id %>" class="user-image" style="background-image: url('<%= user.user_image %>');"></div>
+                    <div class="user-name"><%= user.user_name %></div>
                 </div>
             <% } %> 
 
@@ -28,5 +28,7 @@
     <script src="/lib/jquery.min.js"></script>
 
     <!-- Import Main Script -->
-    <script src="/views/select-user/script.js"></script>
+    <script src="/js/select-user.js"></script>
+
+    <script src="/js/menu.js"></script>
 </html>

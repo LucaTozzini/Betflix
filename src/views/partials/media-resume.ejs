@@ -1,0 +1,60 @@
+<% if(data.length > 0){ %>
+<div id="media-resume">
+    <% for(const media of data){%>
+        <a 
+            class="media-resume-item" 
+            href="/media/p/<%= media.media_id %>?e=<%= media.episode_id %>"
+        >
+            <div class="no-space">
+                <div 
+                    class="media-resume-backdrop"
+                    <% if(media.item_type == 2) { %>
+                        style="background-image: url(<%= media.still %>);"
+                    <% }
+                    else { %>
+                        style="background-image: url(<%= media.backdrop %>);"
+                    <% } %> 
+                ></div>
+            </div>
+            <div class="no-space">
+                <div class="media-resume-progress" style="width: <%= media.percent %>%"></div>
+            </div>
+            <div class="media-resume-overlay">
+                <div class="media-resume-overlay-section">
+                    <div class="media-logo" style="background-image: url(<%= media.logo %>);"></div>
+                    <div class="media-info">
+                        <div class="media-info-col">
+                            <%= media.year %>
+                        </div>
+                        <div class="media-info-col">
+                            <%= media.content_rating %>
+                        </div>
+
+                        <% 
+                        let seconds_left =  media.duration - ((media.duration / 100) * media.percent);
+                        const hours_left = Math.floor(seconds_left / 3600);
+                        const minutes_left = Math.floor(seconds_left / 60) - (hours_left * 60);
+                        seconds_left -= (hours_left * 3600) + (minutes_left * 60)
+
+                        const left_text = `${hours_left > 0 ? hours_left+'h' : ''} ${minutes_left > 0 ? minutes_left+'m' : ''} Left`
+
+                        %>
+                        <div class="media-info-col">
+                            <%= left_text %>
+                        </div>
+
+                    </div>
+                    <div class="media-info-episode">
+                        <% if(media.item_type == 2) { %>
+                        S<%= media.season_num %>.E<%= media.episode_num %>: <%= media.episode_title %>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="media-resume-overlay-section">
+                    
+                </div>
+            </div>
+        </a>
+    <% } %>
+</div>
+<% } %>

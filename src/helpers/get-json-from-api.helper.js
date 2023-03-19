@@ -1,7 +1,7 @@
 import https from 'https';
 
 function getJsonFromApi(url){
-    return new Promise((resolve)=>{
+    return new Promise((resolve, reject) => {
         https.get(url ,(res) => {
             let body = "";
         
@@ -21,7 +21,7 @@ function getJsonFromApi(url){
         
         }).on("error", (error) => {
             console.error(error.message);
-            resolve({'error':error.message})    
+            reject(error);
         });
     })
 }

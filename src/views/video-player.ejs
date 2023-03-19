@@ -1,32 +1,27 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="/all.css">
-        <link rel="stylesheet" href="/font.css">
-        <link rel="stylesheet" href="/views/video-player/style.css">
+        <link rel="stylesheet" href="/css/all.css">
+        <link rel="stylesheet" href="/css/font.css">
+        <link rel="stylesheet" href="/css/video-player.css">
     </head>
     <body>
         <header>
             <span onclick="history.back()"> 
                 <button></button>
-                <h1><%= itemData.title %></h1>
+                <h1><%= data.title %></h1>
             </span>
         </header>
-        
         <video id="video-player"
-            <% if(itemData.type == 'movie'){ %>
-                src="/media/stream/movie/<%= itemData.id %>"
+            <% if(data.type == 1){ %>
+                src="/media/s/<%= data.media_id %>"
             <% } else { %>
-                src="/media/stream/show/<%= showId %>/<%= itemData.id %>"
+                src="/media/s/<%= data.media_id %>?e=<%= data.episode_id %>"
             <% } %>     
             height="100%" 
-            width="100%" 
-            data-id=<%= itemData.id %> 
-            
-            data-resume=<%= resume %> 
-            data-duration=<%= itemData.duration %>>
+            width="100%"
+        >
         </video>
-
         <div id="controls">
             <div class="controls-section">
                 <div id="seek-bar">
@@ -36,35 +31,49 @@
                 </div>
             </div>
             <div class="controls-section" style="justify-content: space-between;">
-
                 <div class="controls-section" style="width:fit-content">
                     <button id="playButton" onclick="togglePlay()">
                         <img id="playButtonImg" src="/img/icons/play.png">
                     </button>
                     <div id="timer"></div>
                 </div>
-
                 <div class="controls-section" style="width:fit-content">
-                    
                     <button onclick="">
                         <img src="/img/icons/volume.png">
                     </button>
-
                     <button id="screenButton" onclick="toggleFullScreen()">
                         <img id="screenButtonImg" src="/img/icons/fullscreen.png">
                     </button>
-
                 </div>
-
             </div>
         </div>
     </body>
     <script src="/lib/jquery.min.js"></script>
-    <script src="/views/video-player/script.js"></script>
+    <script src="/js/video-player.js"></script>
 
-    <% if(itemData.type == 'movie'){ %>
-        <script src="/views/video-player/updateContinueMovie.js"></script>
-    <% } else { %>
-        <script src="/views/video-player/updateContinueShow.js"></script>
-    <% } %>   
+    <script>
+        video.currentTime = (<%= resume %> / 100) * <%= data.duration %>;
+        (async function updateContiue(){
+            const percent = Math.floor(((100 / <%= data.duration %>) * video.currentTime) * 100) / 100
+            console.log(percent);
+            if(!video.paused){
+                await fetch('/user/update/continue', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        percent,
+                        media_id: '<%= data.media_id %>',
+                        <% if(data.item_type == 2){ %>
+                            episode_id: <%= data.episode_id %>
+                        <% } %>
+                    })
+                });
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 4000))
+            updateContiue()
+        })()
+    </script>
 </html>

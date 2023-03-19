@@ -2,17 +2,18 @@
 <html>
     <head>
         <title>Home | Betflix</title>
-        <link rel="stylesheet" href="/all.css">
-        <link rel="stylesheet" href="/font.css">
-        <link rel="stylesheet" href="/scrollbar.css">
-        <link rel="stylesheet" href="/views/home/style.css">
-        <link rel="stylesheet" href="/partials/menu/style.css">
-        <link rel="stylesheet" href="/partials/media-content/style.css">
+        <link rel="stylesheet" href="/css/all.css">
+        <link rel="stylesheet" href="/css/font.css">
+        <link rel="stylesheet" href="/css/menu.css">
+        <link rel="stylesheet" href="/css/scrollbar.css">
+        <link rel="stylesheet" href="/css/media-resume.css">
+        <link rel="stylesheet" href="/css/media-content.css">
     </head>
     <body>
         <%- include('./partials/menu', {user}) %>
-        <% for(const genre in media){ %>
-            <%- include('./partials/media-content', {title: genre, data: media[genre].data, forceShow: false}) %>
+        <%- include('partials/media-resume', {data: resume})  %>
+        <% for(const [title, data] of Object.entries(media)){ %>
+            <%- include('./partials/media-content', {title, data, forceShow: false}) %>
         <% } %>
             
     </body>
@@ -20,7 +21,8 @@
     <!-- Import Jquery -->
     <script src="/lib/jquery.min.js"></script>
     
-    <script src="/views/home/script.js"></script>
-    <script src="/partials/media-content/script.js"></script>
+    <script src="/js/home.js"></script>
+    <script src="/js/media-content.js"></script>
+    <script src="/js/menu.js"></script>
 
 </html>
