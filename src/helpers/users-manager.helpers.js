@@ -60,7 +60,7 @@ const usersManager = {
     allResume(user_id, max){
         return new Promise((resolve, reject) => {
             db.all(`
-                SELECT u.*, m.*, e.title AS episode_title, e.season_num, e.episode_num, e.still
+                SELECT u.*, m.*, e.title AS episode_title, e.season_num, e.episode_num, e.still_large
                 FROM user_continue AS u
                 JOIN media AS m ON m.media_id = u.media_id
                 LEFT JOIN episodes AS e ON e.episode_id =  u.episode_id 

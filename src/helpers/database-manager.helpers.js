@@ -77,7 +77,8 @@ const dbManager = {
                         overview TEXT,
                         vote INT,
                         duration INT, 
-                        still TEXT,
+                        still_small TEXT,
+                        still_large TEXT,
                         path TEXT NOT NULL
                     )`, (err) => { 
                         if(err){

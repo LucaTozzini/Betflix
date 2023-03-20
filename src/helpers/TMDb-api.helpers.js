@@ -69,7 +69,8 @@ const TMDb = {
                     res.overview ? res.overview : '', 
                     res.vote_average ? parseInt(parseFloat(res.vote_average) * 10) : -1, 
                     duration,
-                    Img_Base_500 + res.still_path, 
+                    Img_Base_500 + res.still_path, // Small Still
+                    Img_Base + res.still_path, // Large Still 
                     path
                 ];
     

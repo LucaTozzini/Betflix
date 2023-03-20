@@ -1,4 +1,3 @@
-import { reject } from "async";
 import db from "./database-pool.helpers.js";
 
 const dataSearch = {
@@ -137,6 +136,6 @@ const dataSearch = {
             })
         })
     }
-}
+};
 
 export default dataSearch;

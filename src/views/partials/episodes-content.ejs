@@ -1,7 +1,7 @@
 <div id="episode-container">
     <% for(const episode of episodes){ %>
         <a class="episode" href="/media/p/<%= episode.media_id %>?e=<%= episode.episode_id %>">
-            <div class="episode-thumbnail" style="background-image: url('<%= episode.still %>');"></div>
+            <div class="episode-thumbnail" style="background-image: url('<%= episode.still_small %>');"></div>
             <div class="episode-title">S<%= episode.season_num %>.E<%= episode.episode_num %> - <%= episode.title %></div>
             <div class="episode-date">
                 <% const months = ['Junly', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] %> 

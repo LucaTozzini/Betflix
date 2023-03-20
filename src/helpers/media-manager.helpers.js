@@ -20,8 +20,8 @@ const mediaManager = {
 
         episode(){ 
             return db.prepare(`
-                INSERT INTO episodes (episode_id , media_id, season_num, episode_num, title, air_date, overview, vote, duration, still, path)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                INSERT INTO episodes (episode_id , media_id, season_num, episode_num, title, air_date, overview, vote, duration, still_small, still_large, path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             );
         },
 

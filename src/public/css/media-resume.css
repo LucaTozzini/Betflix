@@ -45,7 +45,7 @@
     top: calc(35vw - .7rem);
     width: 0%;
     height: .7rem;
-    background-color: red;
+    background-color: rgb(255, 0, 98);
 }
 
 .media-resume-overlay-section{
