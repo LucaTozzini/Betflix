@@ -73,10 +73,10 @@ router.post('/log/in', async (req, res) => {
 router.get('/log/out', async (req, res) => {
     try{
         res.cookie('user_id', null, { maxAge: 1 });
-        res.status(200).send()
+        res.status(200).redirect('/user');
     }
     catch{
-        res.status(500).send()
+        res.sendStatus(500)
     }
 });
 
@@ -94,17 +94,23 @@ router.get('/create', (req, res) => {
 
 router.post('/update/continue', 
     async (req, res) => {
-        const user_id = req.cookies.user_id;
-        const episode_id = req.body.episode_id || -1;
-        const media_id = req.body.media_id;
-        const percent = req.body.percent;
-        
-        // Authenticate User
-        const auth = await usersManager.authenticate(user_id);
-        if(!auth) return res.status(401);
-
-        await usersManager.updateContinue(user_id, media_id, percent, episode_id)
-        res.sendStatus(200)
+        try{
+            const user_id = req.cookies.user_id;
+            const episode_id = req.body.episode_id || -1;
+            const media_id = req.body.media_id;
+            const percent = req.body.percent;
+            
+            // Authenticate User
+            const auth = await usersManager.authenticate(user_id);
+            if(!auth) return res.status(401);
+    
+            await usersManager.updateContinue(user_id, media_id, percent, episode_id);
+            res.sendStatus(200);
+        }
+        catch(err){
+            console.errpr(err);
+            res.sendStatus(500);
+        }
     }
 );
 

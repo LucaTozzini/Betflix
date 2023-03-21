@@ -9,6 +9,10 @@
         <link rel="stylesheet" href="/css/media-resume.css">
         <link rel="stylesheet" href="/css/media-content.css">
     </head>
+    
+    <!-- Import Jquery -->
+    <script src="/lib/jquery.min.js"></script>
+
     <body>
         <%- include('./partials/menu', {user}) %>
         <%- include('partials/media-resume', {data: resume})  %>
@@ -17,9 +21,6 @@
         <% } %>
             
     </body>
-
-    <!-- Import Jquery -->
-    <script src="/lib/jquery.min.js"></script>
     
     <script src="/js/home.js"></script>
     <script src="/js/media-content.js"></script>

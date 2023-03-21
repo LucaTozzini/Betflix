@@ -49,11 +49,48 @@ body:has(#overview) #menu:not(.stick){
 }
 
 #user-icon{
-    height: 3.5rem;
-    width: 3.5rem;
+    height: 3.2rem;
+    width: 3.2rem;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-color: aqua;
     border-radius: 50%;
+    transition: scale 200ms;
+}
+
+#user-icon:hover{
+    scale: 1.1;
+}
+
+#user-dropdown-menu{
+    position: fixed;
+    top: var(--menu-height);
+    right: var(--margin);
+    z-index: 100;
+    background-color: rgb(46, 46, 46);
+    display: none;
+    border-radius: .5rem;
+    border: .03rem solid rgb(65, 65, 65);
+    overflow: hidden;
+}
+
+#user-dropdown-menu.show{
+    display: block;
+}
+
+#user-dropdown-menu a{
+    display: block;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    color: white;
+    transition: opacity 300ms;
+}
+
+#user-dropdown-menu a:hover{
+    background-color: rgba(255, 255, 255, 0.096);
+}
+
+#user-dropdown-menu:has(a:hover) a:not(:hover){
+    opacity: 0.5;
 }

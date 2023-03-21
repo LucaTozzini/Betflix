@@ -6,6 +6,15 @@
     </div>
     <div class="menu-section"></div>
     <div class="menu-section">
-        <div id="user-icon" style="background-image: url('<%= user.user_image %>');"></div>
+        <button 
+            id="user-icon" 
+            onclick="document.getElementById('user-dropdown-menu').classList.toggle('show')"
+            style="background-image: url('<%= user.user_image %>');"
+        ></button>
     </div>
+</div>
+<div id="user-dropdown-menu">
+    <a href="/user">Change User</a>
+    <a href="">User Settings</a>
+    <a href="/user/log/out">Log Out</a>
 </div>

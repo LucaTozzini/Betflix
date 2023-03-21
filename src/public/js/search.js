@@ -31,7 +31,6 @@ const searchTimeout = {
         clearTimeout(this.timeout)
         this.timeout = setTimeout(() => {
             search()
-            console.log('searched')
         }, 300)
     }
 }

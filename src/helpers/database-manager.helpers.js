@@ -42,7 +42,7 @@ const dbManager = {
                         end_date INT,
                         overview TEXT,
                         vote INT,
-                        duration INT,
+                        duration INT NOT NULL,
                         budget INT,
                         revenue INT,
                         content_rating TEXT, 
@@ -76,7 +76,7 @@ const dbManager = {
                         air_date INT,
                         overview TEXT,
                         vote INT,
-                        duration INT, 
+                        duration INT NOT NULL, 
                         still_small TEXT,
                         still_large TEXT,
                         path TEXT NOT NULL
