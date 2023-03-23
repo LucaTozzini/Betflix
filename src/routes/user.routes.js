@@ -108,7 +108,7 @@ router.post('/update/continue',
             res.sendStatus(200);
         }
         catch(err){
-            console.errpr(err);
+            console.error(err);
             res.sendStatus(500);
         }
     }

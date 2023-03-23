@@ -1,5 +1,6 @@
 import db from './database-pool.helpers.js';
 import uniqid from 'uniqid'
+import dataSearch from './data-search.helpers.js';
 
 const usersManager = {
     updateContinue(user_id, media_id, percent, episode_id){
@@ -15,6 +16,21 @@ const usersManager = {
                 })
             })
 
+            if(percent > 95 && episode_id > -1){
+                const next = await dataSearch.nextEpisode(episode_id);
+                if(next == undefined) resolve();
+                const next_key = `${user_id}_${media_id}_${next.episode_id}`;
+                db.run(`
+                    INSERT INTO user_continue(key, user_id, media_id, percent, episode_id, time_stamp) 
+                    VALUES (?, ?, ?, ?, ?, ?)`, 
+                    [next_key, user_id, media_id, 0, next.episode_id, timestamp],
+                    (err) => {
+                        if(err) reject(err);
+                        else resolve();
+                    }
+                );
+            }
+            
             if(key_exists){
                 db.run(`
                     UPDATE user_continue

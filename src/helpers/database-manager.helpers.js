@@ -229,7 +229,7 @@ const dbManager = {
                             console.error('user_list Table', err.message); 
                         }
                         else{
-                            console.error(`Table 'user_list' has been created`); 
+                            console.log(`Table 'user_list' has been created`); 
                         }
                         finish()
                     }
@@ -244,13 +244,13 @@ const dbManager = {
                         media_id INT NOT NULL, 
                         percent INT,
                         episode_id INT, 
-                        time_stamp INT NOT NULL
+                        time_stamp INT NOT NULL,
                     )`, (err) => { 
                         if(err){ 
                             console.error('user_continue Table', err.message); 
                         } 
                         else{
-                            console.error(`Table 'user_continue' has been created`); 
+                            console.log(`Table 'user_continue' has been created`); 
                         }
                         finish()
                     }

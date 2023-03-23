@@ -1,3 +1,4 @@
+import { reject } from "async";
 import db from "./database-pool.helpers.js";
 
 const dataSearch = {
@@ -102,6 +103,31 @@ const dataSearch = {
                 if(err) reject(err);
                 else resolve(row);
             })
+        })
+    },
+
+    nextEpisode(episode_id){
+        return new Promise((resolve, reject) => {
+            db.get(`
+                SELECT e.* 
+                FROM (
+                    SELECT * 
+                    FROM episodes 
+                    WHERE episode_id = ? 
+                ) AS c
+                LEFT JOIN episodes AS e 
+                    ON e.media_id = c.media_id AND (
+                        (e.episode_num > c.episode_num AND e.season_num = c.season_num)
+                        OR
+                        (e.season_num > c.season_num) 
+                    )
+                ORDER BY season_num ASC, episode_num ASC`, 
+                [episode_id], 
+                (err, rows) => {
+                    if(err) reject(err);
+                    else resolve(rows);
+                }
+            )
         })
     },
 

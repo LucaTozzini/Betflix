@@ -36,6 +36,32 @@ router.get('/i/:media_id', async(req, res) => {
     }
 })
 
+router.get('/p/:media_id', async (req, res) => {
+    try{
+        const user_id = req.cookies.user_id;
+        const media_id = req.params.media_id;
+        const auth = usersManager.authenticate(user_id);
+        if(!auth) res.redirect('/user');
+        
+        const data = await dataSearch.media(media_id);
+
+        if(data.item_type == 2){
+            const episode = req.query.e == undefined ? await dataSearch.firstAvailableEpisode(media_id) : await dataSearch.episode(req.query.e);
+            data.title = `${data.title} - S${episode.season_num}E${episode.episode_num} ${episode.title}`            
+            data.path = episode.path;
+            data.episode_id = episode.episode_id;
+            data.duration = episode.duration;
+        }
+
+        const resume = await usersManager.getResume(user_id, media_id, data.episode_id || -1);
+        res.render('video-player', {data, resume})
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
 router.get('/s/:media_id', async (req, res)=>{
     try{
         const range = req.headers.range
@@ -74,31 +100,6 @@ router.get('/s/:media_id', async (req, res)=>{
     catch(err){
         console.error('stream', err.message)
         res.sendStatus(500)
-    }
-});
-
-router.get('/p/:media_id', async (req, res) => {
-    try{
-        const user_id = req.cookies.user_id;
-        const media_id = req.params.media_id;
-        const auth = usersManager.authenticate(user_id);
-        if(!auth) res.redirect('/user');
-        
-        const data = await dataSearch.media(media_id);
-
-        if(data.item_type == 2){
-            const episode = req.query.e == undefined ? await dataSearch.firstAvailableEpisode(media_id) : await dataSearch.episode(req.query.e);
-            data.title = `${data.title} - S${episode.season_num}E${episode.episode_num} ${episode.title}`            
-            data.path = episode.path;
-            data.episode_id = episode.episode_id;
-        }
-
-        const resume = await usersManager.getResume(user_id, media_id, data.episode_id || -1);
-        res.render('video-player', {data, resume})
-    }
-    catch(err){
-        console.error(err.message);
-        res.sendStatus(500);
     }
 });
 

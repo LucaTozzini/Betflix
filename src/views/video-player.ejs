@@ -52,7 +52,7 @@
     <script src="/js/video-player.js"></script>
 
     <script>
-        video.currentTime = (<%= resume %> / 100) * <%= data.duration %>;
+        video.currentTime = (<%= resume > 95 ? 0 : resume %> / 100) * <%= data.duration %>;
         (async function updateContiue(){
             const percent = Math.floor(((100 / <%= data.duration %>) * video.currentTime) * 100) / 100
             console.log(percent);
