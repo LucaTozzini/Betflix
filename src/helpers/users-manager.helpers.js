@@ -46,7 +46,7 @@ const usersManager = {
             db.get(`
                 SELECT percent 
                 FROM user_continue 
-                WHERE user_id = ? AND media_id = ? AND episode_id = ?`, 
+                WHERE user_id = ? AND media_id = ? AND episode_id = ? AND percent <= 95`, 
                 [user_id, media_id, episode_id], 
                 (err, row) => {
                     if(err) reject(err);
@@ -64,7 +64,7 @@ const usersManager = {
                 FROM user_continue AS u
                 JOIN media AS m ON m.media_id = u.media_id
                 LEFT JOIN episodes AS e ON e.episode_id =  u.episode_id 
-                WHERE user_id = ?
+                WHERE user_id = ? AND percent <= 95
                 ORDER BY u.time_stamp DESC
                 LIMIT ?`,
                 [user_id, max],

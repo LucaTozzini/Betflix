@@ -1,6 +1,5 @@
 #media-resume{
     --height: 35vw; 
-    margin-top: .6rem;
     padding: 0 var(--margin);
     display: flex;
     gap: 2rem;
