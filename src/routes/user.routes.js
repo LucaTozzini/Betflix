@@ -54,14 +54,17 @@ router.get('/', async (req, res) => {
 )
 
 router.get('/settings', async (req, res) => {
-  // Authenticate User
-  const auth = await usersManager.authenticate(req.cookies.user_id);
-  if(!auth) return res.status(401).redirect('/user');
+    // Authenticate User
+    const auth = await usersManager.authenticate(req.cookies.user_id);
+    if(!auth) return res.status(401).redirect('/user');
 
-  // Get User Data
-  const user = await usersManager.user(req.cookies.user_id);
+    let images = fs.readdirSync('public/img/profilePictures/');
+    images = images.map(image => '/img/profilePictures/' + image);
 
-  res.render('user-settings', {user});  
+    // Get User Data
+    const user = await usersManager.user(req.cookies.user_id);
+
+    res.render('user-settings', {user, images});  
 })
 
 router.post('/log/in', async (req, res) => {
@@ -101,6 +104,26 @@ router.get('/create', (req, res) => {
         console.error(err.message);
         res.sendStatus(500);
     }
+});
+
+router.post('/update', async (req, res) => {
+    try{
+        const user_id = req.cookies.user_id;
+        const user_name = req.body.user_name;
+        const user_image = req.body.user_image;
+        // Authenticate User
+        const auth = await usersManager.authenticate(req.cookies.user_id);
+        if(!auth) return res.status(401);
+
+        await usersManager.updateUser(user_id, user_name, user_image);
+        res.sendStatus(200);
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+
+    
 });
 
 router.post('/update/continue', async (req, res) => {

@@ -108,23 +108,32 @@ const usersManager = {
         });
     },
 
-    createUser(name, image, child){
+    createUser(user_name, user_image, child){
         return new Promise(async (resolve, reject) => {
             // Create Unique Id For User
-            const id = uniqid('user_')
+            const user_id = uniqid('user_');
     
             // Insert User Into Users List
-            db.run(`INSERT INTO user_list VALUES (?, ?, ?, ?)`, [id, name, image, child], (err) => {
-                // If An Error Occurs
-                if(err){
-                    reject(err)
+            db.run(`INSERT INTO user_list VALUES (?, ?, ?, ?)`, [user_id, user_name, user_image, child], (err) => {
+                if(err) reject(err);
+                else resolve();
+            });
+        });
+    },
+
+    updateUser(user_id, user_name, user_image){
+        return new Promise((resolve, reject) => {
+            db.run(`
+                UPDATE user_list
+                SET user_name = ?, user_image = ?
+                WHERE user_id = ?`,
+                [user_name, user_image, user_id],
+                (err) => {
+                    if(err) reject(err);
+                    else resolve();
                 }
-                // If Insertion Is Successful
-                else{
-                    resolve()
-                }
-            })
-        })
+            );
+        });
     },
 
     userList(){

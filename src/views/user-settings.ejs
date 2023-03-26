@@ -8,18 +8,36 @@
     </head>
     <body>
         <%- include('partials/menu', {user}) %>
-        <div class="row">
+        <div class="row top">
             <div id="profile-image" style="background-image: url(<%= user.user_image %>);">
-                <div id="profile-image-overlay"></div>
+                <div id="profile-image-overlay" onclick="document.getElementById('images').classList.toggle('show')"></div>
             </div>
             <div class="column">
                 <input type="text" id="name" placeholder="Eneter User Name" value="<%= user.user_name %>">
                 <div class="column-row">
                     <button class="cancel">Delete</button>
-                    <button class="enter">Update</button>
+                    <button class="enter" onclick="update()">Update</button>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div id="images">
+                <% for(const image of images){ %>
+                <label class="image" style="background-image: url(<%= image %>);">
+                    <input 
+                        class="image-radio"
+                        type="radio" 
+                        name="profile-image" 
+                        value="<%= image %>"
+                        <% if(user.user_image == image){ %>
+                        checked
+                        <% } %>
+                    >
+                </label>
+                <% } %>
             </div>
         </div>
     </body>
     <script src="/js/menu.js"></script>
+    <script src="/js/user-settings.js"></script>
 </html>
