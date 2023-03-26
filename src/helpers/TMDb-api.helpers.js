@@ -27,24 +27,24 @@ const TMDb = {
                 let content_rating = (await getJsonFromApi(`${BASE}/tv/${id}/content_ratings?api_key=${TMDb_Key}`)).results.filter(obj => obj.iso_3166_1 === 'US');
                 content_rating = content_rating.length > 0 ? content_rating[0].rating : 'unrated'
                 const array = [
-                    `2_${id}`,
-                    id, 
-                    2, 
-                    res.name, 
-                    parseInt(res.first_air_date.split('-')[0]), 
-                    parseInt(res.first_air_date.split('-').join('')), 
-                    parseInt(res.last_air_date.split('-').join('')), 
-                    res.overview, 
-                    parseInt(parseFloat(res.vote_average) * 10),
-                    parseFloat(res.episode_run_time[0]) * 60, 
-                    null, 
-                    null, 
-                    content_rating, 
-                    (await TMDb.getPosters(2, id))[0], 
-                    (await TMDb.getLogos(2, id))[0], 
-                    (await TMDb.getBackdrops(2, id))[0], 
-                    path, 
-                    res.production_companies.length > 0 ? res.production_companies[0].name : ''
+                    `2_${id}`, // media id
+                    id, // item id
+                    2, // item type
+                    res.name, // title
+                    parseInt(res.first_air_date.split('-')[0]), // year
+                    parseInt(res.first_air_date.split('-').join('')), // start date 
+                    parseInt(res.last_air_date.split('-').join('')), // end date
+                    res.overview, // overview
+                    parseInt(parseFloat(res.vote_average) * 10), // vote
+                    res.episode_run_time.length == 0 ? -1 : parseFloat(res.episode_run_time[0]) * 60, // duration
+                    null, // budget
+                    null, // revenue
+                    content_rating, // content rating
+                    (await TMDb.getPosters(2, id))[0], //poster 
+                    (await TMDb.getLogos(2, id))[0], // logo
+                    (await TMDb.getBackdrops(2, id))[0], // backdrop
+                    path, // path
+                    res.production_companies.length > 0 ? res.production_companies[0].name : '' // studio
     
                 ]
                 resolve({res, array});

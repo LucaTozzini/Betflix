@@ -36,3 +36,5 @@ const searchTimeout = {
 }
 
 searchTimeout.setup()
+
+document.getElementById('text-input').focus();
