@@ -110,6 +110,7 @@ button:hover, button:focus{
     background-color: red;
     background-position: center;
     background-size: cover;
+    cursor: pointer;
 }
 
 #images input{
