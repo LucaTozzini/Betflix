@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/css/all.css">
+        <link rel="stylesheet" href="/css/menu.css">
+        <link rel="stylesheet" href="/css/user-settings.css">
+        <title>User Settings | Betflix</title>
+    </head>
+    <body>
+        <%- include('partials/menu', {user}) %>
+        <div class="row">
+            <div id="profile-image" style="background-image: url(<%= user.user_image %>);">
+                <div id="profile-image-overlay"></div>
+            </div>
+            <div class="column">
+                <input type="text" id="name" placeholder="Eneter User Name" value="<%= user.user_name %>">
+                <div class="column-row">
+                    <button class="cancel">Delete</button>
+                    <button class="enter">Update</button>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="/js/menu.js"></script>
+</html>

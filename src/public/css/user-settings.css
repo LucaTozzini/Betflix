@@ -1,0 +1,85 @@
+.row{
+    display: flex;
+    width: 40rem;
+    margin: 0 auto;
+    align-items: center;
+    gap: 1rem;
+    height: calc(70vh - var(--menu-height));
+    align-items: center;
+}
+
+.column{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 1rem;
+}
+
+.column-row{
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+}
+
+#profile-image{
+    height: 10rem;
+    width: 10rem;
+    border-radius: 50%;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    overflow: hidden;
+    cursor: pointer;
+    transition: scale 300ms;
+}
+
+#profile-image-overlay{
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.397);
+    background-image: url(/img/icons/edit.png);
+    background-position: center;
+    background-size: 20%;
+    background-repeat: no-repeat;
+    flex: 1;
+    transition: opacity 300ms;
+}
+
+#profile-image-overlay:hover{
+    opacity: 1;
+}
+
+#profile-image:has(#profile-image-overlay:hover){
+    scale: 1.1;
+}
+
+#name{
+    padding: .8rem;
+    font-size: 2rem;
+    flex: 1;
+    border-radius: .2rem;
+    transition: scale 300ms;
+}
+
+#name:focus{
+    scale: 1.03;
+    outline: none;
+}
+
+button{
+    flex: 1;
+    background-color: white;
+    height: 3rem;
+    font-size: 1.3rem;
+    border-radius: .2rem;
+    transition: scale 300ms;
+}
+
+button:hover, button:focus{
+    scale: 1.06;
+}
+
+@media (height < 40rem){
+    .row{
+        height: fit-content;
+    }
+}

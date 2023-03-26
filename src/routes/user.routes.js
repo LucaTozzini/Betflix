@@ -53,6 +53,17 @@ router.get('/', async (req, res) => {
     }
 )
 
+router.get('/settings', async (req, res) => {
+  // Authenticate User
+  const auth = await usersManager.authenticate(req.cookies.user_id);
+  if(!auth) return res.status(401).redirect('/user');
+
+  // Get User Data
+  const user = await usersManager.user(req.cookies.user_id);
+
+  res.render('user-settings', {user});  
+})
+
 router.post('/log/in', async (req, res) => {
     try{
         // Authenticate User
