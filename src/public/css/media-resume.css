@@ -4,7 +4,6 @@
     display: flex;
     gap: 2rem;
     overflow: hidden;
-    cursor: pointer;
 }
 
 .media-resume-item{
@@ -14,6 +13,7 @@
     overflow: hidden;
     border-radius: 1rem;
     scroll-snap-align: center;
+    cursor: pointer;
 }
 
 .media-resume-backdrop{
