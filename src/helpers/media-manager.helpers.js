@@ -1,3 +1,4 @@
+import fs from 'fs';
 import db from './database-pool.helpers.js';
 import TMDb from './TMDb-api.helpers.js';
 import filesUtil from './filesUtil.helpers.js';
@@ -66,19 +67,11 @@ const mediaManager = {
             try{
                 // Get Show Data
                 const showData = await TMDb.showData(show.path, show.info.title, show.info.year);
-                
-                if(showData.status == 404){
-                    continue;
-                }
-    
                 dbManger.insert(this.prepare.media(), showData.array);
-    
                 for(const genre of showData.res.genres){
                     await dbManger.insert(this.prepare.genreRelations(), [showData.array[0]+'_'+genre.id, showData.array[0], genre.id]);
                 }
-    
                 const credits = await TMDb.agregateTvCredits(showData.res.id);
-    
                 for(const credit of credits){
                     await dbManger.insert(this.prepare.castRelations(), credit)
                 }
@@ -87,7 +80,17 @@ const mediaManager = {
                 const episodes = await filesUtil.validEpisodeFiles(show.path);
                 const ePer = (fPer/(episodes.length));
                 for(const [e_index, episode] of episodes.entries()){
-                    this.PROGRESS = parseFloat(((fPer*s_index) + (ePer*(e_index+1))).toFixed(2)); 
+                    this.PROGRESS = parseFloat(((fPer*s_index) + (ePer*(e_index+1))).toFixed(2));
+
+                    const exists = await new Promise(resolve => {
+                        db.get(`SELECT * FROM episodes WHERE path = ?`, [episode.path], (err, row) => {
+                            if(err) console.log(err);
+                            resolve(row != undefined);
+                        })
+                    })
+
+                    if(exists) continue;
+
                     const episodeData = await TMDb.episodeData(episode.path, showData.array[0], showData.array[1], episode.season_num, episode.episode_num, episode.duration);
                     // Insert Episodes If Not In Database
                     await dbManger.insert(this.prepare.episode(), episodeData.array);
@@ -205,8 +208,9 @@ const mediaManager = {
 
         const per = 100/credit_ids.length; 
         for(const [index, credit_id] of credit_ids.entries()){
-            const data = await TMDb.getPerson(credit_id);
             this.PROGRESS = per * (index + 1);
+            if(await dataSearch.person(credit_id) != undefined) continue;
+            const data = await TMDb.getPerson(credit_id);
             this.UPDATE = data.res.name;
             try{
                 await dbManger.insert(this.prepare.cast(), data.array);
@@ -219,6 +223,65 @@ const mediaManager = {
         await dbManger.commitTransaction(db);
 
         this.UPDATE = 'Finished addCredits';
+        this.BUSY = false;
+        this.PROGRESS = null;
+        this.ACTION = null;
+    },
+
+    async clean(){
+        if(this.BUSY) return;
+        this.BUSY = true;
+        this.PROGRESS = 0;
+        this.ACTION = 'cleam';
+        this.UPDATE = 'Cleaning Database';
+
+        await new Promise((resolve) => {
+            db.all(`SELECT path, title FROM media`, async (err, rows) => {
+                if(err) console.error(err.message);
+                const prep = db.prepare(`DELETE FROM media WHERE path = ?`);
+                const per = 50 / rows.length;
+                let i = 0;
+                for(const row of rows){
+                    i++;
+                    this.PROGRESS = per * i;
+                    await new Promise(finish => {
+                        fs.access(row.path, fs.constants.F_OK, async (err) => {
+                            if(err){
+                                await dbManger.insert(prep, [row.path]);
+                                this.UPDATE = 'Deleted Media ' + row.title;
+                            }
+                            finish()
+                        });
+                    })
+                }
+                resolve()
+            });
+        });
+
+        await new Promise((resolve) => {
+            db.all(`SELECT path, title FROM episodes`, async (err, rows) => {
+                if(err) console.error(err.message);
+                const prep = db.prepare(`DELETE FROM episodes WHERE path = ?`);
+                const per = 50 / rows.length;
+                let i = 0;
+                for(const row of rows){
+                    i++;
+                    this.PROGRESS = 50 + (per * i);
+                    await new Promise(finish => {
+                        fs.access(row.path, fs.constants.F_OK, async (err) => {
+                            if(err){
+                                await dbManger.insert(prep, [row.path]);
+                                this.UPDATE = 'Deleted Episode ' + row.title;
+                            }
+                            finish()
+                        });
+                    })
+                }
+                resolve()
+            });
+        });
+
+        this.UPDATE = 'Finished Clean';
         this.BUSY = false;
         this.PROGRESS = null;
         this.ACTION = null;

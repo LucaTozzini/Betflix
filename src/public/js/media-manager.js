@@ -32,18 +32,7 @@ async function updater(){
 
 updater();
 
-function reset(){
-    fetch('/media/manager/reset');
-}
-
-function addShows(){
-    fetch('/media/manager/add/shows');
-}
-
-function addMovies(){
-    fetch('/media/manager/add/movies');
-}
-
-function addCredits(){
-    fetch('/media/manager/add/credits');
+async function sendAction(action){
+    const res = await fetch(`/media/manager/add/${action}`);
+    console.log(res.status);
 }

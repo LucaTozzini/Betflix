@@ -133,9 +133,13 @@ router.get('/manager/add/:action', async (req, res) => {
         const auth = await usersManager.authenticate(req.cookies.user_id);
         if(!auth) return res.status(401).redirect('/user');
         const action = req.params.action;
+
         if(action == 'shows') mediaManager.addShows();
         else if(action == 'movies') mediaManager.addMovies();
         else if(action == 'credits') mediaManager.addCredits();
+        else if(action == "clean") mediaManager.clean();
+        else res.sendStatus(404);
+        
         res.sendStatus(200);
     }
     catch(err){
