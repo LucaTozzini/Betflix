@@ -1,11 +1,16 @@
 #cast-container{
-    padding: 1rem 0;
     width: 100%;
+    padding: 1rem var(--margin);
+    margin-left: calc(-1 * var(--margin));
     overflow: auto;
     overflow: overlay;
     display: flex;
     align-items: center;
     gap: 1.5rem;
+}
+
+#cast-container::-webkit-scrollbar{
+    display: none;
 }
 
 .person-image{

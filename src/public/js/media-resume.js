@@ -37,4 +37,27 @@ mediaResume.nav.display();
 
 window.addEventListener('resize', function(){
     mediaResume.nav.run(0);  
-})
+});
+
+const resumeItems = document.getElementsByClassName('media-resume-item');
+for(const item of resumeItems){
+    item.addEventListener('click', function(e){
+        if(e.target.tagName != 'BUTTON'){
+            window.location.href = this.dataset.link;
+        }
+        else if(e.target.classList.contains('remove')){
+            this.remove();
+        }
+    })
+};
+
+function removeContinue(media_id, episode_id){
+    const body = JSON.stringify({media_id, episode_id});
+    fetch('/user/remove/continue', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body
+    });
+}

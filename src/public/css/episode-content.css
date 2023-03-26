@@ -1,11 +1,17 @@
 #episode-container{
-    padding-bottom: 2rem;
     width: 100%;
+    padding: 0 var(--margin);
+    margin-left: calc(-1 * var(--margin));
+    padding-bottom: 2rem;
     overflow: auto;
     overflow: overlay;
     display: flex;
     align-items: center;
-    gap: .8rem;
+    gap: 1rem;
+}
+
+#episode-container::-webkit-scrollbar{
+    display: none;
 }
 
 .episode{

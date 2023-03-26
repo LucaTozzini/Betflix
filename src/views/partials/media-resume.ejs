@@ -1,10 +1,7 @@
 <% if(data.length > 0){ %>
 <div id="media-resume">
     <% for(const media of data){%>
-        <a 
-            class="media-resume-item" 
-            href="/media/p/<%= media.media_id %>?e=<%= media.episode_id %>"
-        >
+        <div class="media-resume-item" data-link='/media/p/<%= media.media_id %>?e=<%= media.episode_id %>'>
             <div class="no-space">
                 <div 
                     class="media-resume-backdrop"
@@ -43,10 +40,16 @@
                             <%= left_text %>
                         </div>
 
+                        <button class="media-info-col i" onclick="window.location.href = '/media/i/<%= media.media_id %>?s=<%= media.season_num %>'"></button>
+
+                        <button class="media-info-col remove" onclick="removeContinue('<%= media.media_id %>', <%= media.episode_id %>)"></button>
+
                     </div>
                     <div class="media-info-episode">
                         <% if(media.item_type == 2) { %>
                         S<%= media.season_num %>.E<%= media.episode_num %>: <%= media.episode_title %>
+                        <% } else { %>
+                            <%= media.title %>
                         <% } %>
                     </div>
                 </div>
@@ -54,7 +57,7 @@
                     
                 </div>
             </div>
-        </a>
+        </div>
     <% } %>
 </div>
 

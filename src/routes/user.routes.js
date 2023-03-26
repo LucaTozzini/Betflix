@@ -92,26 +92,43 @@ router.get('/create', (req, res) => {
     }
 });
 
-router.post('/update/continue', 
-    async (req, res) => {
-        try{
-            const user_id = req.cookies.user_id;
-            const episode_id = req.body.episode_id || -1;
-            const media_id = req.body.media_id;
-            const percent = req.body.percent;
-            
-            // Authenticate User
-            const auth = await usersManager.authenticate(user_id);
-            if(!auth) return res.status(401);
-    
-            await usersManager.updateContinue(user_id, media_id, percent, episode_id);
-            res.sendStatus(200);
-        }
-        catch(err){
-            console.error(err);
-            res.sendStatus(500);
-        }
+router.post('/update/continue', async (req, res) => {
+    try{
+        const user_id = req.cookies.user_id;
+        const episode_id = req.body.episode_id || -1;
+        const media_id = req.body.media_id;
+        const percent = req.body.percent;
+        
+        // Authenticate User
+        const auth = await usersManager.authenticate(user_id);
+        if(!auth) return res.status(401);
+
+        await usersManager.updateContinue(user_id, media_id, percent, episode_id);
+        res.sendStatus(200);
     }
-);
+    catch(err){
+        console.error(err);
+        res.sendStatus(500);
+    }
+});
+
+router.post('/remove/continue', async(req, res) => {
+    try{
+        const user_id = req.cookies.user_id;
+        const episode_id = req.body.episode_id || -1;
+        const media_id = req.body.media_id;
+    
+        // Authenticate User
+        const auth = await usersManager.authenticate(user_id);
+        if(!auth) return res.status(401);
+    
+        await usersManager.removeContinue(user_id, media_id, episode_id);
+        res.sendStatus(200)
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+})
 
 export default router;

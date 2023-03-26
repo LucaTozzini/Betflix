@@ -19,3 +19,7 @@ window.addEventListener('click', function(e){
         document.getElementById('user-dropdown-menu').classList.remove('show');
     }
 })
+
+window.addEventListener('scroll', function(e){
+    document.getElementById('user-dropdown-menu').classList.remove('show');
+})

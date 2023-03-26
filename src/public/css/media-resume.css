@@ -4,6 +4,7 @@
     display: flex;
     gap: 2rem;
     overflow: hidden;
+    cursor: pointer;
 }
 
 .media-resume-item{
@@ -54,7 +55,7 @@
     display: flex;
     justify-content: flex-end;
     flex-direction: column;
-    gap: clamp(.3rem, 2vw, 1rem);
+    gap: clamp(.3rem, 2vw, .7rem);
 }
 
 .media-logo{
@@ -93,10 +94,37 @@
     border-radius: .2rem;
     padding: .3rem;
     color: white;
-    font-size: 1.1rem;
+    font-size: clamp(.9rem, 2vw, 1.1rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+button.media-info-col.remove{
+    background-image: url(/img/icons/close.png);
+}
+
+button.media-info-col.i{
+    background-image: url(../img/icons/info.png);
+}
+
+button.media-info-col{
+    width: clamp(2.5rem, 5vw, 3rem);
+    height: clamp(2.5rem, 5vw, 3rem);
+    filter: invert(0%);
+    color: black;
+    font-weight: bold;
+    border-radius: 50%;
+    background-position: center;
+    background-size: contain;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    transition: filter 200ms, border 200ms;
+}
+
+button.media-info-col:hover{
+    filter: invert(100%);
+    border-color: black;
 }
 
 .media-resume-nav{
@@ -117,7 +145,7 @@
 }
 
 .nav-visible{
-    width: clamp(6rem, 8vw, 10rem);
+    width: clamp(3rem, 8vw, 10rem);
     height: 100%;
 
     display: flex;
@@ -142,8 +170,8 @@
 
 .nav-visible button{
     flex-shrink: 0;
-    height: clamp(2rem, 10vw, 6rem);
-    width: clamp(2rem, 10vw, 6rem);
+    height: clamp(1.5rem, 8vw, 5rem);
+    width: clamp(1.5rem, 8vw, 5rem);
     border-radius: 50%;
     background-color: rgb(67, 67, 67);
     background-position: center;
@@ -162,4 +190,10 @@
 
 .nav-visible button.right{
     background-image: url(/img/icons/arrowRight.png);
+}
+
+@media (width < 40rem){
+    .media-info-col:not(button){
+        display: none;
+    }
 }

@@ -120,25 +120,93 @@ body{
     margin-bottom: 2.5rem;
 }
 
-#seasons{
-    margin-left: -5vw;
-    width: 90vw;
-    padding: 0 5vw .6rem 5vw;
+.section-header{
     display: flex;
-    gap: 1.2rem;
-    font-size: 1.3rem;
-    overflow-x: auto;
-    overflow-x: overlay;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.season{
-    flex-shrink: 0;
-    opacity: 0.5;
+.container-nav button{
+    height: 2rem;
+    width: 2rem;
+    background-color: rgba(255, 255, 255, 0.263);
+    border-radius: 50%;
+    cursor: pointer;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    transition: scale 200ms;
+}
+
+.container-nav button:hover{
+    scale: 1.15
+}
+
+.container-nav button:first-child{
+    background-image: url(/img/icons/arrowLeft.png);
+}
+
+.container-nav button:last-child{
+    background-image: url(/img/icons/arrowRight.png);
+}
+
+#season{
+    background-color: transparent;
     color: white;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.3rem;
+    margin-bottom: .5rem;
+}
+
+#season img{
+    margin-top: .3rem;
+    height: 1rem;
+    width:  1rem;
+}
+
+#season:hover{
+    opacity: 0.6;
+}
+
+.no-space{
+    height: 0;
+    width: 0;
+    overflow: visible;
+}
+
+#seasons{
+    position: relative;
+    display: none;
+    flex-direction: column;
+    border-radius: .4rem;
+    background-color: black;
+    min-width: fit-content;
+    height: fit-content;
+    max-height: 9rem;
+    overflow: auto;
+    padding: .5rem;
+    gap: .5rem;
+    z-index: 10000;
+}
+
+#seasons.show{
+    display: flex;
+}
+
+a.season{
+    display: block;
+    flex-shrink: 0;
+    color: white;
+    font-size: 1.3rem;
+    white-space: nowrap;
+    opacity: 0.7;
     transition: all 100ms;
 }
 
-.season.cur{
+.season:hover{
     opacity: 1;
 }
 
@@ -146,4 +214,9 @@ body{
     color: white;
     font-size: 1.6rem;
     margin-top: 1.5rem;
+}
+
+footer{
+    padding: 0 var(--margin);
+    margin-left: calc(-1 * var(--margin))
 }

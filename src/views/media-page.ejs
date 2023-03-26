@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="/css/cast-content.css">
         <link rel="stylesheet" href="/css/media-content.css">
         <link rel="stylesheet" href="/css/episode-content.css">
+        <link rel="stylesheet" href="/css/footer.css">
     </head>
     <body>
         <%- include('./partials/menu', {user}) %>
@@ -43,29 +44,46 @@
                 <%= data.overview %>
             </div>
 
-            <% if(data.item_type == 2){ %> 
-                <div id="seasons">
-                    <% for(const season_num of data.av_seasons){ %>
-                        <a href="?s=<%= season_num %>"
-                            <% if(season_num == data.season_num){ %> 
-                                class="season cur" 
-                            <% } else{ %>
-                                class="season" 
-                            <% } %>   
-                        >
-                        Season <%= season_num %></a>
-                    <% } %> 
+            <% if(data.item_type == 2){ %>
+                <div class="section-header">
+                    <button 
+                        id="season" 
+                        onclick="document.getElementById('seasons').classList.toggle('show')"
+                    >
+                        Season <%= data.season_num %> 
+                        <img src="/img/icons/arrowDown.png">
+                    </button>
+                    <div class="container-nav">
+                        <button class="episode-nav nav left"></button>
+                        <button class="episode-nav nav right"></button>
+                    </div>
+                </div>
+                <div class="no-space">
+                    <div id="seasons">
+                        <% for(const season_num of data.av_seasons){ %>
+                        <a href="?s=<%= season_num %>" class="season">
+                            Season <%= season_num %>
+                        </a>
+                        <% } %> 
+                    </div>
                 </div>
                 <%- include('./partials/episodes-content', {episodes: data.episodes}) %>
             <% } %> 
 
-            <div id="section-title">Cast</div>
-            <%- include('./partials/cast-content', {cast: data.cast}) %>
-
+            <div class="section-header">
+                <div id="section-title">Cast</div>
+                <div class="container-nav">
+                    <button class="cast-nav nav left"></button>
+                    <button class="cast-nav nav right"></button>
+                </div>
+            </div>
+            <%- include('partials/cast-content', {cast: data.cast}) %>
+            <%- include('partials/footer') %>
         </div>
             
     </body>
 
+    <script src="/lib/jquery.min.js"></script>
     <script src="/js/media-page.js"></script>
     <script src="/js/menu.js"></script>
 

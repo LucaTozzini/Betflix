@@ -8,18 +8,19 @@
         <link rel="stylesheet" href="/css/scrollbar.css">
         <link rel="stylesheet" href="/css/media-resume.css">
         <link rel="stylesheet" href="/css/media-content.css">
+        <link rel="stylesheet" href="/css/footer.css">
     </head>
     
     <!-- Import Jquery -->
     <script src="/lib/jquery.min.js"></script>
 
     <body>
-        <%- include('./partials/menu', {user}) %>
+        <%- include('partials/menu', {user}) %>
         <%- include('partials/media-resume', {data: resume})  %>
         <% for(const [title, data] of Object.entries(media)){ %>
             <%- include('./partials/media-content', {title, data, forceShow: false}) %>
         <% } %>
-            
+        <%- include('partials/footer') %>
     </body>
     
     <script src="/js/home.js"></script>

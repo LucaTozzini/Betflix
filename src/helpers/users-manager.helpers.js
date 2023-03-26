@@ -57,6 +57,22 @@ const usersManager = {
         })
     },
 
+    removeContinue(user_id, media_id, episode_id){
+        return new Promise((resolve, reject) => {
+            const data = [user_id, media_id];
+            if(episode_id > 0) data.push(episode_id);
+            db.run(`
+                DELETE FROM user_continue 
+                WHERE user_id = ? AND media_id = ? ${episode_id > 0 ? ' AND episode_id = ?' : ''}`,
+                data,
+                (err) => {
+                    if(err) reject(err);
+                    else resolve();
+                }
+            )
+        })
+    },
+
     getResume(user_id, media_id, episode_id){
         return new Promise((resolve, reject) => {
             db.get(`
