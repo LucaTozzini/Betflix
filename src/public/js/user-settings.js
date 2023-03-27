@@ -16,6 +16,19 @@ async function update(){
     if(res.status == 200) window.location.href = '/home';
 };
 
+async function del(user_id){
+    console.log(user_id)
+    const res = await fetch('/user/delete', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({user_id})
+    });
+
+    if(res.status == 200) window.location.href = '/user';
+}
+
 const inputs = document.getElementsByClassName('image-radio');
 for(const input of inputs){
     input.addEventListener('change', function(){

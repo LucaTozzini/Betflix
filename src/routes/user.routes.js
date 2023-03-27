@@ -50,8 +50,7 @@ router.get('/', async (req, res) => {
     catch{
         res.sendStatus(500)
     }
-    }
-)
+});
 
 router.get('/settings', async (req, res) => {
     // Authenticate User
@@ -124,6 +123,19 @@ router.post('/update', async (req, res) => {
     }
 
     
+});
+
+router.delete('/delete', async(req, res) => {
+    try{
+        await usersManager.deleteUser(req.body.user_id);
+        await usersManager.deleteWatchlist(req.body.user_id);
+        await usersManager.deleteContinue(req.body.user_id);
+        res.sendStatus(200);
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
 });
 
 router.post('/update/continue', async (req, res) => {

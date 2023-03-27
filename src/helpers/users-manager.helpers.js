@@ -136,6 +136,33 @@ const usersManager = {
         });
     },
 
+    deleteUser(user_id){
+        return new Promise((resolve, reject) => {
+            db.run(`DELETE FROM user_list WHERE user_id = ?`, [user_id], (err) => {
+                if(err) reject(err);
+                else resolve();
+            })
+        })
+    },
+
+    deleteWatchlist(user_id){
+        return new Promise((resolve, reject) => {
+            db.run(`DELETE FROM user_watchlist WHERE user_id = ?`, [user_id], (err) => {
+                if(err) reject(err);
+                else resolve();
+            })
+        })
+    },
+
+    deleteContinue(user_id){
+        return new Promise((resolve, reject) => {
+            db.run(`DELETE FROM user_continue WHERE user_id = ?`, [user_id], (err) => {
+                if(err) reject(err);
+                else resolve();
+            })
+        })
+    },
+
     userList(){
         return new Promise((resolve, reject) => {
             db.all(`SELECT * FROM user_list`, [], (err, rows) => {

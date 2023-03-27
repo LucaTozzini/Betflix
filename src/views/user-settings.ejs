@@ -15,7 +15,7 @@
             <div class="column">
                 <input type="text" id="name" placeholder="Eneter User Name" value="<%= user.user_name %>">
                 <div class="column-row">
-                    <button class="cancel">Delete</button>
+                    <button class="cancel" onclick="del('<%= user.user_id %>')">Delete</button>
                     <button class="enter" onclick="update()">Update</button>
                 </div>
             </div>
