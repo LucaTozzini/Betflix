@@ -126,3 +126,15 @@
 .media-overlay-button:hover > img{
     filter: invert(100%);
 }
+
+.media-overlay:has(.media-overlay-button.watchlist-rem.show) .media-overlay-button.watchlist-add{
+    display: none;
+}
+
+.watchlist-rem{
+    display: none;
+}
+
+.watchlist-rem.show{
+    display: flex;
+}

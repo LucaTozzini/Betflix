@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
         let media = {};
         for(const genre of genres){
             try{
-                media[genre] = await dataSearch.genre(genre);
+                media[genre] = await dataSearch.genre(genre, req.cookies.user_id);
             }
             catch(err){
                 console.error(err.message);

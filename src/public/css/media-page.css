@@ -76,7 +76,6 @@ body{
 }
 
 #buttons > * {
-    display: flex;
     align-items: center;
     justify-content: center;
     gap: .7rem;
@@ -92,6 +91,7 @@ body{
 } 
 
 .button-icon{
+    display: flex;
     height: 1.4rem;
     width: 1.4rem;
     object-fit: contain;
@@ -100,15 +100,28 @@ body{
 }
 
 .button-wide{
+    display: flex;
     width: 10rem;
     border-radius: .5rem;
 }
 
 .button-round{
+    display: flex;
     width: 3.5rem;
     border-radius: 50%;
 }
 
+#buttons:has(.watchlist-rem.show) .watchlist-add{
+    display: none;
+}
+
+.watchlist-rem{
+    display: none;
+}
+
+.watchlist-rem.show{
+    display: flex;
+}
 
 #overview{
     width: 48rem;

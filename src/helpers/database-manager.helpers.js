@@ -33,7 +33,7 @@ const dbManager = {
             await new Promise(finish => {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS media(
-                        media_id INT PRIMARY KEY,
+                        media_id TEXT PRIMARY KEY,
                         item_id INT NOT NULL, 
                         item_type INT NOT NULL,
                         title TEXT,
@@ -69,7 +69,7 @@ const dbManager = {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS episodes(
                         episode_id INT PRIMARY KEY, 
-                        media_id INT NOT NULL,
+                        media_id TEXT NOT NULL,
                         season_num INT NOT NULL,
                         episode_num INT NOT NULL,
                         title TEXT, 
@@ -96,7 +96,7 @@ const dbManager = {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS genre_relations(
                         key TEXT PRIMARY KEY,
-                        media_id INT NOT NULL, 
+                        media_id TEXT NOT NULL, 
                         genre_id INT NOT NULL
                     )`, (err) => { 
                         if(err){
@@ -179,7 +179,7 @@ const dbManager = {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS cast_relations(
                         key TEXT PRIMARY KEY,
-                        media_id INT NOT NULL, 
+                        media_id TEXT NOT NULL, 
                         person_id INT NOT NULL,
                         director INT NOT NULL,
                         character TEXT,
@@ -240,11 +240,11 @@ const dbManager = {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS user_continue(
                         key TEXT PRIMARY KEY,
-                        user_id TEXT,  
-                        media_id INT NOT NULL, 
-                        percent INT,
+                        user_id TEXT NOT NULL,  
+                        media_id TEXT NOT NULL, 
+                        percent INT NOT NULL,
                         episode_id INT, 
-                        time_stamp INT NOT NULL,
+                        time_stamp INT NOT NULL
                     )`, (err) => { 
                         if(err){ 
                             console.error('user_continue Table', err.message); 
@@ -260,8 +260,9 @@ const dbManager = {
             await new Promise(finish => {
                 db.run(`
                     CREATE TABLE IF NOT EXISTS user_watchlist(
-                        media_id INT PRIMARY KEY, 
-                        user_id TEXT,
+                        key TEXT PRIMARY KEY,
+                        media_id TEXT NOT NULL, 
+                        user_id TEXT NOT NULL,
                         time_stamp INT NOT NULL
                     )`, (err) => {
                         if(err){

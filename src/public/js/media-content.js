@@ -1,11 +1,39 @@
-$(document).on('click', '.media-item', function(e){
-    const media_id = $(this).data('media_id')
-    const target = $(e.target).attr('class')
+$(document).on('click', '.media-item', async function(e){
+    const media_id = $(this).data('media_id');
+    console.log(media_id);
 
-    console.log(target)
-
-    if(target == 'media-overlay-button play'){
+    if(e.target.classList.contains('play')){
         window.location.href = `/media/p/${media_id}`
+    }
+    else if(e.target.classList.contains('watchlist-add')){
+        const res = await fetch('/user/watchlist', {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({media_id})
+        });
+
+        if(res.status == 201){
+            $(`.media-item[data-media_id="${media_id}"] .watchlist-rem`).addClass('show');
+        }
+
+        console.log(res.status);
+    }
+    else if(e.target.classList.contains('watchlist-rem')){
+        const res = await fetch('/user/watchlist', {
+            method: 'DELETE',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({media_id})
+        });
+
+        if(res.status == 200){
+            $(`.media-item[data-media_id="${media_id}"] .watchlist-rem`).removeClass('show');
+        }
+
+        console.log(res.status);
     }
     else{
         window.location.href = `/media/i/${media_id}`
@@ -38,8 +66,6 @@ $('.nav').click(function(){
         if(target >= len) target = len - 1; 
         offset = mediaContainer.find(`.media-item:eq(${target})`).offset().left - pad;
     }
-
-    console.log(itemsFit, passedItems, len, pad, target);
 
     mediaContainer.stop(true, true).animate({
         scrollLeft: mediaContainer.scrollLeft() + offset 

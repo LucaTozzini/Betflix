@@ -5,6 +5,16 @@
                 <div class="media-overlay-button watchlist-add">
                     <img src="/img/icons/plus.png" alt="+">
                 </div>
+                <div
+                    <% if(item.in_watchlist == 1){ %>
+                        class="media-overlay-button watchlist-rem show"
+                    <% } else { %> 
+                    class="media-overlay-button watchlist-rem"
+                    <% } %>
+
+                >
+                    <img src="/img/icons/checkmark.png" alt="+">
+                </div>
                 <div class="media-overlay-button play">
                     <img src="/img/icons/play.png" alt=">">
                 </div>

@@ -35,9 +35,21 @@
                     <img class="button-icon" src="/img/icons/play.png">
                     PLAY
                 </a>
-                <div class="button-round">
-                    <img class="button-icon" src="/img/icons/checkmark.png" alt="">
+        
+                <div 
+                    <% if(data.in_watchlist == 1){ %>
+                    class="button-round watchlist-rem show"
+                    <% } else { %>
+                    class="button-round watchlist-rem"
+                    <% } %>
+                >
+                    <img class="button-icon" src="/img/icons/checkmark.png" alt="remove from watchlist">
                 </div>
+
+                <div class="button-round watchlist-add">
+                    <img class="button-icon" src="/img/icons/plus.png" alt="add to watchlist">
+                </div>
+
             </div>
             
             <div id="overview">

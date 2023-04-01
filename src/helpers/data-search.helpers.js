@@ -2,9 +2,21 @@ import { reject } from "async";
 import db from "./database-pool.helpers.js";
 
 const dataSearch = {
-    media(media_id){
-        return new Promise(resolve => {
-            db.get(`SELECT * FROM media WHERE media_id = ?`, [media_id], (err, row) => {
+    media(media_id, user_id){
+        return new Promise((resolve, reject) => {
+            db.get(`
+                SELECT 
+                    m.*, 
+                    CASE WHEN w.media_id IS NULL THEN 0 ELSE 1 END AS in_watchlist
+                  
+                FROM media AS m
+                LEFT JOIN (
+                    SELECT media_id
+                    FROM user_watchlist
+                    WHERE user_id = ?
+                ) w ON w.media_id = m.media_id 
+                WHERE m.media_id = ?`, 
+                [user_id, media_id], (err, row) => {
                 if(err) reject(err);
                 else resolve(row);
             })
@@ -29,18 +41,27 @@ const dataSearch = {
         })
     },
 
-    genre(genreName){
+    genre(genreName, user_id){
         return new Promise((resolve, reject) => {
             const SECTION_LIMIT = 50
             db.all(`
-            SELECT * FROM media AS m
+            SELECT 
+                m.* , 
+                CASE WHEN w.media_id IS NULL THEN 0 ELSE 1 END AS in_watchlist
+
+            FROM media AS m
+            LEFT JOIN (
+                SELECT media_id 
+                FROM user_watchlist 
+                WHERE user_id = ?
+            ) w ON m.media_id = w.media_id
             JOIN genre_relations AS gr ON gr.media_id = m.media_id
             JOIN genres AS g ON gr.genre_id = g.genre_id
             WHERE g.genre_name = ?
             ORDER BY RANDOM()
             LIMIT ?
             `, 
-            [genreName, SECTION_LIMIT], 
+            [user_id, genreName, SECTION_LIMIT], 
             (err, rows) => {
                 if(err) reject(err);
                 else resolve(rows)

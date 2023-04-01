@@ -166,7 +166,19 @@ const mediaManager = {
         await dbManger.beginTransaction(db);
 
         await new Promise(async finish => {
-            const tables = ['media', 'episodes', 'genre_relations', 'genres', 'cast', 'cast_relations'];
+            const tables = [
+                'media', 
+                'episodes', 
+                'genres', 
+                'genre_relations', 
+                'cast', 
+                'cast_relations', 
+                
+                'user_list', 
+                'user_continue', 
+                'user_watchlist'
+            ];
+            
             for(const table of tables){
                 await new Promise(finish => {
                     db.run(`DROP TABLE IF EXISTS ${table}`, (err) => {

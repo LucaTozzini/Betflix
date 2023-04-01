@@ -181,14 +181,60 @@ const usersManager = {
         })
     },
 
-    user(userId){
+    user(user_id){
         return new Promise((resolve, reject) => {
-            db.get(`SELECT * FROM user_list WHERE user_id = ?`, [userId], (err, row) => {
+            db.get(`SELECT * FROM user_list WHERE user_id = ?`, [user_id], (err, row) => {
                 if(err) return reject(err);
                 else resolve(row)
             })
         })
     },
+
+    watchlistAdd(user_id, media_id){
+        return new Promise((resolve, reject) => {
+            const key = `${user_id}_${media_id}`;
+            const time_stamp = new Date().toISOString().replace('T', ' ').replace(/\..+/, '').replace(/[^0-9]/g, '');
+
+            db.run(
+                `INSERT INTO user_watchlist(key, media_id, user_id, time_stamp) VALUES (?, ?, ?, ?)`,
+                [key, media_id, user_id, time_stamp],
+                (err) => {
+                    if(err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+    },
+
+    watchlistRemove(user_id, media_id){
+        return new Promise((resolve, reject) => {
+            db.run(
+                `DELETE FROM user_watchlist WHERE user_id = ? AND media_id = ?`,
+                [user_id, media_id],
+                (err) => {
+                    if(err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+    },
+
+    watchlist(user_id){
+        return new Promise((resolve, reject) => {
+            db.all(`
+                SELECT m.*
+                FROM user_watchlist AS w
+                JOIN media AS m ON m.media_id = w.media_id
+                WHERE w.user_id = ?
+                ORDER BY w.time_stamp DESC`,
+                [user_id],
+                (err, rows) => {
+                    if(err) reject(err);
+                    else resolve(rows);
+                }
+            )
+        })
+    }
 
 }
 

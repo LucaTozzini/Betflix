@@ -17,7 +17,7 @@ router.get('/i/:media_id', async(req, res) => {
         const user = await usersManager.user(req.cookies.user_id);
 
         // Get Media Data
-        let data = await dataSearch.media(req.params.media_id);
+        let data = await dataSearch.media(req.params.media_id, req.cookies.user_id);
         const cast = await dataSearch.credits(data.media_id);
         data.cast = cast;
 

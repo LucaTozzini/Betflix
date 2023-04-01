@@ -175,6 +175,28 @@ router.post('/remove/continue', async(req, res) => {
         console.error(err.message);
         res.sendStatus(500);
     }
-})
+});
+
+router.post('/watchlist', async(req, res) => {
+    try{
+        await usersManager.watchlistAdd(req.cookies.user_id, req.body.media_id);
+        res.sendStatus(201);
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.delete('/watchlist', async(req, res) => {
+    try{
+        await usersManager.watchlistRemove(req.cookies.user_id, req.body.media_id);
+        res.sendStatus(200);
+    }
+    catch(err){
+        console.error(err.message);
+        res.sendSTtaus(500);
+    }
+});
 
 export default router;
