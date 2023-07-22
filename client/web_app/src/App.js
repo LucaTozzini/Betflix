@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from './layouts/Browse.layout';
 
 // Screens
-import Ciao from "./screens/Ciao.screen";
 import Home from './screens/Home.screen';
 import Item from "./screens/Item.screen";
 import NoPage from './screens/NoPage.screen';
@@ -64,7 +63,7 @@ function App() {
     <browseContext.Provider value={{watchlistMediaIds, setWatchlistMediaIds, genreBrowseMedia, setGenreBrowseMedia}}>
       <BrowserRouter>
         <Routes>
-          <Route path="ciao" element={<Ciao/>}/>
+          <Route path="ciao"/>
           <Route path="/" element={<Layout/>}>
             <Route index element={<Navigate to='/browse/home'/> }/>
             <Route path="*" element={<NoPage/>}/>

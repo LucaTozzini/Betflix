@@ -15,7 +15,7 @@ const service = bonjour();
 
 app.use(express.static('public'));
 app.use(express.json());
-app.use(cors({origin: 'http://localhost:3000', optionsSuccessStatus: 200}));
+app.use(cors());
 
 // Routes
 app.use('/database', database_routes);
