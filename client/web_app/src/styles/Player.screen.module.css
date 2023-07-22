@@ -1,0 +1,205 @@
+.video {
+    /* background-color: lightcoral; */
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.overlay {
+    --marginHorizontal: clamp(1rem, 1vw, 5rem);
+    background: linear-gradient(rgba(0, 0, 0, 0.55), transparent 30%, transparent 60%, rgba(0, 0, 0, 0.8));
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: opacity 300ms;
+}
+
+.top {
+    height: 4rem;
+    display: flex;
+    padding: .6rem var(--marginHorizontal);
+    gap: 1rem;
+}
+
+.top > a {
+    font-size: 1.7rem;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+}
+
+.middle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.middlePlay {
+    color: white;
+    font-size: 4rem;
+    cursor: pointer;
+    transition: scale 500ms;
+}
+
+.middlePlay:hover {
+    scale: 1.2;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    padding: 0rem var(--marginHorizontal) 1rem var(--marginHorizontal);
+}
+
+
+.progressFrame {
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.progressFrame:hover > .progressBar {
+    /* height: 1rem;
+    border-radius: 1rem; */
+}
+
+.progressFrame:hover .progressKnob {
+    --size: 1rem;
+    height: var(--size);
+    width: var(--size);
+    margin-right: calc(-1 * (var(--size) / 2));
+}
+
+.progressBar {
+    height: .25rem;
+    width: 100%;
+    background-color: rgba(211, 211, 211, 0.267);
+    backdrop-filter: blur(.2rem);
+    transition: height 300ms, border-radius 300ms;
+}
+
+.progressFill {
+    height: 100%;
+    width: 50%;
+    background: orange;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    border-radius: inherit;
+}
+
+.progressKnob {
+    height: 0;
+    width: 0;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: orange;
+    box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.7);
+    transition: height 300ms, width 300ms, margin 300ms;
+}
+
+.buttonRow {
+    display: flex;
+    justify-content: space-between;
+}
+
+.buttonSection {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.volume {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+}
+
+.volume svg {
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.volumeSliderFrame {
+    height: 1.5rem;
+    width: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: width 200ms 500ms, margin 200ms 500ms;
+}
+
+.volume:hover > .volumeSliderFrame, .volume:active > .volumeSliderFrame {
+    width: 4.5rem;
+    transition: width 200ms 0s, margin 200ms 0ms;
+    margin-left: .6rem;
+} 
+
+.volume:hover  .volumeKnob, .volume:active  .volumeKnob {
+    visibility: visible;
+    transition: visibility 0ms 0ms;
+}
+
+.volumeSlider {
+    height: .3rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: .3rem;
+}
+
+.volumeFill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    width: 50%;
+    background: white;
+    border-radius: inherit;
+}
+
+.volumeKnob {
+    --size: .9rem;
+    height: var(--size);
+    width: var(--size);
+    margin-right: calc(-1*(var(--size))/2);
+    border-radius: 50%;
+    background: white;
+    visibility: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 0 .4rem black;
+    transition: visibility 0ms 500ms;
+}
+
+.time {
+    color: white;
+    font-size: 1rem;
+    font-weight: lighter;
+    font-family: sans-serif, monospace;
+}
+
+.buttonSection .b {
+    --size: 2.2rem;
+    height: var(--size);
+    width: var(--size);
+    font-size: var(--size);
+    color: white;
+    background-color: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: scale 200ms;
+}
+
+.buttonSection .b:hover {
+    scale: 1.2;
+}

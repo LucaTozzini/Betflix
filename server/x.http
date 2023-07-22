@@ -1,0 +1,7 @@
+POST http://localhost:80/player/current-episode HTTP/1.1
+content-type: application/json
+
+{
+    "userId": "user-ev5l0dm0ljxv5duw",
+    "mediaId": "sh_246"
+}

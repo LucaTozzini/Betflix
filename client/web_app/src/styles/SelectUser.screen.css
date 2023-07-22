@@ -1,0 +1,49 @@
+#select-user {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: var(--marginHorizontal);
+    gap: var(--marginHorizontal);
+}
+
+#select-user h1 {
+    color: white;
+    text-align: center;
+}
+
+#select-user > #container {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(auto-fit, 10rem);
+    grid-template-rows: repeat(auto-fit, 12rem);
+    gap: 1rem;
+    justify-content: center;
+    overflow: auto;
+}
+
+#select-user .user {
+    padding: 1rem;
+    border-radius: 1rem;
+    height: 10rem;
+    background-color: rgb(30, 30, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+#select-user .user-image {
+    height: 8rem;
+    width: 8rem;
+    border-radius: 50%;
+    /* background: radial-gradient(transparent 50%, white 50%, white ); */
+    color: white;
+    object-fit: cover;
+}
+
+#select-user .user-name {
+    color: white;
+    font-size: 1.2rem;
+    text-decoration: none;
+}
