@@ -9,6 +9,7 @@ import { FiPlus } from "react-icons/fi";
 
 // Contexts
 import currentUserContext from '../contexts/currentUser.context';
+import serverContext from '../contexts/server.context';
 
 // CSS
 import styles from '../styles/Item.screen.module.css';
@@ -18,6 +19,7 @@ import CastSection from '../components/CastSection.component';
 import EpisodesSection from '../components/EpisodesSection.component';
 
 const Item = () => {
+    const { serverAddress } = useContext(serverContext);
     const { mediaId } = useParams();
     const { userId, userPin } = useContext(currentUserContext);
     
@@ -34,7 +36,7 @@ const Item = () => {
     const FetchMediaInfo = async () => {
         try{
             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId})}
-            const response = await fetch('http://localhost/browse/item', options);
+            const response = await fetch(`${serverAddress}/browse/item`, options);
             const json = await response.json();
             setAdded(json.IN_WATCHLIST);
             setData(json);
@@ -47,7 +49,7 @@ const Item = () => {
     const FetchSeasonData = async (seasonNum) => {
         try{
             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId, seasonNum})}
-            const response = await fetch('http://localhost/browse/season', options);
+            const response = await fetch(`${serverAddress}/browse/season`, options);
             const json = await response.json();
             console.log(json)
             setCurrentSeason(json.SEASON_NUM);
@@ -61,7 +63,7 @@ const Item = () => {
     const FetchCurrentEpisode = async () => {
         try{
             const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId})}
-            const response = await fetch('http://localhost/player/current-episode', options);
+            const response = await fetch(`${serverAddress}/player/current-episode`, options);
             const json = await response.json();
             setCurrentSeason(json.SEASON_NUM);
         }
@@ -73,7 +75,7 @@ const Item = () => {
     const handleAdd = async () => {
         try{
             const options = {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-            const response = await fetch('http://localhost/watchlist/add', options);
+            const response = await fetch(`${serverAddress}/watchlist/add`, options);
             if(response.status == 201){
                 setAdded(true);
             }
@@ -86,7 +88,7 @@ const Item = () => {
     const handleRemove = async () => {
         try{
             const options = {method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-            const response = await fetch('http://localhost/watchlist/remove', options);
+            const response = await fetch(`${serverAddress}/watchlist/remove`, options);
             if(response.status == 202) setAdded(false);
         }
         catch(err){

@@ -31,11 +31,7 @@ router.get('/images', async (req, res) => {
 
 router.post('/add', async (req, res) => {
     try{
-        const
-        userName = req.body.userName,
-        userImage = req.body.userImage,
-        childAccount = req.body.childAccount;
-
+        const { userName, userImage, childAccount } = req.body;
         await addUser(userName, userImage, childAccount);
         res.sendStatus(201);
     }

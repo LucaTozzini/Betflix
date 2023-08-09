@@ -5,10 +5,7 @@ import { authenticateUser, addWatchlist, removeWatchlist, watchlist } from '../h
 
 router.put(`/add`, async (req, res) => {
     try{
-        const 
-        userId = req.body.userId,
-        userPin = req.body.userPin || null,
-        mediaId = req.body.mediaId;
+        const { userId, userPin, mediaId } = req.body;
 
         const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
@@ -23,10 +20,7 @@ router.put(`/add`, async (req, res) => {
 });
 
 router.delete('/remove', async (req, res) => {
-    const 
-    userId = req.body.userId,
-    userPin = req.body.userPin || null,
-    mediaId = req.body.mediaId;
+    const { userId, userPin, mediaId } = req.body;
 
     const auth = await authenticateUser(userId, userPin);
     if(!auth) return res.sendStatus(401);
@@ -37,9 +31,7 @@ router.delete('/remove', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try{
-        const
-        userId = req.body.userId,
-        userPin = req.body.userPin || null;
+        const { userId, userPin } = req.body;
     
         const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);

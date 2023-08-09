@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import '../styles/Database.screen.css';
 
+// Contexts
+import serverContext from '../contexts/server.context';
+
 const Database = () => {
+    const { serverAddress } = useContext(serverContext);
     const [ loaded, setLoaded ] = useState(false)
     const [ status, setStatus ] = useState({});
     const FetchStatus = async () => {
         try{
-            const response = await fetch('http://localhost:80/database/status');
+            const response = await fetch(`${serverAddress}/database/status`);
             const json = await response.json();
             setStatus(json);
         }
@@ -28,9 +32,9 @@ const Database = () => {
     return (
         <div id='database'>
             <div id="button-row" {...(status.ACTIVE && {className: 'ghost'})}>
-                <button onClick={() => fetch('http://localhost/database/run?action=1')}>Scan Movies</button>
-                <button onClick={() => fetch('http://localhost/database/run?action=2')}>Scan Shows</button>
-                <button onClick={() => fetch('http://localhost/database/run?action=3')}>Update People</button>
+                <button onClick={() => fetch(`${serverAddress}/database/run?action=1`)}>Scan Movies</button>
+                <button onClick={() => fetch(`${serverAddress}/database/run?action=2`)}>Scan Shows</button>
+                <button onClick={() => fetch(`${serverAddress}/database/run?action=3`)}>Update People</button>
             </div>
             <h2 id='action'>{status.ACTION || 'No Active Actions'}</h2>
             <div id="progress-bar">

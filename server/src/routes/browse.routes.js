@@ -1,15 +1,12 @@
 import express from 'express';
 import { authenticateUser, inWatchlist } from '../helpers/users.helpers.js';
-import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisode } from '../helpers/search.helpers.js';
+import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo } from '../helpers/search.helpers.js';
 
 const router = express.Router();
 
 router.post('/item', async (req, res) => {
     try{
-        const
-        mediaId = req.body.mediaId,
-        userId = req.body.userId,
-        userPin = req.body.userPin;
+        const { mediaId, userId, userPin } = req.body;
     
         const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
@@ -31,15 +28,12 @@ router.post('/item', async (req, res) => {
 
 router.post('/genres', async (req, res) => {
     try{
-        const
-        userId = req.body.userId,
-        userPin = req.body.userPin,
-        limit = req.body.limit || 30;
+        const { userId, userPin, limit } = req.body;
     
         const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
 
-        const data = await browseGenres(limit);
+        const data = await browseGenres(limit || 30);
         res.json(data);
     }
     catch(err){
@@ -50,11 +44,7 @@ router.post('/genres', async (req, res) => {
 
 router.post('/season', async (req, res) => {
     try{
-        const
-        userId = req.body.userId,
-        userPin = req.body.userPin,
-        mediaId = req.body.mediaId,
-        seasonNum = req.body.seasonNum;
+        const { userId, userPin, mediaId, seasonNum} = req.body;
 
         if(!seasonNum) return res.sendStatus(400);
 
@@ -77,7 +67,7 @@ router.post('/season', async (req, res) => {
 router.post('/episode', async (req, res) => {
     try{
         const episodeId = parseInt(req.body.episodeId);
-        const data = await mediaEpisode(episodeId);
+        const data = await mediaEpisodeInfo(episodeId);
         res.json(data);
     }
     catch(err){

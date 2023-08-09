@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Link, Navigate } from 'react-router-dom'; 
 import '../styles/NewUser.screen.css';
 
+// Contexts
+import serverContext from '../contexts/server.context';
+
 const NewUser = () => {
+    const { serverAddress } = useContext(serverContext);
     const [ userImages, setUserImages ] = useState([]);
     const [ selectedImage, setSelectedImage ] = useState();
     const [ confirm, setConfirm ] = useState(false);
 
     const FetchUserImages = async () => {
-        const response = await fetch(`http://localhost/users/images`);
+        const response = await fetch(`${serverAddress}/users/images`);
         const json = await response.json();
         setUserImages(json);
     };
@@ -26,7 +30,7 @@ const NewUser = () => {
     return (
         <div id="new-user">
             <div className="row">
-                <img id="user-image" src={`http://localhost/${selectedImage}`}/>
+                <img id="user-image" src={`${serverAddress}/${selectedImage}`}/>
                 <input type="text" id="user-name" placeholder='User Name...'/>
             </div>
             
@@ -36,7 +40,7 @@ const NewUser = () => {
             </div>
 
             <div id="image-container">
-                {userImages.map(i => <img key={i} className='select-img' src={`http://localhost/${i}`} onClick={() => setSelectedImage(i)}/> )}
+                {userImages.map(i => <img key={i} className='select-img' src={`${serverAddress}/${i}`} onClick={() => setSelectedImage(i)}/> )}
             </div>
 
             <div className="row">
@@ -49,7 +53,7 @@ const NewUser = () => {
                     });
                     
                     const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: data }
-                    const response = await fetch('http://localhost/users/add', options);
+                    const response = await fetch(`${serverAddress}/users/add`, options);
                     if(response.status == 201) setConfirm(true);
 
                 }}>Confirm</button>

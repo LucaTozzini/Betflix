@@ -6,6 +6,7 @@
 }
 
 .overlay {
+    z-index: 1;
     --marginHorizontal: clamp(1rem, 1vw, 5rem);
     background: linear-gradient(rgba(0, 0, 0, 0.55), transparent 30%, transparent 60%, rgba(0, 0, 0, 0.8));
     position: absolute;
@@ -203,3 +204,24 @@
 .buttonSection .b:hover {
     scale: 1.2;
 }
+
+.nextUp {
+    z-index: 2;
+    position: fixed;
+    right: clamp(1rem, 1vw, 5rem);
+    bottom: 6rem;
+    padding: 1rem;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.3rem;
+    border-radius: .6rem;
+    color: black;
+    transition: scale 200ms;
+}
+
+.nextUp:hover {
+    scale: 1.05;
+}
+

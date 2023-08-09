@@ -1,5 +1,5 @@
 import { db, continuePrep } from "./database.helpers.js";
-import { nextEpisode } from "./search.helpers.js";
+import { nextEpisode, mediaEpisodeInfo } from "./search.helpers.js";
 import uniqid from 'uniqid';
 
 const addUser = (userName, userImage, childAccount) => new Promise( async (res, rej) => {
@@ -59,7 +59,7 @@ const watchlist = (userId) => new Promise((res, rej) => db.all(
 ));
 
 const mediaContinue = (userId, mediaId) => new Promise((res, rej) => db.all(
-    `SELECT *, CASE WHEN END_TIME < 180 THEN 1 ELSE 0 END AS DONE_WATCHING
+    `SELECT *, CASE WHEN END_TIME < 60 THEN 1 ELSE 0 END AS DONE_WATCHING
     FROM users_continue AS c
     LEFT JOIN episodes_main AS m ON c.EPISODE_ID = m.EPISODE_ID 
     WHERE USER_ID = ? AND c.MEDIA_ID = ?
@@ -73,7 +73,10 @@ const currentEpisode = (userId, mediaId) => new Promise( async (res, rej) => {
         const data = await mediaContinue(userId, mediaId);
         const done = [], notDone = [];
         data.forEach(i => i.DONE_WATCHING == 1 ? done.push(i) : notDone.push(i));
-        if(notDone.length != 0) res(notDone[0]);
+        if(notDone.length != 0) {
+            const data = await mediaEpisodeInfo(notDone[0].EPISODE_ID);
+            res(data);
+        }
         else {
             const last = done.sort((a,b) => {
                 if(a.SEASON_NUM < b.SEASON_NUM) return -1;
@@ -114,11 +117,27 @@ const continueList = (userId, limit) => new Promise( async (res, rej) => db.all(
     LEFT JOIN episodes_images AS ei ON ei.EPISODE_ID = uc.EPISODE_ID
     LEFT JOIN episodes_info AS en ON en.EPISODE_ID = uc.EPISODE_ID
     LEFT JOIN episodes_main AS em ON em.EPISODE_ID = uc.EPISODE_ID
-    WHERE uc.USER_ID = ? AND uc.END_TIME > 180
+    WHERE uc.USER_ID = ? AND uc.END_TIME > 60
     ORDER BY uc.TIME_STAMP DESC
     LIMIT ?`,
     [userId, limit],
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
-export { addUser, authenticateUser, userData, addWatchlist, removeWatchlist, watchlist, inWatchlist, updateContinue, currentEpisode, continueList };
+const movieResumeTime = (userId, mediaId) => new Promise((res, rej) => db.get(
+    `SELECT PROGRESS_TIME 
+    FROM users_continue 
+    WHERE USER_ID = ? AND MEDIA_ID = ? AND END_TIME > 60`,
+    [userId, mediaId],
+    (err, row) => err ? rej(err) : res(row ? row.PROGRESS_TIME : 0)
+)); 
+
+const episodeResumeTime = (userId, episodeId) => new Promise((res, rej) => db.get(
+    `SELECT PROGRESS_TIME
+    FROM users_continue
+    WHERE USER_ID = ? AND EPISODE_ID = ? AND END_TIME > 60`,
+    [userId, episodeId],
+    (err, row) => err ? rej(err) : res(row ? row.PROGRESS_TIME : 0)
+));
+
+export { addUser, authenticateUser, userData, addWatchlist, removeWatchlist, watchlist, inWatchlist, updateContinue, currentEpisode, continueList, movieResumeTime, episodeResumeTime };

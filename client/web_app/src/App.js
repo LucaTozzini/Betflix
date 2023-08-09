@@ -13,6 +13,7 @@ import NewUser from "./screens/NewUser.screen";
 import Database from "./screens/Database.screen";
 import SelectUser from "./screens/SelectUser.screen";
 import SearchAddress from "./screens/SearchAddress.screen";
+import PlayerReroute from "./screens/PlayerReroute.screen";
 
 // Contexts
 import currentUserContext from "./contexts/currentUser.context";
@@ -55,8 +56,9 @@ function App() {
     localStorage.setItem('genreBrowseMedia', JSON.stringify(genreBrowseMedia))
   }, [genreBrowseMedia]);
 
+  
   if(!serverAddress) return <SearchAddress address={serverAddress} set={setServerAddress}/>
-  else return (
+  return (
     <serverContext.Provider value={{serverAddress}}>
     <currentUserContext.Provider value={{userId, setUserId, userPin, setUserPin, userData, setUserData, authenticated, setAuthenticated}}>
     <mediaItemSizeContext.Provider value={{mediaScrollRef, itemWidth, setItemWidth, itemsGap, setItemsGap, itemsOnPage, setItemsOnPage, manualTrigger, setManualTrigger}}>
@@ -74,8 +76,10 @@ function App() {
             <Route path="item/:mediaId" element={<Item/>}/>
           </Route>
 
-          
-          <Route path="/player/:mediaId/:episodeId" element={<Player/>}/>
+          <Route path="player">
+            <Route path=":mediaId/:episodeId" element={<Player/>}/>
+            <Route path="reroute/:mediaId/:episodeId" element={<PlayerReroute/>}/>
+          </Route>
 
           <Route path="/users">
             <Route path="select" element={<SelectUser/>}/>

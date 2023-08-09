@@ -4,6 +4,7 @@ import { useEffect, useContext, useState } from 'react';
 import currentUserContext from '../contexts/currentUser.context';
 import browseContext from '../contexts/browse.context';
 import itemSizeContext from '../contexts/mediaItemSize.context';
+import serverContext from '../contexts/server.context';
 
 // Components
 import MediaSection from '../components/MediaSection.component';
@@ -17,6 +18,7 @@ import WatchlistHook from '../hooks/Watchlist.hook';
 import styles from '../styles/Browse.screen.module.css';
 
 const Home = () => {
+  const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
   const { genreBrowseMedia, setGenreBrowseMedia } = useContext(browseContext);
   const [ watchlistMedia, setWatchlistMedia ] = useState([]);
@@ -29,14 +31,14 @@ const Home = () => {
 
   const FetchGenreBrowseMedia = async () => {
     const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({userId, userPin})}
-    const response = await fetch('http://localhost/browse/genres', options);
+    const response = await fetch(`${serverAddress}/browse/genres`, options);
     const json = await response.json(); 
     setGenreBrowseMedia(json);
   };
 
   const FetchContinue = async () => {
     const options = {method:'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin, limit: 30})};
-    const response = await fetch('http://localhost/users/continue', options);
+    const response = await fetch(`${serverAddress}/users/continue`, options);
     const json = await response.json();
     setContinueItems(json);
   }
@@ -45,7 +47,7 @@ const Home = () => {
   const FetchWatchlist = async () => {
       try{
           const options = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin})};
-          const response = await fetch('http://localhost/watchlist/', options);
+          const response = await fetch(`${serverAddress}/watchlist/`, options);
           const json = await response.json();
           setWatchlistMedia(json);
       }

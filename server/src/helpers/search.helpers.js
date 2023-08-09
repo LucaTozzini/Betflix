@@ -1,3 +1,4 @@
+import episode from 'episode';
 import { db, manager } from './database.helpers.js';
 
 const browseGenres = (limit) => new Promise( async (res, rej) => {
@@ -95,7 +96,7 @@ const mediaCast = (mediaId) => new Promise((res, rej) => db.all(
 ));
 
 const mediaSeason = (mediaId, seasonNum, userId) => new Promise((res, rej) => db.all(
-    `SELECT m.SEASON_NUM, m.EPISODE_NUM, i.*, d.*, f.*, c.PROGRESS_TIME
+    `SELECT m.MEDIA_ID, m.SEASON_NUM, m.EPISODE_NUM, i.*, d.*, f.*, c.PROGRESS_TIME
     FROM episodes_main AS m
     JOIN episodes_images AS i ON i.EPISODE_ID = m.EPISODE_ID
     JOIN episodes_dates AS d ON d.EPISODE_ID = m.EPISODE_ID
@@ -105,15 +106,6 @@ const mediaSeason = (mediaId, seasonNum, userId) => new Promise((res, rej) => db
     [userId, mediaId, seasonNum],
     (err, rows) => err ? rej(err) : res(rows)
 )); 
-
-const mediaEpisode = (episodeId) => new Promise((res, rej) => db.get(
-    `SELECT * 
-    FROM episodes_main AS m
-    JOIN episodes_info AS i ON m.EPISODE_ID = i.EPISODE_ID
-    WHERE m.EPISODE_ID = ?`,
-    [episodeId],
-    (err, row) => err ? rej(err) : res(row)
-));
 
 const availableSeasons = (mediaId) => new Promise((res, rej) => db.all(`SELECT DISTINCT SEASON_NUM FROM episodes_main WHERE MEDIA_ID = ? ORDER BY SEASON_NUM ASC`, [mediaId], (err, rows) => err ? rej(err) : res(rows)));
 
@@ -128,13 +120,14 @@ const mediaEpisodeInfo = (episodeId) => new Promise((res, rej) => db.get(
 ));
 
 const nextEpisode = (mediaId, seasonNum, episodeNum) => new Promise((res, rej) => db.get(
-    `SELECT i.*, m.SEASON_NUM, m.EPISODE_NUM
+    `SELECT i.*, m.MEDIA_ID, m.SEASON_NUM, m.EPISODE_NUM, x.TYPE
     FROM episodes_main AS m
     JOIN episodes_info AS i ON m.EPISODE_ID = i.EPISODE_ID
-    WHERE MEDIA_ID = ? AND (SEASON_NUM > ? OR (SEASON_NUM = ? AND EPISODE_NUM > ?))
+    JOIN media_main AS x ON m.MEDIA_ID = x.MEDIA_ID 
+    WHERE m.MEDIA_ID = ? AND (SEASON_NUM > ? OR (SEASON_NUM = ? AND EPISODE_NUM > ?))
     ORDER BY m.SEASON_NUM ASC, m.EPISODE_NUM ASC`,
     [mediaId, seasonNum, seasonNum, episodeNum],
     (err, row) => err ? rej(err) : res(row)
 ));
 
-export { browseGenres, orphans, haveMedia, userList, mediaInfo, mediaGenres, mediaCast, mediaSeason, availableSeasons, mediaEpisodeInfo, nextEpisode, mediaEpisode };
+export { browseGenres, orphans, haveMedia, userList, mediaInfo, mediaGenres, mediaCast, mediaSeason, availableSeasons, mediaEpisodeInfo, nextEpisode };

@@ -4,6 +4,7 @@ import { IoAddCircle } from "react-icons/io5";
 
 // CSS
 import '../styles/SelectUser.screen.css';
+import serverContext from "../contexts/server.context";
 
 // Contexts
 import currentUserContext from "../contexts/currentUser.context";
@@ -12,14 +13,19 @@ import currentUserContext from "../contexts/currentUser.context";
 import Authenticator from "../hooks/Authenticator.hook";
 
 const SelectUser = () => {
+    const { serverAddress } = useContext(serverContext);
     const [ userList, setUserList ] = useState([]);
 
     const { setUserId, setUserData } = useContext(currentUserContext);
 
     const FetchUserList = async () => {
-        const response = await fetch('http://localhost/users/list');
-        const json = await response.json();
-        setUserList(json);
+        try{
+            const response = await fetch(`${serverAddress}/users/list`);
+            const json = await response.json();
+            setUserList(json);
+        }
+        catch(err){
+        }
     };
 
     useEffect(() => {
@@ -46,7 +52,7 @@ const SelectUser = () => {
     const User = ({userId, userImage, userName}) => {
         return (
             <div className="user" onClick={() => { Select(userId, userName, userImage)}}>
-                <img className="user-image" src={`http://localhost/${userImage}`}/>
+                <img className="user-image" src={`${serverAddress}/${userImage}`}/>
                 <h3 className="user-name">{userName}</h3>
             </div>
         );
@@ -62,6 +68,6 @@ const SelectUser = () => {
             </div>
         </div>
     );
-}
+};
 
-export default SelectUser
+export default SelectUser;

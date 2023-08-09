@@ -8,8 +8,12 @@ import { useContext, useEffect } from 'react';
 
 // Contexts
 import currentUserContext from '../contexts/currentUser.context';
+import serverContext from '../contexts/server.context';
 
 const Player = () => {
+    // 
+    const { serverAddress } = useContext(serverContext);
+
     // data 
     const { userId, userPin } = useContext(currentUserContext);
     const { mediaId, episodeId } = useParams();
@@ -17,6 +21,8 @@ const Player = () => {
     const [ mediaData, setMediaData ] = useState(null);
     const mediaRef = useRef(null);
     const episodeRef = useRef(null);
+    const resumeRef = useRef(null);
+    const [ nextEpisode, setNextEpisode] = useState(null);
     
     // video
     const [ paused, setPaused ] = useState(true);
@@ -31,14 +37,13 @@ const Player = () => {
     const seekRef = useRef(false);
     
     // volume
-    const volumeMax = 0.7;
     const [ mute, setMute ] = useState(() => JSON.parse(window.localStorage.getItem('playerMuted')) || false);
     const [ volume, setVolume ] = useState(() => JSON.parse(window.localStorage.getItem('playerVolume')) || 1);
     const volumeSliderRef = useRef(null);
     const volumeFillRef = useRef(null);
     const setVolumeRef = useRef(false);
 
-    useEffect(() => {window.localStorage.setItem('playerMuted', mute); console.log(mute)}, [mute]);
+    useEffect(() => window.localStorage.setItem('playerMuted', mute), [mute]);
     useEffect(() => window.localStorage.setItem('playerVolume', volume), [volume]);
 
     // overlay
@@ -50,30 +55,49 @@ const Player = () => {
     const updateRef = useRef(true);
 
     const FetchMedia = async () => {
-        const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, userPin, mediaId, episodeId }) };
-        const response = await fetch('http://localhost/browse/item', options);
+        const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, userPin, mediaId }) };
+        const response = await fetch(`${serverAddress}/browse/item`, options);
         const json = await response.json();
         setMediaData(json);
     };
     const FetchSource = async () => {
         if(!mediaData) return;
-        if(mediaData.TYPE == 1) setVideoSource(`http://localhost/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`);
+        if(mediaData.TYPE == 1) setVideoSource(`${serverAddress}/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`);
         else if(mediaData.TYPE == 2) {
             if(episodeId == 'a') {
                 const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, userPin, mediaId }) };
-                const response = await fetch('http://localhost/player/current-episode', options);
+                const response = await fetch(`${serverAddress}/player/current-episode`, options);
                 const json = await response.json();
                 setEpisodeData(json);
-                setVideoSource(`http://localhost/player/stream/?type=2&mediaId=${mediaId}&episodeId=${json.EPISODE_ID}`);
+                setVideoSource(`${serverAddress}/player/stream/?type=2&mediaId=${mediaId}&episodeId=${json.EPISODE_ID}`);
             }
             else {
-                const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ episodeId }) };
-                const response = await fetch(`http://localhost/browse/episode`, options);
+                const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ episodeId: Number(episodeId) }) };
+                const response = await fetch(`${serverAddress}/browse/episode`, options);
                 const json = await response.json();
                 setEpisodeData(json);
-                setVideoSource(`http://localhost/player/stream/?type=2&mediaId=${mediaId}&episodeId=${episodeId}`);
+                setVideoSource(`${serverAddress}/player/stream/?type=2&mediaId=${mediaId}&episodeId=${episodeId}`);
             }
         }
+    };
+
+    const FetchResume = async () => {
+        const options = mediaData.TYPE == 1 ? 
+            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, mediaId}) } :
+            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, episodeId: episodeData.EPISODE_ID}) }
+
+        const response = await fetch(`${serverAddress}/player/resume`, options);
+        if(response.status != 200) return;
+        const time = await response.json();
+        videoRef.current.currentTime = time;
+    };
+
+    const FetchNext = async () => {
+        const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({episodeId: Number(episodeId)}) };
+        const response = await fetch(`${serverAddress}/player/next`, options);
+        const json = await response.json();  
+        console.log(json);
+        setNextEpisode(json);
     };
 
     const handleSeek = (e) => {
@@ -89,12 +113,12 @@ const Player = () => {
     const handleVolume = (e) => {
         if(!volumeSliderRef.current || !setVolumeRef.current || !volumeFillRef.current) return;
         const { clientX } = e;
-        let perc = ((clientX - volumeSliderRef.current.offsetLeft) * volumeMax) / volumeSliderRef.current.offsetWidth;
-        perc = Math.min(volumeMax, perc);
+        let perc = (clientX - volumeSliderRef.current.offsetLeft) / volumeSliderRef.current.offsetWidth;
+        perc = Math.min(1, perc);
         perc = Math.max(0, perc);
         videoRef.current.volume = perc;
         setVolume(perc);
-        volumeFillRef.current.style.width = `${perc * (100 / volumeMax)}%`;
+        volumeFillRef.current.style.width = `${perc * 100}%`;
     }
 
     const handleTimeString = () => {
@@ -140,7 +164,7 @@ const Player = () => {
             endTime: videoRef.current.duration - videoRef.current.currentTime
         });
         const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body };
-        await fetch('http://localhost/users/update-continue', options);
+        await fetch(`${serverAddress}/users/update-continue`, options);
         setTimeout(() => { updateRef.current = true }, 3000);
     };
 
@@ -160,18 +184,27 @@ const Player = () => {
     }, []);
 
     useEffect(() => {
+        if(!mediaData) return;
         mediaRef.current = mediaData;
-        episodeRef.current = episodeData; 
-    }, [mediaData, episodeData])
+        FetchSource()
+        if(mediaData.TYPE == 1) FetchResume();
+    }, [mediaData]);
 
-    useEffect(()=>{FetchSource()}, [mediaData]);
+    useEffect(() => {
+        if(!episodeData) return;
+        episodeRef.current = episodeData;        
+        if(mediaData.TYPE == 2) {
+            FetchResume();
+            FetchNext();
+        }
+    }, [episodeData])
     
     useEffect(() => {
         if(videoRef.current) paused ? videoRef.current.pause() : videoRef.current.play();
     }, [paused]);
     
     useEffect(() => {
-        const updateProgress = () => setProgress(videoRef.current.currentTime / videoRef.current.duration);
+        const updateProgress = () => {if(videoRef.current) setProgress(videoRef.current.currentTime / videoRef.current.duration)};
         videoRef.current.addEventListener('timeupdate', updateProgress);
         videoRef.current.addEventListener('timeupdate', updateContinue);
         videoRef.current.addEventListener('timeupdate', handleTimeString);
@@ -203,8 +236,8 @@ const Player = () => {
                 <Link onClick={() => {videoRef.current.pause(); window.history.back()}}>
                     <FaArrowLeft/>
                 </Link>
-                <Link>
-                    { episodeData ? `S${episodeData.SEASON_NUM}.E${episodeData.EPISODE_NUM} - ` : <></>}
+                <Link to={`/browse/item/${mediaId}`}>
+                    { episodeData ? `S${episodeData.SEASON_NUM}:E${episodeData.EPISODE_NUM} - ` : <></>}
                     { episodeData ? episodeData.TITLE : mediaData ? mediaData.TITLE : '' }
                 </Link>
             </div>
@@ -227,7 +260,7 @@ const Player = () => {
                             { mute ? <FaVolumeOff size={'2rem'} onClick={() => setMute(false)}/> : <FaVolumeLow size={'2rem'} onClick={() => setMute(true)}/>}
                             <div className={styles.volumeSliderFrame} onMouseUp={(e) => {if(setVolumeRef.current) handleVolume(e)}} onMouseDown={() => setVolumeRef.current = true} ref={volumeSliderRef}>
                                 <div className={styles.volumeSlider}>
-                                    <div className={styles.volumeFill} style={{width: `${volume*(100 / volumeMax)}%`}} ref={volumeFillRef}>
+                                    <div className={styles.volumeFill} style={{width: `${volume*100}%`}} ref={volumeFillRef}>
                                         <div className={styles.volumeKnob}/>
                                     </div>
                                 </div>
@@ -243,6 +276,15 @@ const Player = () => {
                 </div>
             </div>
         </div>
+
+        { nextEpisode && videoRef.current && videoRef.current.duration - videoRef.current.currentTime < 60 ?
+            <Link className={styles.nextUp} to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`}>
+                <FaPlay/>
+                <div>S{ nextEpisode.SEASON_NUM }:E{nextEpisode.EPISODE_NUM} - {nextEpisode.TITLE}</div>
+            </Link>
+            :<></>
+        }
+
         </>
     );
 }
