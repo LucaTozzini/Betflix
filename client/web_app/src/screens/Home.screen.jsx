@@ -30,8 +30,7 @@ const Home = () => {
   const [ remix, setRemix ] = useState(false);
 
   const FetchGenreBrowseMedia = async () => {
-    const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({userId, userPin})}
-    const response = await fetch(`${serverAddress}/browse/genres`, options);
+    const response = await fetch(`${serverAddress}/browse/genres`);
     const json = await response.json(); 
     setGenreBrowseMedia(json);
   };
@@ -88,6 +87,6 @@ const Home = () => {
     </div>
     </>
   );
-}
+};
   
-  export default Home;
+export default Home;

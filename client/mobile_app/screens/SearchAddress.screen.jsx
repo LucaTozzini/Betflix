@@ -1,24 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import { Text } from "react-native";
-import { getData } from "../helpers/asyncStorage.helper";
 
-const SearchAddress = ({set}) => {
+const SearchAddress = ({ set, address, valid }) => {
     const found = useRef(false);
 
-    const isAddress = (address) => {
-        fetch(`${address}/ciao`).then(async (data) => {
+    const isAddress = (addr) => {
+        fetch(`${addr}/ciao`).then(async (data) => {
             const text = await data.text();
             if(text == 'yellow'){
                 console.log(text)
-                set(address)
+                set(addr)
                 found.current = true;
+                valid(true);
             };
         }).catch((err) => {});
     };
 
     const loop = async () => {
-        const lastAddress = await getData('serverAddress');
-        isAddress(lastAddress);
+        isAddress(address);
         await new Promise (res => setTimeout(res, 1000)); 
 
         for(let i = 0; i <= 255 ; i++) {

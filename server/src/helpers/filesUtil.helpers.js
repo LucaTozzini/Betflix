@@ -4,7 +4,7 @@ import episode from 'episode';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import env from '../../env.js';
 import { manager } from './database.helpers.js';
-import { haveMedia } from './search.helpers.js';
+import { haveMedia } from './queries.helpers.js';
 import { db } from '../helpers/database.helpers.js';
 
 const parseString = (string) => {

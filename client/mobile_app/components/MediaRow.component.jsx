@@ -42,7 +42,6 @@ const MediaRow = ({ title, data}) => {
 const size = 130;
 const styles = StyleSheet.create({
     container: {
-        // backgroundColor: 'red',
         gap: 7,
     },
     title: {
@@ -61,7 +60,7 @@ const styles = StyleSheet.create({
         height: size * 1.5,
         width: size,
         resizeMode: 'cover',
-        borderRadius: size / 20,
+        borderRadius: size / 40,
         backgroundColor: 'grey'
     },
     itemTitle: {

@@ -3,7 +3,7 @@ sqlite3.verbose()
 import env from '../../env.js';
 import { scanMovies, scanShows } from './filesUtil.helpers.js';
 import { fetchMovies, fetchPeople, fetchShows } from './TMDb-api.helpers.js';
-import { orphans, haveMedia } from './search.helpers.js';
+import { orphans, haveMedia } from './queries.helpers.js';
 
 let mediaPrep, episodePrep, continuePrep;
 

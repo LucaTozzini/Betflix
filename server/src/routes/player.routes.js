@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import send from 'send';
 import { authenticateUser, currentEpisode, movieResumeTime, episodeResumeTime } from '../helpers/users.helpers.js'
-import { mediaEpisodeInfo, nextEpisode } from '../helpers/search.helpers.js';
+import { mediaEpisodeInfo, nextEpisode } from '../helpers/queries.helpers.js';
 import { getMoviePath, getEpisodePath } from '../helpers/filesUtil.helpers.js';
 
 const router = express.Router();
@@ -40,7 +40,6 @@ router.get('/stream', async (req, res) => {
 
 router.get('/video', async (req, res) => {
     try{
-        console.log(req)
         const { type, mediaId, episodeId } = req.query;
         if(type != 1 && type != 2) return res.status(400).send('Invalid type');
         const filePath = type == 1 ? await getMoviePath(mediaId) : await getEpisodePath(episodeId);

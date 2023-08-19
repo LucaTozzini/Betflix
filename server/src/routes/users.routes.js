@@ -2,7 +2,7 @@ import fs from 'fs';
 import env from '../../env.js';
 import express from 'express';
 
-import { userList } from '../helpers/search.helpers.js';
+import { userList } from '../helpers/queries.helpers.js';
 import { addUser, authenticateUser, userData, updateContinue, continueList } from '../helpers/users.helpers.js';
 
 const router = express.Router();

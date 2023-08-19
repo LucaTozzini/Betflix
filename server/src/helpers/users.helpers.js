@@ -1,5 +1,5 @@
 import { db, continuePrep } from "./database.helpers.js";
-import { nextEpisode, mediaEpisodeInfo } from "./search.helpers.js";
+import { nextEpisode, mediaEpisodeInfo } from "./queries.helpers.js";
 import uniqid from 'uniqid';
 
 const addUser = (userName, userImage, childAccount) => new Promise( async (res, rej) => {

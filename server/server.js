@@ -13,16 +13,16 @@ const PORT = 80;
 const app = express();
 const service = bonjour();
 
-app.use(express.static('public'));
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
 
 // Routes
-app.use('/database', database_routes);
 app.use('/users', users_routes);
 app.use('/browse', browse_routes);
-app.use('/watchlist', watchlist_routes);
 app.use('/player', player_router);
+app.use('/database', database_routes);
+app.use('/watchlist', watchlist_routes);
 
 // 
 app.get('/ciao', (req, res) => res.send('yellow'));

@@ -16,6 +16,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommu
 import serverContext from '../contexts/server.context';
 import currentUserContext from '../contexts/currentUser.context';
 
+// Hooks
+import Authenticator from '../hooks/Authenticator.hook';
+
 const Player = ({ route }) => {
     const navigation = useNavigation();
     const { mediaId, episodeId } = route.params;
@@ -200,6 +203,7 @@ const Player = ({ route }) => {
 
     if(mediaData && (mediaData.TYPE == 1 || episodeData)) return (
         <>
+        <Authenticator/>
         <StatusBar hidden/>
         <Video
         ref={videoRef}
@@ -215,7 +219,7 @@ const Player = ({ route }) => {
                 <TouchableOpacity onPress={navigation.goBack}>
                     <FontAwesome5 name="arrow-left" color="white" size={20}/>
                 </TouchableOpacity>
-                <TouchableOpacity style={{paddingHorizontal: 20, width: 300}} onPress={() => navigation.navigate('item', { mediaId })}>
+                <TouchableOpacity style={{paddingHorizontal: 20, maxWidth: 300}} onPress={() => navigation.navigate('item', { mediaId })}>
                     <Text numberOfLines={1} style={styles.title}>{mediaData.TITLE}</Text>
                     { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
                 </TouchableOpacity>

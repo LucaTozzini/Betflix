@@ -14,17 +14,21 @@ import themeContext from "../contexts/theme.context";
 import CastRow from "../components/CastRow.component";
 import EpisodeRow from "../components/EpisodeRow.component";
 
+// Hooks
+import Authenticator from "../hooks/Authenticator.hook";
+
 const Item = ({ route }) => {
+  const navigation = useNavigation();
+  if(!route.params) return navigation.replace("browse");
   const { mediaId } = route.params;
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
-  const { textColor, sideMargin } = useContext(themeContext);
+  const { textColor, sideMargin, bottomTabsHeight } = useContext(themeContext);
   const [ mediaData, setMediaData ] = useState(null);
   const [ seasonData, setSeasonData ] = useState(null);
   const [ currentSeason, setCurrentSeason ] = useState(null);
   const [ fullOverview, setFullOverview ] = useState(false);
 
-  const navigation = useNavigation();
 
   const FetchItem = async () => {
     try{
@@ -76,48 +80,48 @@ const Item = ({ route }) => {
 
   if(mediaData) return (
     <ScrollView contentContainerStyle={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
-        <ImageBackground style={styles.backdrop} source={{uri:mediaData.BACKDROP_L}}>
-          <LinearGradient colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.7)', 'black']} style={styles.linearGradient}>
-            <TouchableOpacity style={styles.playButton} onPress={() => navigation.navigate('player', { mediaId })}>
-              <Icon name="play" style={styles.playButtonIcon}/>
-            </TouchableOpacity>
-          </LinearGradient>
-        </ImageBackground>
-        <View style={[styles.infoContainer, {marginHorizontal: sideMargin}]}>
-          <Text style={styles.genres} numberOfLines={1}>
-            { mediaData.GENRES.map(i => i.GENRE_NAME).join(',  ') }
-          </Text>
-          <Text style={[styles.title, {color: textColor}]} numberOfLines={2}>{mediaData.TITLE}</Text>
+      <Authenticator/>
+      <ImageBackground style={styles.backdrop} source={{uri:mediaData.BACKDROP_L}}>
+        <LinearGradient colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.7)', 'black']} style={styles.linearGradient}>
+          <TouchableOpacity style={styles.playButton} onPress={() => navigation.navigate('player', { mediaId })}>
+            <Icon name="play" style={styles.playButtonIcon}/>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+      <View style={[styles.infoContainer, {marginHorizontal: sideMargin}]}>
+        <Text style={styles.genres} numberOfLines={1}>
+          { mediaData.GENRES.map(i => i.GENRE_NAME).join(',  ') }
+        </Text>
+        <Text style={[styles.title, {color: textColor}]} numberOfLines={2}>{mediaData.TITLE}</Text>
 
-          <View style={styles.infoBar}>
-            <Text style={{color: 'orange', fontSize: 15}}>{mediaData.YEAR}</Text>
-            <Text style={{color: 'orange', fontSize: 15}}>|</Text>
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-              <Icon name="star" size={15} style={{color: 'orange'}}/>
-              <Text style={{color: 'orange', fontSize: 15}}>{Math.floor(mediaData.VOTE * 10)}</Text>
-            </View>
-            <Text style={{color: 'orange', fontSize: 15}}>|</Text>
-            <Text style={{color: 'orange', fontSize: 15}}>{mediaData.CONTENT_RATING}</Text>
+        <View style={styles.infoBar}>
+          <Text style={{color: 'orange', fontSize: 15}}>{mediaData.YEAR}</Text>
+          <Text style={{color: 'orange', fontSize: 15}}>|</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <Icon name="star" size={15} style={{color: 'orange'}}/>
+            <Text style={{color: 'orange', fontSize: 15}}>{Math.floor(mediaData.VOTE * 10)}</Text>
           </View>
-
-          <Text onPress={() => setFullOverview(!fullOverview)} numberOfLines={fullOverview ? 1000 : 3} style={[{color: textColor}, styles.overview]}>{mediaData.OVERVIEW}</Text>
+          <Text style={{color: 'orange', fontSize: 15}}>|</Text>
+          <Text style={{color: 'orange', fontSize: 15}}>{mediaData.CONTENT_RATING}</Text>
         </View>
-          {
-            mediaData.TYPE == 2 && mediaData.AVAILABLE_SEASONS.length > 1 && currentSeason ? 
-            <View style={{marginHorizontal: sideMargin}}>
-              <SelectDropdown
-              buttonStyle={styles.seasons}
-              defaultValue={currentSeason}
-              data={mediaData.AVAILABLE_SEASONS.map(i => i.SEASON_NUM)}
-              buttonTextAfterSelection={(selectedItem, index) => `Season ${selectedItem}`}
-              onSelect={(selectedItem, index) => setCurrentSeason(selectedItem)}
-              />
-            </View>
-            : <></>
-          }
-          { seasonData ? <EpisodeRow data={seasonData}/> : <></> }
-        <CastRow title={'Cast'} data={mediaData.CAST}/>
+
+        <Text onPress={() => setFullOverview(!fullOverview)} numberOfLines={fullOverview ? 1000 : 3} style={[{color: textColor}, styles.overview]}>{mediaData.OVERVIEW}</Text>
+      </View>
+        {
+          mediaData.TYPE == 2 && mediaData.AVAILABLE_SEASONS.length > 1 && currentSeason ? 
+          <View style={{marginHorizontal: sideMargin}}>
+            <SelectDropdown
+            buttonStyle={styles.seasons}
+            defaultValue={currentSeason}
+            data={mediaData.AVAILABLE_SEASONS.map(i => i.SEASON_NUM)}
+            buttonTextAfterSelection={(selectedItem, index) => `Season ${selectedItem}`}
+            onSelect={(selectedItem, index) => setCurrentSeason(selectedItem)}
+            />
+          </View>
+          : <></>
+        }
+        { seasonData ? <EpisodeRow data={seasonData}/> : <></> }
+      <CastRow title={'Cast'} data={mediaData.CAST}/>
     </ScrollView>
   )
 };

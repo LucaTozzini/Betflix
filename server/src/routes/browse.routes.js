@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser, inWatchlist } from '../helpers/users.helpers.js';
-import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo } from '../helpers/search.helpers.js';
+import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo, searchMedia } from '../helpers/queries.helpers.js';
 
 const router = express.Router();
 
@@ -26,13 +26,9 @@ router.post('/item', async (req, res) => {
     }
 });
 
-router.post('/genres', async (req, res) => {
+router.get('/genres', async (req, res) => {
     try{
-        const { userId, userPin, limit } = req.body;
-    
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
-
+        const { limit } = req.query;
         const data = await browseGenres(limit || 30);
         res.json(data);
     }
@@ -71,6 +67,19 @@ router.post('/episode', async (req, res) => {
         res.json(data);
     }
     catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/search', async(req, res) => {
+    try{
+        const { value } = req.query;
+        if(!value) return res.status(400).send('Value empty');
+        const data = await searchMedia(value);
+        res.json(data);
+    }
+    catch(err) {
         console.error(err.message);
         res.sendStatus(500);
     }

@@ -7,7 +7,7 @@ import serverContext from "../contexts/server.context";
 
 const Authenticator = () => {
     const { serverAddress } = useContext(serverContext);
-    const { userId, authenticated, setAuthenticated } = useContext(currentUserContext);
+    const { userId, authenticated, setAuthenticated, userData } = useContext(currentUserContext);
     const [ requested, setRequested ] = useState(false);
     const navigation = useNavigation();
 
@@ -16,6 +16,7 @@ const Authenticator = () => {
         const response = await fetch(`${serverAddress}/users/data`, options);
         const auth = response.status == 200;
         if(auth) setAuthenticated(auth);
+        console.log(options.body, auth);
         setRequested(true);
     };
 
@@ -24,8 +25,8 @@ const Authenticator = () => {
     }, []);
 
     useEffect(() => {
-        if(requested && !authenticated) navigation.replace("selectUser");
-    }, [requested, authenticated]);
+        if((requested && !authenticated) || (!userData || userData == -1)) navigation.replace("selectUser");
+    }, [requested, authenticated, userData]);
 
 };
 
