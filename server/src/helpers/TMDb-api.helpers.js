@@ -30,6 +30,7 @@ const fetchMovies = (movies) => new Promise( async (res, rej) => {
                 const backdrop = match_response.data.images.backdrops.filter(i => i.iso_639_1 == null)[0];
                 const logo = match_response.data.images.logos.filter(i => i.iso_639_1 == 'en')[0];
                 const poster = match_response.data.images.posters.filter(i => i.iso_639_1 == 'en')[0];
+                const poster_nt = match_response.data.images.posters.filter(i => i.iso_639_1 == null)[0];
                 
                 const content_rating = match_response.data.releases.countries.filter(i => (i.iso_3166_1 == 'US' && i.certification != ''))[0];
                 
@@ -47,6 +48,8 @@ const fetchMovies = (movies) => new Promise( async (res, rej) => {
                     logo_l: logo ? Img_Base + logo.file_path : null,
                     poster_s: poster ? Img_Base_200 + poster.file_path : null,
                     poster_l: poster ? Img_Base + poster.file_path : null,
+                    poster_nt_s: poster_nt ? Img_Base_200 + poster_nt.file_path : null,
+                    poster_nt_l: poster_nt ? Img_Base + poster_nt.file_path : null,
         
                     // dates
                     year: match.release_date.split('-')[0],

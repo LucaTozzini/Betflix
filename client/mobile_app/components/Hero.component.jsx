@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 // Contexts
 import themeContext from '../contexts/theme.context';
 
-const size = 268;
+const size = 207;
 
 const Hero = ({title, data}) => {
     const { textColor, sideMargin } = useContext(themeContext);

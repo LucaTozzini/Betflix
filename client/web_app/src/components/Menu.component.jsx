@@ -18,7 +18,7 @@ const Menu = () => {
         const scroll = document.getElementById('root').scrollTop;
         const css = menuRef.current.style;
         css.background = scroll > 0 ? 'black' : 'transparent';
-        css.outline = scroll > 0 ? '1px solid rgba(255, 255, 255, 0.2) ' : 'none';
+        css.outline = scroll > 0 ? '1px solid rgb(50, 50, 50) ' : 'none';
         setDropDown(false)
     };
 

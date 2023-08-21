@@ -46,7 +46,7 @@ const db = new sqlite3.Database(env.databasePath, sqlite3.OPEN_READWRITE, async 
         await createTables();
         mediaPrep = {
             main: db.prepare(`INSERT INTO media_main (MEDIA_ID, ITEM_ID, TYPE, PATH) VALUES (?,?,?,?)`),
-            images: db.prepare(`INSERT INTO media_images (MEDIA_ID, POSTER_S, POSTER_L, LOGO_S, LOGO_L, BACKDROP_S, BACKDROP_L) VALUES (?,?,?,?,?,?,?)`),
+            images: db.prepare(`INSERT INTO media_images (MEDIA_ID, POSTER_S, POSTER_L, POSTER_NT_S, POSTER_NT_L, LOGO_S, LOGO_L, BACKDROP_S, BACKDROP_L) VALUES (?,?,?,?,?,?,?,?,?)`),
             dates: db.prepare(`INSERT INTO media_dates (MEDIA_ID, YEAR, START_DATE, END_DATE) VALUES (?,?,?,?)`),
             finances: db.prepare(`INSERT INTO media_finances (MEDIA_ID, BUDGET, REVENUE) VALUES (?,?,?)`),
             companies: db.prepare(`INSERT INTO media_companies (KEY, MEDIA_ID, COMPANY_NAME) VALUES (?,?,?)`),
@@ -66,8 +66,6 @@ const db = new sqlite3.Database(env.databasePath, sqlite3.OPEN_READWRITE, async 
         }
     }
 });
-
-// db.on('trace', (query) => console.log('Executed Query:', query, '\n'));
 
 const transaction = {
     begin: () => new Promise((res, rej) => db.run(`BEGIN TRANSACTION`, err => err ? rej(err) : res())),
@@ -91,6 +89,8 @@ const createTables = () => new Promise(async res => {
             MEDIA_ID TEXT PRIMARY KEY,
             POSTER_S TEXT,
             POSTER_L TEXT,
+            POSTER_NT_S TEXT,
+            POSTER_NT_L TEXT,
             LOGO_S TEXT,
             LOGO_L TEXT,
             BACKDROP_S TEXT,
@@ -282,7 +282,7 @@ const insertMedia = (m) => new Promise(async (res, rej) => {
     try{
         const 
         main_data = [m.media_id, m.item_id, m.type, m.path],
-        images_data = [m.media_id, m.poster_s, m.poster_l, m.logo_s, m.logo_l, m.backdrop_s, m.backdrop_l],
+        images_data = [m.media_id, m.poster_s, m.poster_l, m.poster_nt_s, m.poster_nt_l, m.logo_s, m.logo_l, m.backdrop_s, m.backdrop_l],
         dates_data = [m.media_id, m.year, m.start_date, m.end_date],
         finances_data = [m.media_id, m.budget, m.revenue],
         info_data = [m.media_id, m.title, m.overview, m.content_rating, m.duration, m.vote];

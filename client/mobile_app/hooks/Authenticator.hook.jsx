@@ -16,7 +16,6 @@ const Authenticator = () => {
         const response = await fetch(`${serverAddress}/users/data`, options);
         const auth = response.status == 200;
         if(auth) setAuthenticated(auth);
-        console.log(options.body, auth);
         setRequested(true);
     };
 

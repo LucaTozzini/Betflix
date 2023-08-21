@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 
 // Contexts
@@ -46,21 +47,11 @@ const BottomTabs = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('search')}
-      >
-        <>
-          <Icon name="search" size={iconSize} color={bottomTabsIconColor} />
-          <Text style={[styles.text, {color: bottomTabsIconColor}]}>Search</Text>
-        </>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
         onPress={() => navigation.navigate('selectUser')}
       >
         <>
-          <Icon name="user" size={iconSize} color={bottomTabsIconColor} />
-          <Text style={[styles.text, {color: bottomTabsIconColor}]}>User</Text>
+          <MaterialIcons name="cast" size={iconSize} color={bottomTabsIconColor} />
+          <Text style={[styles.text, {color: bottomTabsIconColor}]}>Cast</Text>
         </>
       </TouchableOpacity>
     </View>

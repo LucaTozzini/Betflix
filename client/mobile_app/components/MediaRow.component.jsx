@@ -39,7 +39,7 @@ const MediaRow = ({ title, data}) => {
     )
 };
 
-const size = 130;
+const size = 100;
 const styles = StyleSheet.create({
     container: {
         gap: 7,

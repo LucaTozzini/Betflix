@@ -1,4 +1,4 @@
-import { SafeAreaView, Text, TouchableHighlight, Image, StyleSheet } from "react-native";
+import { View, Text, TouchableHighlight, Image, StyleSheet } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
@@ -42,13 +42,14 @@ const SelectUser = () => {
   ) 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit={true}>Who's You?</Text>
       { users ? 
         users.map(i => <User key={i.USER_ID} userData = {i} userName={i.USER_NAME} userImage={i.USER_IMAGE}/>)
         : <></> 
       }
 
-    </SafeAreaView>
+    </View>
   )
 };
 
@@ -56,6 +57,11 @@ const userImageSize = 100;
 const styles = StyleSheet.create({
   container: {
     flex: 1
+  },
+  title: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 30
   },
   user: {
     alignItems: 'center'

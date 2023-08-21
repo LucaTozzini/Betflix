@@ -47,6 +47,7 @@ const Browse = () => {
       FetchGenres();
       FetchContinue();
     }
+    return () => console.log('unmount')
   }, []);
 
   return (

@@ -16,7 +16,6 @@ const Hero = ({ items }) => {
 
     useEffect(() => {
         if(items && items[0]){
-            console.log(items[0])
             setCurrentItem(items[0])
         }
     }, [items]);

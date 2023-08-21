@@ -81,7 +81,7 @@ const Item = ({ route }) => {
   if(mediaData) return (
     <ScrollView contentContainerStyle={styles.container}>
       <Authenticator/>
-      <ImageBackground style={styles.backdrop} source={{uri:mediaData.BACKDROP_L}}>
+      <ImageBackground style={styles.backdrop} source={{uri: mediaData.POSTER_NT_L || mediaData.BACKDROP_L}}>
         <LinearGradient colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.7)', 'black']} style={styles.linearGradient}>
           <TouchableOpacity style={styles.playButton} onPress={() => navigation.navigate('player', { mediaId })}>
             <Icon name="play" style={styles.playButtonIcon}/>
@@ -89,10 +89,10 @@ const Item = ({ route }) => {
         </LinearGradient>
       </ImageBackground>
       <View style={[styles.infoContainer, {marginHorizontal: sideMargin}]}>
-        <Text style={styles.genres} numberOfLines={1}>
+        <Text style={styles.genres} numberOfLines={1} adjustsFontSizeToFit={true}>
           { mediaData.GENRES.map(i => i.GENRE_NAME).join(',  ') }
         </Text>
-        <Text style={[styles.title, {color: textColor}]} numberOfLines={2}>{mediaData.TITLE}</Text>
+        <Text style={[styles.title, {color: textColor}]} numberOfLines={mediaData.TITLE.length > 25 ? 2 : 1} adjustsFontSizeToFit={true}>{mediaData.TITLE}</Text>
 
         <View style={styles.infoBar}>
           <Text style={{color: 'orange', fontSize: 15}}>{mediaData.YEAR}</Text>
@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
   },
   genres: {
     color: 'gray',
-    textTransform: 'uppercase',
-    width: '80%',
+    textTransform: 'uppercase'
   },
   title: {
     fontSize: 40,
     fontWeight: 'bold',
+    // backgroundColor: 'red'
   },
   infoBar: {
     flexDirection: 'row',
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   overview: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '300',
   },
   seasons: {

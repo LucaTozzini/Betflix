@@ -8,7 +8,6 @@ const SearchAddress = ({ set, address, valid }) => {
         fetch(`${addr}/ciao`).then(async (data) => {
             const text = await data.text();
             if(text == 'yellow'){
-                console.log(text)
                 set(addr)
                 found.current = true;
                 valid(true);
@@ -21,7 +20,6 @@ const SearchAddress = ({ set, address, valid }) => {
         await new Promise (res => setTimeout(res, 1000)); 
 
         for(let i = 0; i <= 255 ; i++) {
-            console.log(i, found.current)
             if(found.current) break;
             isAddress(`http://192.168.1.${i}`);
             await new Promise (res => setTimeout(res, 100)); 
