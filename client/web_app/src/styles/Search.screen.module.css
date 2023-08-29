@@ -1,0 +1,26 @@
+.searchBar {
+    background-color: white;
+    display: flex;
+    height: 4rem;
+    padding: 0 var(--marginHorizontal);
+}
+
+.inputText {
+    flex: 1;
+    font-size: 1.7rem;
+    border: none;
+}
+
+.inputText:focus {
+    outline: none;
+}
+
+.clearButton {
+    background: transparent;
+    border: none;
+}
+
+.items {
+    padding: 0 var(--marginHorizontal);
+    margin-top: 2rem;
+}

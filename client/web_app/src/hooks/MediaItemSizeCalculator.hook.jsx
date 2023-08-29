@@ -28,7 +28,7 @@ const MediaItemSizeCalculator = () => {
     };
 
     useEffect(() => {
-        const handleResize = ()  => setItemSize(200);
+        const handleResize = () => setItemSize(200);
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);

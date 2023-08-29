@@ -9,7 +9,7 @@ import browse_routes from './src/routes/browse.routes.js';
 import watchlist_routes from './src/routes/watchlist.routes.js';
 import player_router from './src/routes/player.routes.js'
 
-const PORT = 80;
+const PORT = 2000;
 const app = express();
 const service = bonjour();
 
@@ -32,4 +32,4 @@ app.listen(PORT, ()=> {
     console.log(`Server listening on port ${PORT}`);
 });
 
-service.publish({ name: 'Betflix API', type: 'http', port: 3000 });
+service.publish({ name: 'Betflix API', type: 'http', port: 2000 });

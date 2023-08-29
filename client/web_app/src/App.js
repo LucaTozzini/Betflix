@@ -9,6 +9,7 @@ import Home from './screens/Home.screen';
 import Item from "./screens/Item.screen";
 import NoPage from './screens/NoPage.screen';
 import Player from "./screens/Player.screen";
+import Search from "./screens/Search.screen";
 import NewUser from "./screens/NewUser.screen";
 import Database from "./screens/Database.screen";
 import SelectUser from "./screens/SelectUser.screen";
@@ -23,6 +24,7 @@ import serverContext from "./contexts/server.context";
 
 function App() {
   // 
+  const [ serverValid, setServerValid ] = useState(false);
   const [ serverAddress, setServerAddress ] = useState(() => window.localStorage.getItem('serverAddress') || null);
   useEffect(() => {
     window.localStorage.setItem('serverAddress', serverAddress);
@@ -57,7 +59,7 @@ function App() {
   }, [genreBrowseMedia]);
 
   
-  if(!serverAddress) return <SearchAddress address={serverAddress} set={setServerAddress}/>
+  if(!serverValid) return <SearchAddress address={serverAddress} set={setServerAddress} valid={setServerValid}/>
   return (
     <serverContext.Provider value={{serverAddress}}>
     <currentUserContext.Provider value={{userId, setUserId, userPin, setUserPin, userData, setUserData, authenticated, setAuthenticated}}>
@@ -65,7 +67,7 @@ function App() {
     <browseContext.Provider value={{watchlistMediaIds, setWatchlistMediaIds, genreBrowseMedia, setGenreBrowseMedia}}>
       <BrowserRouter>
         <Routes>
-          <Route path="ciao"/>
+          
           <Route path="/" element={<Layout/>}>
             <Route index element={<Navigate to='/browse/home'/> }/>
             <Route path="*" element={<NoPage/>}/>
@@ -74,6 +76,7 @@ function App() {
           <Route path="/browse" element={<Layout/>}>
             <Route path="home" element={<Home/>}/>
             <Route path="item/:mediaId" element={<Item/>}/>
+            <Route path="search" element={<Search/>}/>
           </Route>
 
           <Route path="player">

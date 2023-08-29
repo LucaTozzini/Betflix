@@ -47,7 +47,6 @@ const Browse = () => {
       FetchGenres();
       FetchContinue();
     }
-    return () => console.log('unmount')
   }, []);
 
   return (
@@ -56,7 +55,7 @@ const Browse = () => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Hero title={'continue watching'} data = {continueMedia}/>
         { genreMedia.map(i => <MediaRow key={i.genre} title={i.genre} data={i.data} />) }
-        <View style={{height: 100, width: 1}}/>
+        <View style={{height: 40, width: 1}}/>
       </ScrollView>
 
     </SafeAreaView>

@@ -21,7 +21,7 @@ const SearchAddress = ({ set, address, valid }) => {
 
         for(let i = 0; i <= 255 ; i++) {
             if(found.current) break;
-            isAddress(`http://192.168.1.${i}`);
+            isAddress(`http://192.168.0.${i}:2000`);
             await new Promise (res => setTimeout(res, 100)); 
         }
     };

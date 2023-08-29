@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, TouchableWithoutFeedback, TouchableOpacity, Text, StatusBar, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, StatusBar, ImageBackground } from 'react-native';
 
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -7,10 +7,13 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { hideNavigationBar, showNavigationBar } from 'react-native-navigation-bar-color';
 
+import { useRemoteMediaClient, useMediaStatus } from 'react-native-google-cast';
+import { useCastState, useStreamPosition } from 'react-native-google-cast';
+
 // Icons
 import FontAwesome5 from 'react-native-vector-icons/dist/FontAwesome5';
-import Feather from 'react-native-vector-icons/dist/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // Contexts
 import serverContext from '../contexts/server.context';
@@ -19,27 +22,35 @@ import currentUserContext from '../contexts/currentUser.context';
 // Hooks
 import Authenticator from '../hooks/Authenticator.hook';
 
+// Components
+import GoogleCastDevicesModal from '../components/GoogleCastDevicesModal.component';
+
 const Player = ({ route }) => {
+    const castState = useCastState();
     const navigation = useNavigation();
+    const client = useRemoteMediaClient();
+    const streamPosition = useStreamPosition();
+    const mediaStatus = useMediaStatus();
     const { mediaId, episodeId } = route.params;
     const { serverAddress } = useContext(serverContext);
     const { userId, userPin } = useContext(currentUserContext);
 
+    const [canUpdate, setCanUpdate] = useState(true);
     const [ mediaData, setMediaData] = useState(null);
     const [ episodeData, setEpisodeData ] = useState(null);
     const [ nextEpisode, setNextEpisode ] = useState(null);
     
-    const [canUpdate, setCanUpdate] = useState(true);
-
+    
     // Player states
     const videoRef = useRef(null);
     const [ paused, setPaused ] = useState(false);
     const [ resumeTime, setResumeTime ] = useState(null);
     const [ currentTime, setCurrentTime ] = useState(null);
     const [ durationTime, setDurationTime ] = useState(null);
-
+    
     // UI states
     const hideTime = 5000;
+    const [ castModal, setCastModal ] = useState(false);
     const [ showControls, setShowControls ] = useState(true);
     const [ totalTimeString, setTotalTimeString ] = useState(null);
     const [ currentTimeString, setCurrentTimeString ] = useState(null);
@@ -165,11 +176,30 @@ const Player = ({ route }) => {
         }
     };
 
+    const handleCastSeek = (position) => {
+        if(client) client.seek({position});
+    };
+
+    const handleCastSkipFrw = () => {
+        if(client) client.seek({ relative: true, position: 15 })
+    };
+
+    const handleCastSkipBack = () => {
+        if(client) client.seek({ relative: true, position: -15 })
+    };
+
     useEffect(() => {
         FetchItem();
-        hideNavigationBar();
-        return showNavigationBar
+        return () => {
+            showNavigationBar();
+        }
     }, []);
+
+    useEffect(() => {
+        if(castState != 'connected') hideNavigationBar();
+        else showNavigationBar();
+        setPaused(false);
+    }, [castState]);
     
     useEffect(() => {
         if(!mediaData) return;
@@ -201,72 +231,148 @@ const Player = ({ route }) => {
         setCurrentTimeString(currentString);
     }, [currentTime]);
 
-    if(mediaData && (mediaData.TYPE == 1 || episodeData)) return (
-        <>
-        <Authenticator/>
-        <StatusBar hidden/>
-        <Video
-        ref={videoRef}
-        source={{uri: `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`}}
-        style={styles.video}
-        onLoad={handleLoad}
-        onProgress={handleProgress}
-        paused={paused}
-        />
-        <TouchableOpacity activeOpacity={.8} style={styles.overlay} onPress={() => setShowControls(!showControls)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-            { showControls ? <>
-            <LinearGradient colors={['black', 'transparent']} style={[styles.overlaySection, { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', paddingHorizontal: 15, paddingTop: 10,  }]}>
-                <TouchableOpacity onPress={navigation.goBack}>
-                    <FontAwesome5 name="arrow-left" color="white" size={20}/>
-                </TouchableOpacity>
-                <TouchableOpacity style={{paddingHorizontal: 20, maxWidth: 300}} onPress={() => navigation.navigate('item', { mediaId })}>
-                    <Text numberOfLines={1} style={styles.title}>{mediaData.TITLE}</Text>
-                    { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
-                </TouchableOpacity>
-                <View style={styles.buttonsTop}>
-                    <TouchableOpacity>
-                        <Feather name="cast" color="white" size={30}/>
+    useEffect(() => {
+        if(client) {
+            if(paused) client.pause();
+            else client.play();
+        }
+    }, [paused]);
+
+    useEffect(() => {
+        console.log(client, mediaStatus);
+        if(client && mediaStatus && mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
+            const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
+            if(videoUrl == mediaStatus.mediaInfo.contentUrl) return;
+            try {
+                client.loadMedia({
+                    autoplay: true,
+                    mediaInfo: {
+                        contentUrl: `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`,
+                    }
+                });
+            }
+            catch(err) {
+
+            }
+        }
+    }, [castState, client, mediaStatus, mediaData, episodeData]);
+    
+    if(mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
+        const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
+
+        if(castState != 'connected') return (
+            <>
+            <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
+            <Authenticator/>
+            <StatusBar hidden/>
+            <Video
+            ref={videoRef}
+            source={{uri: videoUrl}}
+            style={styles.video}
+            onLoad={handleLoad}
+            onProgress={handleProgress}
+            paused={paused}
+            />
+            <TouchableOpacity activeOpacity={.8} style={styles.overlay} onPress={() => setShowControls(!showControls)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+                { showControls ? <>
+                <LinearGradient colors={['black', 'transparent']} style={[styles.overlaySection, { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', paddingHorizontal: 15, paddingTop: 10,  }]}>
+                    <TouchableOpacity onPress={navigation.goBack}>
+                        <FontAwesome5 name="arrow-left" color="white" size={20}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{paddingHorizontal: 20, maxWidth: 300}} onPress={() => navigation.navigate('item', { mediaId })}>
+                        <Text numberOfLines={1} style={styles.title}>{mediaData.TITLE}</Text>
+                        { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
+                    </TouchableOpacity>
+                    <View style={styles.buttonsTop}>
+                        <TouchableOpacity onPress={() => {setCastModal(true); setPaused(true)}}>
+                            <MaterialIcons name="cast" color="white" size={25}/>
+                        </TouchableOpacity>
+                    </View>
+                </LinearGradient>
+
+                <View style={[styles.overlaySection, { flexDirection: 'row', gap: 35 }]}>
+                    <TouchableOpacity style={styles.buttonSmall} onPress={handleSkipBack} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+                        <MaterialCommunityIcons name="rewind-15" size={20} color="white"/>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button} onPress={() => setPaused(!paused)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+                        <FontAwesome5 name={paused ? "play" : "pause"} size={30} color="white"/>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.buttonSmall} onPress={handleSkipForw} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+                        <MaterialCommunityIcons name="fast-forward-15" size={20} color="white"/>
                     </TouchableOpacity>
                 </View>
-            </LinearGradient>
 
-            <View style={[styles.overlaySection, { flexDirection: 'row', gap: 35 }]}>
-                <TouchableOpacity style={styles.buttonSmall} onPress={handleSkipBack} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-                    <MaterialCommunityIcons name="rewind-15" size={20} color="white"/>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => setPaused(!paused)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-                    <FontAwesome5 name={paused ? "play" : "pause"} size={30} color="white"/>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.buttonSmall} onPress={handleSkipForw} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-                    <MaterialCommunityIcons name="fast-forward-15" size={20} color="white"/>
-                </TouchableOpacity>
-            </View>
+                <LinearGradient colors={['transparent', 'black']} style={[styles.overlaySection, { justifyContent: 'flex-end', paddingBottom: 25 }]}>
+                    <View style={styles.timeContainer}>
+                        <Text style={styles.time}>{currentTimeString}</Text>
+                        <Text style={[styles.time, {color: 'rgb(150, 150, 150)'}]}>/{totalTimeString}</Text>
+                    </View>
+                    <Slider 
+                    style={styles.slider} 
+                    thumbTintColor='orange'
+                    minimumTrackTintColor='orange'
+                    maximumTrackTintColor='rgba(255, 255, 255, 0.7)'
 
-            <LinearGradient colors={['transparent', 'black']} style={[styles.overlaySection, { justifyContent: 'flex-end', paddingBottom: 25 }]}>
-                <View style={styles.timeContainer}>
-                    <Text style={styles.time}>{currentTimeString}</Text>
-                    <Text style={[styles.time, {color: 'rgb(150, 150, 150)'}]}>/{totalTimeString}</Text>
-                </View>
-                <Slider 
-                style={styles.slider} 
-                thumbTintColor='orange'
-                minimumTrackTintColor='orange'
-                maximumTrackTintColor='rgba(255, 255, 255, 0.7)'
+                    minimumValue={0} 
+                    maximumValue={durationTime} 
+                    value={currentTime}
+                    step={0.1}
 
-                minimumValue={0} 
-                maximumValue={durationTime} 
-                value={currentTime}
-                step={0.1}
+                    onValueChange={handleSeek}
+                    onPressIn={handlePressIn} 
+                    onPressOut={handlePressOut}
+                    />
+                </LinearGradient>
+                </> : <></>}
+            </TouchableOpacity>
+            </>
+        )
 
-                onValueChange={handleSeek}
-                onPressIn={handlePressIn} 
-                onPressOut={handlePressOut}
-                />
-            </LinearGradient>
-            </> : <></>}
-        </TouchableOpacity>
-        </>
-    );
+        else {
+            return (
+                <>
+                <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
+                <StatusBar translucent={false} backgroundColor={'black'}/>
+                <ImageBackground source={{uri:mediaData.POSTER_NT_L}} style={castStyles.container}>
+                    <LinearGradient colors={['black', 'transparent', 'black']} style={castStyles.linearGradient}>
+                        <View style={castStyles.topBar}>
+                            <TouchableOpacity onPress={navigation.goBack}>
+                                <FontAwesome5 name="arrow-left" color="white" size={20}/>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setCastModal(true)}>
+                                <MaterialIcons name="cast-connected" color='white' size={25}/>
+                            </TouchableOpacity>    
+                        </View>
+                        <View style={castStyles.controls}>
+                            <TouchableOpacity style={styles.buttonSmall} onPress={handleCastSkipBack}>
+                                <MaterialCommunityIcons name="rewind-15" size={20} color="white"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.button} onPress={() => setPaused(!paused)}>
+                                <FontAwesome5 name={paused ? "play" : "pause"} size={30} color="white"/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.buttonSmall} onPress={handleCastSkipFrw}>
+                                <MaterialCommunityIcons name="fast-forward-15" size={20} color="white"/>
+                            </TouchableOpacity>
+                        </View>
+                        <Slider
+                        style={{width: '100%'}}
+                        thumbTintColor='orange'
+                        minimumTrackTintColor='orange'
+                        maximumTrackTintColor='rgba(255, 255, 255, 0.7)'
+
+                        minimumValue={0} 
+                        maximumValue={mediaStatus ? mediaStatus.mediaInfo.streamDuration : 0} 
+                        value={streamPosition}
+                        step={0.1}
+
+                        onValueChange={handleCastSeek}
+                        />
+                    </LinearGradient>
+                </ImageBackground>
+                </>
+            )
+        }
+    }
 };
 
 const styles = StyleSheet.create({
@@ -326,5 +432,31 @@ const styles = StyleSheet.create({
         width: '100%'
     }
 })
+
+const castStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    linearGradient: {
+        flex: 1,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+    },
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+
+    },
+    controls: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 30
+    },
+    slider: {
+        width: '100%',
+    }
+});
 
 export default Player;

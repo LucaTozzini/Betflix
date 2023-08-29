@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 // Contexts
+import serverContext from '../contexts/server.context';
 import currentUserContext from '../contexts/currentUser.context';
 
 // CSS
@@ -9,6 +10,7 @@ import styles from '../styles/Menu.component.module.css';
 
 const Menu = () => {
     const { userData } = useContext(currentUserContext);
+    const { serverAddress } = useContext(serverContext);
     const menuRef = useRef(null);
     const userButtonRef = useRef(null);
     const [ dropDown, setDropDown ] = useState(false);
@@ -41,13 +43,14 @@ const Menu = () => {
         <nav className={styles.container} ref={menuRef}>
             <div className={styles.section}>
                 <Link className={styles.link} to="/">Home</Link>
+                <Link className={styles.link} to="/browse/search">Search</Link>
                 <Link className={styles.link} to="/database">Database</Link>
             </div>
 
             <div className={styles.section}>
                 <button className={styles.userButton} onClick={() => setDropDown(!dropDown)} ref={userButtonRef}>
                     <h3 className={styles.userName}>{userData.userName}</h3>
-                    <img className={styles.userImage} src={'http://localhost/'+userData.userImage}/>
+                    <img className={styles.userImage} src={`${serverAddress}/${userData.userImage}`}/>
                 </button>
             </div>
 

@@ -122,6 +122,7 @@ const Item = ({ route }) => {
         }
         { seasonData ? <EpisodeRow data={seasonData}/> : <></> }
       <CastRow title={'Cast'} data={mediaData.CAST}/>
+      <View style={{width:1, height: 60}}/>
     </ScrollView>
   )
 };

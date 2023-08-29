@@ -1,18 +1,27 @@
 import { useEffect, useState, useContext } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 
+import { useCastState } from 'react-native-google-cast'
+
 // Contexts
 import themeContext from '../contexts/theme.context';
+
+// Components
+import GoogleCastDevicesModal from './GoogleCastDevicesModal.component';
 
 const BottomTabs = () => {
   const [ show, setShow ] = useState(true);
   const [ route, setRoute ] = useState(null);
+  const castState = useCastState();
+
+  const [ modal, setModal ] = useState(false);
   const { bottomTabsColor, bottomTabsIconColor, backgroundColor } = useContext(themeContext);
-  
+
   const iconSize = 23;
   const navigation = useNavigation();
 
@@ -31,10 +40,12 @@ const BottomTabs = () => {
   useEffect(() => {
     if(show) changeNavigationBarColor(bottomTabsColor);
     else changeNavigationBarColor(backgroundColor);
-  }, [show])
+  }, [show]);
 
+  
   if(show) return (
     <View style={[styles.container, {backgroundColor: bottomTabsColor}]}>
+      <GoogleCastDevicesModal show={modal} setShow={setModal} initBackground={true}/>
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('browse')}
@@ -47,10 +58,10 @@ const BottomTabs = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('selectUser')}
+        onPress={() => setModal(true)}
       >
         <>
-          <MaterialIcons name="cast" size={iconSize} color={bottomTabsIconColor} />
+          <MaterialIcons name={castState == 'connected' ? "cast-connected" : "cast"} size={iconSize} color={bottomTabsIconColor} />
           <Text style={[styles.text, {color: bottomTabsIconColor}]}>Cast</Text>
         </>
       </TouchableOpacity>
@@ -70,7 +81,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 12,
     fontWeight: '200',
-  }
+  },
 });
 
 export default BottomTabs;

@@ -1,4 +1,4 @@
-import { View, Text, TouchableHighlight, Image, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
@@ -33,12 +33,12 @@ const SelectUser = () => {
   };
 
   const User = ({userName, userImage, userData}) => (
-    <TouchableHighlight onPress={() => setUser(userData)} style={styles.user}>
+    <TouchableOpacity onPress={() => setUser(userData)} style={styles.user}>
       <>
         <Image source={{uri: `${serverAddress}/${userImage}`}} style={styles.userImage}/>
-        <Text>{userName}</Text>
+        <Text style={{color:'white'}}>{userName}</Text>
       </>
-    </TouchableHighlight>
+    </TouchableOpacity>
   ) 
 
   return (
