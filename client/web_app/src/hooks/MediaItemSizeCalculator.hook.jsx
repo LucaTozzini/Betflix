@@ -14,10 +14,10 @@ const MediaItemSizeCalculator = () => {
         debounce = setTimeout(() => {
             const width = mediaScrollRef.current.offsetWidth;
             const num = 
-                width >= 1300 ? 10 :
-                width >= 1050 ? 8 : 
-                width >= 800 ? 6 :
-                width >= 450 ? 4 : 3; 
+                width >= 1000 ? 10 :
+                width >= 750 ? 8 : 
+                width >= 500 ? 6 :
+                width >= 250 ? 4 : 2; 
             
             const gap_space = width * 0.05;
             const available = width * 0.95;

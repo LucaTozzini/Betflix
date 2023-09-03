@@ -24,7 +24,7 @@ const NewUser = () => {
 
     const handleConfirm = async () => {
         const data = JSON.stringify({
-            userName: document.getElementById('user-name').value, 
+            userName: document.getElementsByClassName(styles.userName)[0].value, 
             userImage: selectedImage, 
             childAccount: document.getElementById('child').checked
         });

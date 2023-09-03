@@ -139,4 +139,70 @@ const searchMedia = (value) => new Promise((res, rej) => db.all(
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
-export { browseGenres, orphans, haveMedia, userList, mediaInfo, mediaGenres, mediaCast, mediaSeason, availableSeasons, mediaEpisodeInfo, nextEpisode, searchMedia };
+const latestReleases = (limit) => new Promise((res, rej) => db.all(
+    `SELECT * 
+    FROM media_dates AS d
+    JOIN media_info AS i ON i.MEDIA_ID = d.MEDIA_ID
+    JOIN media_images AS im ON im.MEDIA_ID = d.MEDIA_ID 
+    ORDER BY d.END_DATE DESC
+    LIMIT ?`,
+    [limit || 30],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
+const latestEpisodes = (limit) => new Promise((res, rej) => db.all(
+    `SELECT d.*, i.*, eim.*, mim.*
+    FROM episodes_dates AS d
+    JOIN episodes_main AS em ON d.EPISODE_ID = em.EPISODE_ID
+    JOIN episodes_info AS i ON i.EPISODE_ID = d.EPISODE_ID
+    JOIN episodes_images AS eim ON d.EPISODE_ID = eim.EPISODE_ID
+    JOIN media_info AS mi ON mi.MEDIA_ID = em.MEDIA_ID
+    JOIN media_images AS mim ON mi.MEDIA_ID = mim.MEDIA_ID
+    ORDER BY d.END_DATE DESC
+    LIMIT ?`
+    [limit || 30],
+    (err) => err ? rej(err) : res(rows)
+));
+
+const topRated = (limit, minVote) => new Promise((res, rej) => db.all(
+    `SELECT * 
+    FROM media_info AS i
+    JOIN media_images AS im ON im.MEDIA_ID = i.MEDIA_ID
+    JOIN media_dates AS d ON d.MEDIA_ID = i.MEDIA_ID
+    WHERE i.VOTE > ?
+    ORDER BY RANDOM()
+    LIMIT ?`,
+    [minVote || 8.5, limit || 30],
+    (err, rows) => err ? rej(err) : res(rows)
+)); 
+
+const dateRange = (startDate, endDate, limit) => new Promise((res, rej) => db.all(
+    `SELECT *
+    FROM media_dates AS d
+    JOIN media_info AS i ON d.MEDIA_ID = i.MEDIA_ID
+    JOIN media_images AS im ON d.MEDIA_ID = im.MEDIA_ID
+    WHERE (d.START_DATE >= ? AND d.START_DATE <= ?) OR (d.END_DATE >= ? AND d.END_DATE <= ?)
+    ORDER BY RANDOM()
+    LIMIT ?`,
+    [startDate, endDate, startDate, endDate, limit || 30],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
+export { 
+    browseGenres, 
+    orphans, 
+    haveMedia, 
+    userList, 
+    mediaInfo, 
+    mediaGenres, 
+    mediaCast, 
+    mediaSeason, 
+    availableSeasons, 
+    mediaEpisodeInfo, 
+    nextEpisode, 
+    searchMedia, 
+    latestReleases, 
+    latestEpisodes, 
+    topRated,
+    dateRange,
+};

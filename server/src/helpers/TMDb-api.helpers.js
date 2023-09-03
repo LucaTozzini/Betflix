@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { manager } from "./database.helpers.js";
+import env from '../../env.js';
 
-const TMDb_Key = '';
+const TMDb_Key = env.TMDB_KEY;
 const BASE = 'https://api.themoviedb.org/3';
 const Img_Base = 'https://image.tmdb.org/t/p/original';
 const Img_Base_500 = 'https://image.tmdb.org/t/p/w500';
@@ -31,6 +32,7 @@ const fetchMovies = (movies) => new Promise( async (res, rej) => {
                 const logo = match_response.data.images.logos.filter(i => i.iso_639_1 == 'en')[0];
                 const poster = match_response.data.images.posters.filter(i => i.iso_639_1 == 'en')[0];
                 const poster_nt = match_response.data.images.posters.filter(i => i.iso_639_1 == null)[0];
+                const poster_w = match_response.data.images.backdrops.filter(i => i.iso_639_1 == 'en')[0];
                 
                 const content_rating = match_response.data.releases.countries.filter(i => (i.iso_3166_1 == 'US' && i.certification != ''))[0];
                 
@@ -50,6 +52,8 @@ const fetchMovies = (movies) => new Promise( async (res, rej) => {
                     poster_l: poster ? Img_Base + poster.file_path : null,
                     poster_nt_s: poster_nt ? Img_Base_200 + poster_nt.file_path : null,
                     poster_nt_l: poster_nt ? Img_Base + poster_nt.file_path : null,
+                    poster_w_s: poster_w ? Img_Base_500 + poster_w.file_path : null,
+                    poster_w_l: poster_w ? Img_Base + poster_w.file_path : null,
         
                     // dates
                     year: match.release_date.split('-')[0],
@@ -123,9 +127,13 @@ const searchShow = (show) => new Promise( async (res, rej) => {
         match = results.filter(i => i.name == show.title)[0] || results[0];
         if(match == undefined) throw new Error(`No match for ${show.title}`);
         const match_response = await axios.get(`${BASE}/tv/${match.id}?api_key=${TMDb_Key}&append_to_response=images,content_ratings,aggregate_credits`);
+        
         const backdrop = match_response.data.images.backdrops.filter(i => i.iso_639_1 == null)[0];
         const logo = match_response.data.images.logos.filter(i => i.iso_639_1 == 'en')[0];
         const poster = match_response.data.images.posters.filter(i => i.iso_639_1 == 'en')[0];
+        const poster_nt = match_response.data.images.posters.filter(i => i.iso_639_1 == null)[0];
+        const poster_w = match_response.data.images.backdrops.filter(i => i.iso_639_1 == 'en')[0];
+
         const content_rating = match_response.data.content_ratings.results.filter(i => (i.iso_3166_1 == 'US' && i.certification != ''))[0];
         const data = ({
             // main
@@ -141,6 +149,10 @@ const searchShow = (show) => new Promise( async (res, rej) => {
             logo_l: logo ? Img_Base + logo.file_path : null,
             poster_s: poster ? Img_Base_200 + poster.file_path : null,
             poster_l: poster ? Img_Base + poster.file_path : null,
+            poster_nt_s: poster_nt ? Img_Base_200 + poster_nt.file_path : null,
+            poster_nt_l: poster_nt ? Img_Base + poster_nt.file_path : null,
+            poster_w_s: poster_w ? Img_Base_500 + poster_w.file_path : null,
+            poster_w_l: poster_w ? Img_Base + poster_w.file_path : null,
 
             // dates
             year: match.first_air_date.split('-')[0],

@@ -17,7 +17,6 @@ import SearchAddress from './screens/SearchAddress.screen';
 // Contexts
 import themeContext from './contexts/theme.context';
 import serverContext from './contexts/server.context';
-import googleCastContext from './contexts/googleCast.context';
 import currentUserContext from "./contexts/currentUser.context";
 
 // Components
@@ -79,7 +78,6 @@ const App = () => {
       <themeContext.Provider value={{backgroundColor, setBackgroundColor, textColor, setTextColor, bottomTabsColor, setBottomTabsColor, bottomTabsIconColor, setBottomTabsIconColor, sideMargin}}>
       <serverContext.Provider value={{serverAddress}}>
       <currentUserContext.Provider value={{userId, setUserId, userPin, setUserPin, userData, setUserData, authenticated, setAuthenticated}}>
-      <googleCastContext.Provider value={{castVideoUrl, setCastVideoUrl}}>
     
         <StatusBar translucent backgroundColor={'transparent'}/>
         <NavigationContainer theme={navTheme}>
@@ -98,7 +96,6 @@ const App = () => {
 
         </NavigationContainer>
 
-      </googleCastContext.Provider>
       </currentUserContext.Provider>
       </serverContext.Provider>
       </themeContext.Provider>

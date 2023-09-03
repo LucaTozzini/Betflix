@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -22,7 +22,7 @@ const BottomTabs = () => {
   const [ modal, setModal ] = useState(false);
   const { bottomTabsColor, bottomTabsIconColor, backgroundColor } = useContext(themeContext);
 
-  const iconSize = 23;
+  const iconSize = 26;
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const BottomTabs = () => {
         onPress={() => setModal(true)}
       >
         <>
-          <MaterialIcons name={castState == 'connected' ? "cast-connected" : "cast"} size={iconSize} color={bottomTabsIconColor} />
+          {castState == 'connecting' ? <Image style={{height: iconSize, width: iconSize, objectFit: 'contain'}} source={{uri: 'https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif'}}/>  : <MaterialIcons name={castState == 'connected' ? "cast-connected" : "cast"} size={iconSize} color={bottomTabsIconColor} />}
           <Text style={[styles.text, {color: bottomTabsIconColor}]}>Cast</Text>
         </>
       </TouchableOpacity>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   text: {

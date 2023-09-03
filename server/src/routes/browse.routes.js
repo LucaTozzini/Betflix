@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser, inWatchlist } from '../helpers/users.helpers.js';
-import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo, searchMedia } from '../helpers/queries.helpers.js';
+import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo, searchMedia, latestReleases, latestEpisodes, topRated, dateRange } from '../helpers/queries.helpers.js';
 
 const router = express.Router();
 
@@ -81,6 +81,63 @@ router.get('/search', async(req, res) => {
     }
     catch(err) {
         console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.post('/latest/releases', async (req, res) => {
+    try{
+        const { userId, userPin, limit } = req.body;
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) return res.sendStatus(401);
+        const data = await latestReleases(limit);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message)
+        res.sendStatus(500);
+    }
+});
+
+router.post('/latest/episodes', async (req, res) => {
+    try{
+        const { userId, userPin, limit } = req.body;
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) return res.sendStatus(401);
+        const data = await latestEpisodes(limit);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message)
+        res.sendStatus(500);
+    }
+});
+
+router.post('/top-rated', async (req, res) => {
+    try{
+        const { userId, userPin, limit, minVote } = req.body;
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) return res.sendStatus(401);
+        const data = await topRated(limit, minVote);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message)
+        res.sendStatus(500);
+    }
+});
+
+router.post('/date-range', async (req, res) => {
+    try {
+        const { userId, userPin, startDate, endDate, limit } = req.body;
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) return res.sendStatus(401);
+        if(!startDate || !endDate) return res.sendStatus(400);
+        const data = await dateRange(startDate, endDate, limit);
+        res.json(data);
+    }
+    catch(err) {
+        console.log(err.message);
         res.sendStatus(500);
     }
 });

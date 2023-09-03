@@ -1,9 +1,12 @@
 import { useState, useContext, useEffect } from "react";
 import { ScrollView,  View, Text, StyleSheet, ImageBackground, StatusBar, TouchableOpacity } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import Icon from 'react-native-vector-icons/dist/FontAwesome5';
 import SelectDropdown from 'react-native-select-dropdown';
 import { useNavigation } from "@react-navigation/native";
+import { useRemoteMediaClient, useMediaStatus } from "react-native-google-cast";
+
+// Icons
+import Icon from 'react-native-vector-icons/dist/FontAwesome5';
 
 // Contexts
 import serverContext from "../contexts/server.context";
@@ -18,17 +21,23 @@ import EpisodeRow from "../components/EpisodeRow.component";
 import Authenticator from "../hooks/Authenticator.hook";
 
 const Item = ({ route }) => {
+  // Check params
   const navigation = useNavigation();
   if(!route.params) return navigation.replace("browse");
+
+  // Then
   const { mediaId } = route.params;
+  const mediaStatus = useMediaStatus();
+  const client = useRemoteMediaClient();
+  
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
-  const { textColor, sideMargin, bottomTabsHeight } = useContext(themeContext);
+  const { textColor, sideMargin } = useContext(themeContext);
+
   const [ mediaData, setMediaData ] = useState(null);
   const [ seasonData, setSeasonData ] = useState(null);
-  const [ currentSeason, setCurrentSeason ] = useState(null);
   const [ fullOverview, setFullOverview ] = useState(false);
-
+  const [ currentSeason, setCurrentSeason ] = useState(null);
 
   const FetchItem = async () => {
     try{
@@ -52,7 +61,7 @@ const Item = ({ route }) => {
     catch(err){
         console.error(err.message);
     }
-};
+  };
 
   const FetchSeason = async (seasonNum) => {
     try{
@@ -66,6 +75,22 @@ const Item = ({ route }) => {
     }
   };
 
+  const SetCastImage = async () => {
+    if(client && mediaData) {
+      if(mediaStatus && mediaData.POSTER_W_L == mediaStatus.mediaInfo.contentUrl ) return;
+      try {
+        await client.loadMedia({
+          mediaInfo: {
+            contentUrl: mediaData.POSTER_W_L,
+          }
+        });
+      }
+      catch(err) {
+        
+      }
+    };
+  };
+
   useEffect(() => {
     FetchItem();
   }, []);
@@ -77,6 +102,10 @@ const Item = ({ route }) => {
   useEffect(() => {
     FetchSeason(currentSeason);
   }, [currentSeason]);
+
+  useEffect(() => {
+    SetCastImage();
+  }, [client, mediaData]);
 
   if(mediaData) return (
     <ScrollView contentContainerStyle={styles.container}>

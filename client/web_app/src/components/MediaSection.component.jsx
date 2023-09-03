@@ -13,10 +13,12 @@ import styles from '../styles/MediaSection.component.module.css';
 import mediaItemSizeContext from '../contexts/mediaItemSize.context';
 import currentUserContext from '../contexts/currentUser.context';
 import watchlistContext from '../contexts/browse.context';
+import serverContext from '../contexts/server.context';
 
 const MediaSection = ({title, items, force}) => {
     const { mediaScrollRef, itemWidth, itemsGap, itemsOnPage } = useContext(mediaItemSizeContext);
-    const { watchlistMediaIds, setWatchlistMediaIds } = useContext(watchlistContext)
+    const { watchlistMediaIds, setWatchlistMediaIds } = useContext(watchlistContext);
+    const { serverAddress } = useContext(serverContext);
     const { userId, userPin } = useContext(currentUserContext);
     const [ scrollIndex, setScrollIndex ] = useState(0);
     const [ scrollEnd, setScrollEnd ] = useState(false);
@@ -61,7 +63,7 @@ const MediaSection = ({title, items, force}) => {
         const handleAdd = async () => {
             try{
                 const options = {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-                const response = await fetch('http://localhost/watchlist/add', options);
+                const response = await fetch(`${serverAddress}/watchlist/add`, options);
                 if(response.status == 201){
                     setWatchlistMediaIds([...watchlistMediaIds, mediaId]);
                 }
@@ -74,7 +76,7 @@ const MediaSection = ({title, items, force}) => {
         const handleRemove = async () => {
             try{
                 const options = {method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-                const response = await fetch('http://localhost/watchlist/remove', options);
+                const response = await fetch(`${serverAddress}/watchlist/remove`, options);
                 if(response.status == 202){
                     setWatchlistMediaIds(watchlistMediaIds.filter(i => i !== mediaId));
                 }
@@ -146,7 +148,7 @@ const MediaSection = ({title, items, force}) => {
                 </div>
             </div>
             <div className={styles.items} style={{gap: itemsGap+'px'}} ref={scrollableRef}>
-                {items.map(i => <Item key={i.MEDIA_ID} mediaId={i.MEDIA_ID} poster={i.POSTER_S} title={i.TITLE} year={i.YEAR}/>)}
+                {items.map(i => <Item key={i.MEDIA_ID} mediaId={i.MEDIA_ID} poster={i.POSTER_S || i.POSTER_NT_S} title={i.TITLE} year={i.YEAR}/>)}
                 { items.length == 0 ? 'Section Empty' : <></> }
                 <Dud/>
             </div>

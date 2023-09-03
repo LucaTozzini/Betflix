@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, StatusBar, ImageBackground } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, StatusBar, ImageBackground, Image } from 'react-native';
 
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -7,8 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { hideNavigationBar, showNavigationBar } from 'react-native-navigation-bar-color';
 
-import { useRemoteMediaClient, useMediaStatus } from 'react-native-google-cast';
-import { useCastState, useStreamPosition } from 'react-native-google-cast';
+import { useRemoteMediaClient, useMediaStatus, useCastState, useStreamPosition } from 'react-native-google-cast';
 
 // Icons
 import FontAwesome5 from 'react-native-vector-icons/dist/FontAwesome5';
@@ -28,9 +27,9 @@ import GoogleCastDevicesModal from '../components/GoogleCastDevicesModal.compone
 const Player = ({ route }) => {
     const castState = useCastState();
     const navigation = useNavigation();
+    const mediaStatus = useMediaStatus();
     const client = useRemoteMediaClient();
     const streamPosition = useStreamPosition();
-    const mediaStatus = useMediaStatus();
     const { mediaId, episodeId } = route.params;
     const { serverAddress } = useContext(serverContext);
     const { userId, userPin } = useContext(currentUserContext);
@@ -38,8 +37,7 @@ const Player = ({ route }) => {
     const [canUpdate, setCanUpdate] = useState(true);
     const [ mediaData, setMediaData] = useState(null);
     const [ episodeData, setEpisodeData ] = useState(null);
-    const [ nextEpisode, setNextEpisode ] = useState(null);
-    
+    const [ nextEpisode, setNextEpisode ] = useState(null);   
     
     // Player states
     const videoRef = useRef(null);
@@ -120,7 +118,7 @@ const Player = ({ route }) => {
     };
 
     const updateContinue = async () => {
-        if(canUpdate && !paused && videoRef.current && currentTime) {
+        if(canUpdate && !paused && currentTime) {
             try {
                 const body = {
                     userId, 
@@ -143,7 +141,7 @@ const Player = ({ route }) => {
     
     const handleLoad = (e) => {
         setDurationTime(e.duration); 
-        videoRef.current.seek(resumeTime);
+        videoRef.current.seek(currentTime || resumeTime);
     };
 
     const handleProgress = (e) => {
@@ -176,16 +174,61 @@ const Player = ({ route }) => {
         }
     };
 
-    const handleCastSeek = (position) => {
-        if(client) client.seek({position});
+    const handleCastSeek = async (position) => {
+        try {
+            if(client) await client.seek({position});
+        }
+        catch(err) {
+
+        }
     };
 
-    const handleCastSkipFrw = () => {
-        if(client) client.seek({ relative: true, position: 15 })
+    const handleCastSkipFrw = async () => {
+        try {
+            if(client) await client.seek({ relative: true, position: 15 })
+        }
+        catch(err) {
+
+        }
     };
 
-    const handleCastSkipBack = () => {
-        if(client) client.seek({ relative: true, position: -15 })
+    const handleCastSkipBack = async () => {
+        try {
+            if(client) await client.seek({ relative: true, position: -15 })
+        }
+        catch(err) {
+
+        }
+    };
+
+    const handleStartCast = async () => {
+        if(castState == 'connected' && resumeTime >= 0 && client && mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
+            const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
+            try {
+                await client.loadMedia({
+                    autoplay: true,
+                    mediaInfo: {
+                        contentUrl: videoUrl,
+                    },
+                    startTime: currentTime || resumeTime
+                });
+            }
+            catch(err) {
+
+            }
+        }
+    };
+
+    const handleCastPausePlay = async () => {
+        if(client) {
+            try {
+                if(paused) await client.pause();
+                else await client.play();
+            }
+            catch(err) {
+
+            }
+        }
     };
 
     useEffect(() => {
@@ -232,35 +275,30 @@ const Player = ({ route }) => {
     }, [currentTime]);
 
     useEffect(() => {
-        if(client) {
-            if(paused) client.pause();
-            else client.play();
-        }
-    }, [paused]);
+        handleCastPausePlay();
+    }, [paused, client]);
 
     useEffect(() => {
-        console.log(client, mediaStatus);
-        if(client && mediaStatus && mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
-            const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
-            if(videoUrl == mediaStatus.mediaInfo.contentUrl) return;
-            try {
-                client.loadMedia({
-                    autoplay: true,
-                    mediaInfo: {
-                        contentUrl: `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`,
-                    }
-                });
-            }
-            catch(err) {
+        handleStartCast();
+    }, [resumeTime, castState, client, mediaData, episodeData]);
 
-            }
+    useEffect(() => {
+        if(mediaStatus && !durationTime) {
+            setDurationTime(mediaStatus.mediaInfo.streamDuration);
         }
-    }, [castState, client, mediaStatus, mediaData, episodeData]);
+    }, [mediaStatus])
+
+    useEffect(() => {
+        if(streamPosition) {
+            setCurrentTime(streamPosition);
+            updateContinue();
+        }
+    }, [streamPosition]);
     
-    if(mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
+    if(resumeTime >= 0 && mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
         const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
 
-        if(castState != 'connected') return (
+        if(castState == 'notConnected') return (
             <>
             <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
             <Authenticator/>
@@ -333,7 +371,7 @@ const Player = ({ route }) => {
                 <>
                 <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
                 <StatusBar translucent={false} backgroundColor={'black'}/>
-                <ImageBackground source={{uri:mediaData.POSTER_NT_L}} style={castStyles.container}>
+                <ImageBackground source={{uri:mediaData.POSTER_NT_L || mediaData.BACKDROP_L}} style={castStyles.container}>
                     <LinearGradient colors={['black', 'transparent', 'black']} style={castStyles.linearGradient}>
                         <View style={castStyles.topBar}>
                             <TouchableOpacity onPress={navigation.goBack}>
@@ -348,7 +386,7 @@ const Player = ({ route }) => {
                                 <MaterialCommunityIcons name="rewind-15" size={20} color="white"/>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.button} onPress={() => setPaused(!paused)}>
-                                <FontAwesome5 name={paused ? "play" : "pause"} size={30} color="white"/>
+                                {!mediaStatus || ['loading', 'buffering'].includes(mediaStatus.playerState) ? <Image style={{height: 30, width: 30, objectFit:'contain' }} source={{uri: 'https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif'}}/> : <FontAwesome5 name={paused ? "play" : "pause"} size={30} color="white"/>}
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.buttonSmall} onPress={handleCastSkipFrw}>
                                 <MaterialCommunityIcons name="fast-forward-15" size={20} color="white"/>
@@ -359,19 +397,19 @@ const Player = ({ route }) => {
                         thumbTintColor='orange'
                         minimumTrackTintColor='orange'
                         maximumTrackTintColor='rgba(255, 255, 255, 0.7)'
-
+    
                         minimumValue={0} 
                         maximumValue={mediaStatus ? mediaStatus.mediaInfo.streamDuration : 0} 
                         value={streamPosition}
                         step={0.1}
-
+    
                         onValueChange={handleCastSeek}
                         />
                     </LinearGradient>
                 </ImageBackground>
                 </>
             )
-        }
+        } 
     }
 };
 
@@ -431,7 +469,7 @@ const styles = StyleSheet.create({
     slider: {
         width: '100%'
     }
-})
+});
 
 const castStyles = StyleSheet.create({
     container: {

@@ -11,10 +11,7 @@ import Authenticator from "../hooks/Authenticator.hook";
 import currentUserContext from "../contexts/currentUser.context";
 
 const Layout = () => {
-  const { userId, authenticated } = useContext(currentUserContext);
-  useEffect(() => {
-    console.log(userId);
-  }, [])
+  const { authenticated } = useContext(currentUserContext);
   return (
     <>
       <Menu/>

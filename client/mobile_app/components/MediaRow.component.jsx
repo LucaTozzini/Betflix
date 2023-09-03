@@ -31,7 +31,7 @@ const MediaRow = ({ title, data}) => {
             horizontal={true}
             style={styles.items}
             data={data}
-            renderItem={({item}) => <Item id={item.MEDIA_ID} poster={item.POSTER_S} title={item.TITLE} mediaId={item.MEDIA_ID}/>}
+            renderItem={({item}) => <Item id={item.MEDIA_ID} poster={item.POSTER_S || item.POSTER_NT_S } title={item.TITLE} mediaId={item.MEDIA_ID}/>}
             keyExtractor={item => item.MEDIA_ID}
             />
 
