@@ -33,9 +33,11 @@ const Home = () => {
   const [ continueItems, setContinueItems ] = useState(null);
 
   const [ showGenres, setShowGenres ] = useState(false);
-  const [ showWatchlist, setShowWatchlist ] = useState(false);
+  const [ showWatchlist, setShowWatchlist ] = useState(true);
   const [ showLatest, setShowLatest ] = useState(true);
   const [ showTop, setShowTop ] = useState(true);
+  const [ showEighties, setShowEighties ] = useState(true);
+  const [ showNineties, setShowNineties ] = useState(true);
   const [ remix, setRemix ] = useState(false);
 
   const FetchGenreBrowseMedia = async () => {
@@ -144,6 +146,8 @@ const Home = () => {
         <button style={{opacity: showWatchlist ? 1 : 0.6}} onClick={() => {setShowWatchlist(!showWatchlist); setManualTrigger(true)}}>Watchlist</button>
         <button style={{opacity: showLatest ? 1 : 0.6}} onClick={() => {setShowLatest(!showLatest); setManualTrigger(true)}}>Latest</button>
         <button style={{opacity: showTop ? 1 : 0.6}} onClick={() => {setShowTop(!showTop); setManualTrigger(true)}}>Top Rated</button>
+        <button style={{opacity: showEighties ? 1 : 0.6}} onClick={() => {setShowEighties(!showEighties); setManualTrigger(true)}}>80s</button>
+        <button style={{opacity: showNineties ? 1 : 0.6}} onClick={() => {setShowNineties(!showNineties); setManualTrigger(true)}}>90s</button>
         <button style={{opacity: showGenres ? 1 : 0.6}} onClick={() => {setShowGenres(!showGenres); setManualTrigger(true)}}>Genres</button>
       </div>
       { showWatchlist ? <MediaSection title={'My Watchlist'} items={watchlistMedia} force={true}/> : <></> }
