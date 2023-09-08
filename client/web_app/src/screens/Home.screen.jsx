@@ -3,16 +3,13 @@ import { useEffect, useContext, useState } from 'react';
 // Context
 import currentUserContext from '../contexts/currentUser.context';
 import browseContext from '../contexts/browse.context';
-import itemSizeContext from '../contexts/mediaItemSize.context';
 import serverContext from '../contexts/server.context';
 
 // Components
 import Hero from '../components/Hero.component';
 import MediaSection from '../components/MediaSection.component';
-import WideMediaSection from '../components/WideMediaSection.component';
 
 // Hooks
-import MediaItemSizeCalculator from '../hooks/MediaItemSizeCalculator.hook';
 import WatchlistHook from '../hooks/Watchlist.hook';
 
 // CSS
@@ -22,22 +19,22 @@ const Home = () => {
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
   
-  const { genreBrowseMedia, setGenreBrowseMedia } = useContext(browseContext);
-  const [ watchlistMedia, setWatchlistMedia ] = useState([]);
   const [ latestMedia, setLatestMedia ] = useState(null);
+  const [ continueItems, setContinueItems ] = useState(null);
+  const [ watchlistMedia, setWatchlistMedia ] = useState(null);
   const [ topRatedMedia, setTopRatedMedia ] = useState(null);
   const [ eightiesMedia, setEightiesMedia ] = useState(null);
   const [ ninetiesMedia, setNinetiesMedia ] = useState(null);
+  const { genreBrowseMedia, setGenreBrowseMedia } = useContext(browseContext);
   
-  const { setManualTrigger } = useContext(itemSizeContext);
-  const [ continueItems, setContinueItems ] = useState(null);
 
-  const [ showGenres, setShowGenres ] = useState(false);
-  const [ showWatchlist, setShowWatchlist ] = useState(true);
-  const [ showLatest, setShowLatest ] = useState(true);
   const [ showTop, setShowTop ] = useState(true);
+  const [ showLatest, setShowLatest ] = useState(true);
+  const [ showGenres, setShowGenres ] = useState(false);
   const [ showEighties, setShowEighties ] = useState(true);
   const [ showNineties, setShowNineties ] = useState(true);
+  const [ showWatchlist, setShowWatchlist ] = useState(true);
+  
   const [ remix, setRemix ] = useState(false);
 
   const FetchGenreBrowseMedia = async () => {
@@ -122,7 +119,6 @@ const Home = () => {
     FetchTopRated();
     Fetch80s();
     Fetch90s();
-    setManualTrigger(true)
   }, []);
 
   useEffect(() => {
@@ -139,22 +135,21 @@ const Home = () => {
     <Hero items={continueItems}/>
     <div className={styles.container}>
       <WatchlistHook/>
-      <MediaItemSizeCalculator/>
 
       <div className={styles.sectionsBar}>
         <button style={{opacity: !remix ? 1 : 0.6}} onClick={() => setRemix(true)}>Remix</button>
-        <button style={{opacity: showWatchlist ? 1 : 0.6}} onClick={() => {setShowWatchlist(!showWatchlist); setManualTrigger(true)}}>Watchlist</button>
-        <button style={{opacity: showLatest ? 1 : 0.6}} onClick={() => {setShowLatest(!showLatest); setManualTrigger(true)}}>Latest</button>
-        <button style={{opacity: showTop ? 1 : 0.6}} onClick={() => {setShowTop(!showTop); setManualTrigger(true)}}>Top Rated</button>
-        <button style={{opacity: showEighties ? 1 : 0.6}} onClick={() => {setShowEighties(!showEighties); setManualTrigger(true)}}>80s</button>
-        <button style={{opacity: showNineties ? 1 : 0.6}} onClick={() => {setShowNineties(!showNineties); setManualTrigger(true)}}>90s</button>
-        <button style={{opacity: showGenres ? 1 : 0.6}} onClick={() => {setShowGenres(!showGenres); setManualTrigger(true)}}>Genres</button>
+        <button style={{opacity: showWatchlist ? 1 : 0.6}} onClick={() => setShowWatchlist(!showWatchlist)}>Watchlist</button>
+        <button style={{opacity: showLatest ? 1 : 0.6}} onClick={() => setShowLatest(!showLatest)}>Latest</button>
+        <button style={{opacity: showTop ? 1 : 0.6}} onClick={() => setShowTop(!showTop)}>Top Rated</button>
+        <button style={{opacity: showEighties ? 1 : 0.6}} onClick={() => setShowEighties(!showEighties)}>80s</button>
+        <button style={{opacity: showNineties ? 1 : 0.6}} onClick={() => setShowNineties(!showNineties)}>90s</button>
+        <button style={{opacity: showGenres ? 1 : 0.6}} onClick={() => setShowGenres(!showGenres)}>Genres</button>
       </div>
       { showWatchlist ? <MediaSection title={'My Watchlist'} items={watchlistMedia} force={true}/> : <></> }
-      { showLatest ? <WideMediaSection title={'Latest Releases'} items={latestMedia}/> : <></> }
-      { showTop ? <WideMediaSection title={'Top Rated'} items={topRatedMedia}/> : <></> }
-      { eightiesMedia ? <WideMediaSection title={'80s'} items={eightiesMedia}/> : <></> }
-      { ninetiesMedia ? <WideMediaSection title={'90s'} items={ninetiesMedia}/> : <></> }
+      { showLatest ? <MediaSection title={'Latest Releases'} items={latestMedia}/> : <></> }
+      { showTop ? <MediaSection title={'Top Rated'} items={topRatedMedia}/> : <></> }
+      { showEighties ? <MediaSection title={'80s'} items={eightiesMedia}/> : <></> }
+      { showNineties ? <MediaSection title={'90s'} items={ninetiesMedia}/> : <></> }
       { showGenres && genreBrowseMedia ? genreBrowseMedia.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
     </div>
     </>

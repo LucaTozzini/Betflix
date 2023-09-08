@@ -1,159 +1,103 @@
-import { useRef, useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 
 // Icons
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
-import { IoPlay, IoCheckmarkSharp } from 'react-icons/io5';
-import { FiPlus } from "react-icons/fi";
 
 // CSS
 import styles from '../styles/MediaSection.component.module.css';
 
-// Contexts
-import mediaItemSizeContext from '../contexts/mediaItemSize.context';
-import currentUserContext from '../contexts/currentUser.context';
-import watchlistContext from '../contexts/browse.context';
-import serverContext from '../contexts/server.context';
+const MediaSection = ({ title, items, forceShow }) => {
+    const [ showButtons, setShowButtons ] = useState(false);
+    const [ dimLeft, setDimLeft ] = useState(true);
+    const [ dimRight, setDimRight ] = useState(true);
+    const ref = useRef(null);
 
-const MediaSection = ({title, items, force}) => {
-    const { mediaScrollRef, itemWidth, itemsGap, itemsOnPage } = useContext(mediaItemSizeContext);
-    const { watchlistMediaIds, setWatchlistMediaIds } = useContext(watchlistContext);
-    const { serverAddress } = useContext(serverContext);
-    const { userId, userPin } = useContext(currentUserContext);
-    const [ scrollIndex, setScrollIndex ] = useState(0);
-    const [ scrollEnd, setScrollEnd ] = useState(false);
-    const [ tailLength, setTailLength ] = useState();
-    const scrollableRef = useRef(null);
-
-    const TailCalc = () => {
-        if(!scrollableRef.current) return;
-        const rem = items.length % itemsOnPage;
-        const units = rem == 0 ? 0 :  itemsOnPage - rem;
-        const length = (units * itemWidth) + ((units - 1) * itemsGap);
-        setTailLength(length);
-    };
-
-    const ChekScrollEnd = () => {
-        if(scrollableRef.current){
-            if((scrollIndex + 2) * scrollableRef.current.offsetWidth > scrollableRef.current.scrollWidth) setScrollEnd(true);
-            else setScrollEnd(false);
+    const handleScrollRight = () => {
+        if(ref.current) {
+            const left = ref.current.scrollLeft += ref.current.offsetWidth;
+            ref.current.scrollTo({left, behavior: "smooth"});
         }
     };
 
+    const handleScrollLeft = () => {
+        if(ref.current) {
+            const left = ref.current.scrollLeft -= ref.current.offsetWidth;
+            ref.current.scrollTo({top: 0, left, behavior: 'smooth'});
+        }
+    };
+
+    const handleResize = () => {
+        if(ref.current) {
+            setShowButtons(ref.current.offsetWidth < ref.current.scrollWidth);
+            setDimLeft(ref.current.scrollLeft == 0);
+            setDimRight(ref.current.scrollLeft + ref.current.offsetWidth >= ref.current.scrollWidth)
+        }
+    };
+
+    const handleScroll = (e) => {
+        const scrollLeft = e.target.scrollLeft;
+        const offsetWidth = e.target.offsetWidth;
+        const scrollWidth = e.target.scrollWidth;
+
+        setDimLeft(scrollLeft == 0);
+        setDimRight(Math.abs(scrollLeft + offsetWidth - scrollWidth) < 1);
+    };
+
     useEffect(() => {
-        if(mediaScrollRef.current == null) mediaScrollRef.current = scrollableRef.current;
-        else if(mediaScrollRef.current.offsetWidth == 0) mediaScrollRef.current = scrollableRef.current;
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(TailCalc, [ itemWidth, itemsOnPage, items ]);
-
-    useEffect(ChekScrollEnd, [ tailLength ]);
+    useEffect(() => {
+        handleResize();
+        if(ref.current) {
+            ref.current.addEventListener('scrollend', handleScroll);
+        }
+    }, [ref.current]);
 
     useEffect(() => {
-        if(!scrollableRef.current) return;
-        if(scrollIndex < 0) setScrollIndex(0);
-        if((scrollIndex + 1) * scrollableRef.current.offsetWidth > scrollableRef.current.scrollWidth) setScrollIndex(scrollIndex - 1);
-        ChekScrollEnd();
-        scrollableRef.current.scrollTo({
-            left: (scrollIndex * scrollableRef.current.offsetWidth) + (scrollIndex * itemsGap)
-        });
-    }, [scrollIndex]);
+        handleResize();
+    }, [items])
 
-    const Item = ({mediaId, poster, title, year}) => {
-        const handleAdd = async () => {
-            try{
-                const options = {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-                const response = await fetch(`${serverAddress}/watchlist/add`, options);
-                if(response.status == 201){
-                    setWatchlistMediaIds([...watchlistMediaIds, mediaId]);
-                }
-            }
-            catch(err){
-                console.error(err.message);
-            }
-        };
-
-        const handleRemove = async () => {
-            try{
-                const options = {method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mediaId, userId, userPin})};
-                const response = await fetch(`${serverAddress}/watchlist/remove`, options);
-                if(response.status == 202){
-                    setWatchlistMediaIds(watchlistMediaIds.filter(i => i !== mediaId));
-                }
-            }
-            catch(err){
-                console.error(err.message);
-            }
-        };
-
+    const Item = ({ title, year, image, link }) => {
         return (
-            <div className={styles.item} style={{width: itemWidth+'px'}}>
-                <div className={styles.poster} style={{height: (itemWidth * 1.5)+'px', width: itemWidth+'px', backgroundImage: `url(${poster})`}} onClick={() => window.location.href = `/browse/item/${mediaId}`}>
-                    <div className={styles.posterOverlay}>
-                        <button className={styles.posterButton} onClick={(e) => {e.stopPropagation(); window.location.href = `/player/${mediaId}/a`}}>
-                            <IoPlay size={'1.5rem'} style={{marginLeft: '.15rem'}}/>
-                        </button>
-                        { watchlistMediaIds.includes(mediaId) ? 
-                            <button className={styles.posterButton} onClick={() => console.log('watchlist')}>
-                                <IoCheckmarkSharp size={'1.5rem'} onClick={(e) => { e.stopPropagation(); handleRemove();}}/>
-                            </button>
-                            :
-                            <button className={styles.posterButton} onClick={() => console.log('watchlist')}>
-                                <FiPlus size={'2rem'} onClick={(e) => { e.stopPropagation(); handleAdd(); }}/>
-                            </button>
-                        }
-                    </div>
-                </div>
-                <Link to={`/browse/item/${mediaId}`}>
-                    <h3 className={styles.title}>{title}</h3>
-                </Link>
-                <h3 className={styles.year}>{year}</h3>
+            <div className={styles.item} onClick={() => window.location.href = link}>
+                <img className={styles.itemImage} src={image}/>
+                <div className={styles.itemTitle}>{title}</div>
             </div>
-        );
-    };
-
-    const Dud = () => {
-        if(tailLength > 0) return <div style={{width: tailLength+'px', height: '1px', flexShrink: '0'}}/>
-    };
-
-    const LeftArrow = () => {
-        return (
-            <button 
-            className={styles.button} 
-            style={scrollIndex == 0 ? {opacity: 0.2, pointerEvents: 'none'} : {}} 
-            onClick={() => setScrollIndex(scrollIndex - 1)}>
-                <FaAngleLeft color='white' size={'1.4rem'}/>
-            </button>
         )
     };
 
-    const RightArraow = () => {
-        return (
-            <button 
-            className={styles.button} 
-            style={scrollEnd ? {opacity: 0.2, pointerEvents: 'none'} : {}} 
-            onClick={() => setScrollIndex(scrollIndex + 1)}>
-                <FaAngleRight color='white' size={'1.4rem'}/>
-            </button>
-        )
-    };
-
-    if(items.length > 0 || force) return (
+    if((items && items.length > 0) || forceShow) return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <h1 className={styles.topTitle}>{title}</h1>
-                <div className={styles.buttons}> 
-                    <LeftArrow/>
-                    <RightArraow/>
+                <div className={styles.title}>{title}</div>
+                <div className={styles.buttons} style={ !showButtons ? {display: 'none'} : {}}>
+                    <button onClick={handleScrollLeft} style={dimLeft ? { opacity: 0.3, pointerEvents: 'none' } : {}}>
+                        <FaAngleLeft/>
+                    </button>
+                    <button onClick={handleScrollRight} style={dimRight ? { opacity: 0.3, pointerEvents: 'none' } : {}}>
+                        <FaAngleRight/>
+                    </button>
                 </div>
             </div>
-            <div className={styles.items} style={{gap: itemsGap+'px'}} ref={scrollableRef}>
-                {items.map(i => <Item key={i.MEDIA_ID} mediaId={i.MEDIA_ID} poster={i.POSTER_S || i.POSTER_NT_S} title={i.TITLE} year={i.YEAR}/>)}
-                { items.length == 0 ? 'Section Empty' : <></> }
-                <Dud/>
+            <div className={styles.items} ref={ref}>
+                { items ? 
+                    items.map(i => 
+                        <Item 
+                        key={i.MEDIA_ID} 
+                        title={i.TITLE} 
+                        year={i.YEAR} 
+                        image={i.POSTER_W_S || i.BACKDROP_S} 
+                        link={'/browse/item/' + i.MEDIA_ID}
+                        />
+                    ) 
+                    : 'No Items' 
+                }
             </div>
         </div>
-    );
+    )
 }
 
-export default MediaSection;
+export default MediaSection

@@ -1,5 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+
+// Icons
+import { IoHomeSharp, IoHomeOutline, IoSearchSharp, IoSearchOutline, IoServerSharp, IoServerOutline } from "react-icons/io5";
+
 
 // Contexts
 import serverContext from '../contexts/server.context';
@@ -14,6 +18,7 @@ const Menu = () => {
     const menuRef = useRef(null);
     const userButtonRef = useRef(null);
     const [ dropDown, setDropDown ] = useState(false);
+    const location = useLocation();
 
     const handleScroll = () => {
         if(!menuRef.current) return;
@@ -42,9 +47,19 @@ const Menu = () => {
     return (
         <nav className={styles.container} ref={menuRef}>
             <div className={styles.section}>
-                <Link className={styles.link} to="/">Home</Link>
-                <Link className={styles.link} to="/browse/search">Search</Link>
-                <Link className={styles.link} to="/database">Database</Link>
+                <img className={styles.logo} src={'https://www.nicepng.com/png/full/60-609637_nike-logo-png-white.png'}/>
+                <Link className={styles.link} to="/">
+                    { location.pathname == '/browse/home' ? <IoHomeSharp/> : <IoHomeOutline/>}
+                    <h3>Home</h3>
+                </Link>
+                <Link className={styles.link} to="/browse/search">
+                    { location.pathname == '/browse/search' ? <IoSearchSharp/> : <IoSearchOutline/>}
+                    <h3>Search</h3>
+                </Link>
+                <Link className={styles.link} to="/database">
+                    { location.pathname == '/database' ? <IoServerSharp/> : <IoServerOutline/>}
+                    <h3>Server</h3>
+                </Link>
             </div>
 
             <div className={styles.section}>

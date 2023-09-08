@@ -1,8 +1,15 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react";
+
+import styles from '../styles/searchAddress.screen.module.css';
 
 const SearchAddress = ({address, set, valid}) => {
     const found = useRef(false);
-    const isAddress = (address) => {
+    const addressVar = useRef(0);
+    const [logText, setLogText] = useState(null);
+    const [lost, setLost] = useState(false);
+
+    const isAddress = (address, lastKnown) => {
+        setLogText(`Checking ${address}...`)
         fetch(`${address}/ciao`).then(async (data) => {
             const text = await data.text();
             if(text == 'yellow'){
@@ -10,27 +17,46 @@ const SearchAddress = ({address, set, valid}) => {
                 set(address);
                 valid(true);
                 found.current = true;
+            }
+            else if(lastKnown) setLost(true);
 
-            };
-        }).catch((err) => {});
+        }).catch((err) => {if(lastKnown) setLost(true)});
     };
 
     const loop = async () => {
-        isAddress(address);
+        const curr = addressVar.current;
         for(let i = 0; i <= 255 ; i++) {
-            console.log(i, found.current)
-            if(found.current) break;
-            isAddress(`http://192.168.0.${i}:2000`);
+            if(found.current || curr != addressVar.current) break;
+            isAddress(`http://192.168.${addressVar.current}.${i}:2000`, false);
             await new Promise (res => setTimeout(res, 100)); 
         }
     };
 
+    const handleChange = (e) => {
+        if(e.target.value < 0) e.target.value = 0;
+        else if(e.target.value > 255) e.target.value = 255;
+        addressVar.current = e.target.value;
+        loop();
+    };
+
     useEffect(() => {
-        loop()
+        isAddress(address, true);
     }, []);
-    return (
-        <div style={{color: 'white'}}>Searching...</div>
-    )
+
+    useEffect(() => {
+        if(lost) loop();
+    }, [lost]);
+
+    if(lost) return (
+        <div className={styles.container}>
+            <span className={styles.inputSpan}>
+                192.168.<input className={styles.numberInput} type="number" placeholder="0" onChange={handleChange}/>.XX
+            </span>
+            <div style={{color: 'white'}}>{logText || '...'}</div>
+        </div>
+    );
+
+    else return <div style={{background: 'black', flex: 1}}/>
 }
 
 export default SearchAddress

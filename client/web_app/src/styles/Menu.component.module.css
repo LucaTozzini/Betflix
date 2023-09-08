@@ -21,10 +21,27 @@
 .section {
     display: flex;
     gap: 2rem;
+    align-items: center;
+}
+
+.logo
+{
+    height: 1.7rem;
+    object-fit: contain;
 }
 
 .link {
     color: white;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.2rem;
+}
+
+.link > h3
+{
+    font-size: 1.2rem;
+    font-weight: normal;
 }
 
 .userButton {
@@ -67,4 +84,22 @@
 
 .dropDown > a:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+@media (width < 600px)
+{
+    .section
+    {
+        gap: 1.5rem;
+    }
+
+    .link
+    {
+        font-size: 1.5rem;
+    }
+
+    .link > h3
+    {
+        display: none;
+    }
 }

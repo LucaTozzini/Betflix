@@ -1,5 +1,5 @@
 :root {
-  --marginHorizontal: clamp(1rem, 4vw, 10rem);
+  --marginHorizontal: clamp(2rem, 5vw, 10rem);
   --menuHeight: 4rem;
 }
 

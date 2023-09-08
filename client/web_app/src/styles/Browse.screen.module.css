@@ -4,12 +4,14 @@
   color: white;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3rem;
 }
 
 .sectionsBar {
   display: flex;
   gap: .5rem;
+  overflow: auto;
+  flex-wrap: wrap;
 }
 
 .sectionsBar > button {

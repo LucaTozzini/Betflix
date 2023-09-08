@@ -4,62 +4,95 @@ import { IoPlay, IoCheckmarkSharp, IoChevronBack, IoChevronForward } from 'react
 import { FiPlus } from "react-icons/fi";
 
 // Contexts
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // CSS
-import styles from '../styles/ContinueWatching.component.module.css';
+import styles from '../styles/Hero.component.module.css';
 
 
 const Hero = ({ items }) => {
-    const [ index, setIndex ] = useState(0);
-    const [ currentItem, setCurrentItem ] = useState(null);
+    const [ scrolling, setScrolling ] = useState(false);
+    const scrollRef = useRef(false);
+    const [ dimLeft, setDimLeft ] = useState(true);
+    const [ dimRight, setDimRight ] = useState(true);
+    const ref = useRef(null);
 
-    useEffect(() => {
-        if(items && items[0]){
-            setCurrentItem(items[0])
+    const handleScrollRight = () => {
+        if(ref.current) {
+            const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
+            const left = ref.current.scrollLeft + ref.current.offsetWidth - pad;
+            ref.current.scrollTo({left})
         }
-    }, [items]);
+    };
+
+    const handleScrollLeft = () => {
+        if(ref.current) {
+            const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
+            const left = ref.current.scrollLeft - ref.current.offsetWidth - pad;
+            ref.current.scrollTo({left})
+        }
+    };
 
     useEffect(() => {
-        if(!items) return;
-        else if(index > items.length - 1) setIndex(items.length - 1); 
-        else if(index < 0) setIndex(0);
-        else setCurrentItem(items[index]);
-    }, [index])
+        if(ref.current) {
+            const snap = (doSnap) => {
+                ref.current.style.scrollSnapType = doSnap ? 'x mandatory' : 'none';
+            }
+            const yes = () => {if(!scrollRef.current) {snap(false); scrollRef.current = true; setScrolling(true)}};
+            const no = () => {snap(true); scrollRef.current = false; setScrolling(false)};
+            ref.current.addEventListener('scroll', yes);
+            ref.current.addEventListener('scrollend', no);
+        }
+    }, [ ref.current ]);
 
-    if(items && items.length > 0 && currentItem) return (
-        <div className={styles.container} style={{backgroundImage: currentItem ? currentItem.STILL_L ? `url(${currentItem.STILL_L})` : `url(${currentItem.BACKDROP_L})` : '', opacity: currentItem ? 1 : 0 }} onClick={() => window.location.href = `/browse/item/${currentItem.MEDIA_ID}`}>
-            <div className={styles.backdropOverlay}> 
-                {(currentItem.LOGO_L) ? <img src={currentItem.LOGO_L} className={styles.logo} /> : <></>}
+    useEffect(() => {
+        if(!scrolling && ref.current) {
+            const left = ref.current.scrollLeft;
+            setDimLeft(left == 0);
+            setDimRight(Math.abs(left + ref.current.offsetWidth - ref.current.scrollWidth) < 10);
+        }
+    }, [ scrolling, ref.current ]);
 
-                <h2 className={styles.title}>{currentItem.TITLE}</h2>
-                { (currentItem.TYPE == 2) ? <h3 className={styles.episodeTitle}> {`S${currentItem.SEASON_NUM}.E${currentItem.EPISODE_NUM} - ${currentItem.EPISODE_TITLE}`}</h3> : <></>}
 
-                <div className={styles.buttonsBar}>
-                    <button className={styles.playButton} onClick={(e) => { e.stopPropagation(); window.location.href = `/player/${currentItem.MEDIA_ID}/${currentItem.TYPE == 2 ? currentItem.EPISODE_ID : 'a'}` }}> <IoPlay size={'1.5rem'} onClick={(e) => { e.stopPropagation()  }}/> 
-                        {
-                            currentItem.PROGRESS_TIME > 0 ? 'Continue' : 'Watch Now'
-                        }
-                    </button>
-                    <button className={styles.watchlistButton} onClick={(e) => { e.stopPropagation()  }}> <FiPlus/> </button>
+    const Item = ({data}) => {
+        return (
+            <div className={styles.item} style={{pointerEvents: scrolling ? 'none' : null}} onClick={() => window.location.href = window.location.href = `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}`}>
+                <div className={styles.imageContainer}>
+                    <div className={styles.imageLarge} style={{backgroundImage: `url(${data.STILL_L || data.BACKDROP_L})`}}>
+                        <div className={styles.imageOverlay}></div>
+                    </div>
+                    <div className={styles.imageSmall} style={{backgroundImage: `url(${data.STILL_S || data.BACKDROP_S})`}}>
+                        <div className={styles.imageOverlay}></div>
+                    </div>
                 </div>
-
-                <div className={styles.progressBar}>
-                    <div className={styles.progressFill} style={{
-                        width:  currentItem.TYPE == 1 ? 
-                                `${(currentItem.PROGRESS_TIME / currentItem.DURATION)*100}%` : 
-                                `${(currentItem.PROGRESS_TIME / currentItem.EPISODE_DURATION)*100}%` 
-                    }}/>
+                <div className={styles.infoContainer}>
+                    <div/>
+                    <div className={styles.middle}>
+                        { data.LOGO_S ? <img className={styles.logo} src={data.LOGO_S}/> : <div className={styles.title}>{data.TITLE}</div> }
+                        <div className={styles.subTitle}>{data.EPISODE_ID ? <><span style={{color: 'orange'}}>{`S${data.SEASON_NUM}:E${data.EPISODE_NUM}`}</span> {data.EPISODE_TITLE} </> : ' '}</div>
+                    </div>
+                    <div>
+                        <div className={styles.progressContainer}>
+                            <div className={styles.progressFill} style={{width: `${(data.PROGRESS_TIME / (data.DURATION || data.EPISODE_DURATION)) * 100}%`}}/>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        )
+    };
 
-                <div className={styles.navigateBar}>
-                    <button className={styles.navigateButton} onClick={(e) => {e.stopPropagation(); setIndex(index - 1)}}>
-                        <IoChevronBack style={{marginRight: '.2rem'}}/>
-                    </button>
-                    <button className={styles.navigateButton} onClick={(e) => {e.stopPropagation(); setIndex(index + 1)}}>
-                    <IoChevronForward style={{marginLeft: '.2rem'}}/>
-                    </button>
-                </div>
+    if(items && items.length > 0) return (
+        <div className={styles.container}>
+            <div className={styles.scroll} ref={ref}>
+                { items.map(i => <Item key={i.MEDIA_ID + i.EPISODE_ID} data={i}/>) }
+            </div>
+            <div className={styles.overlayContainer}>
+                <button onClick={handleScrollLeft} className={styles.navButton} style={{ background: scrolling ? 'none' : null, pointerEvents: scrolling || dimLeft ? 'none' : null, opacity: scrolling ? 0.1 : dimLeft ? 0 : 1}}>
+                    <IoChevronBack/>
+                </button>
+                <button onClick={handleScrollRight} className={styles.navButton} style={{ background: scrolling ? 'none' : null, pointerEvents: scrolling || dimRight ? 'none' : null, opacity: scrolling ? 0.2 : dimRight ? 0 : 1}}>
+                    <IoChevronForward/>
+                </button>
             </div>
         </div>
     )

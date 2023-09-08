@@ -18,7 +18,6 @@ import PlayerReroute from "./screens/PlayerReroute.screen";
 
 // Contexts
 import currentUserContext from "./contexts/currentUser.context";
-import mediaItemSizeContext from "./contexts/mediaItemSize.context";
 import browseContext from "./contexts/browse.context";
 import serverContext from "./contexts/server.context";
 
@@ -35,13 +34,6 @@ function App() {
   const [ userPin, setUserPin ] = useState(localStorage.getItem('userPin') || null);
   const [ userData, setUserData ] = useState(JSON.parse(localStorage.getItem('userData')) || {});
   const [ authenticated, setAuthenticated ] = useState(false);
-
-  // Item size context var
-  const mediaScrollRef = useRef(null);
-  const [ itemWidth, setItemWidth ] = useState();
-  const [ itemsGap, setItemsGap ] = useState();
-  const [ itemsOnPage, setItemsOnPage ] = useState();
-  const [ manualTrigger, setManualTrigger ] = useState(false);
 
   // Browse context var
   const [watchlistMediaIds, setWatchlistMediaIds] = useState([]);
@@ -63,7 +55,6 @@ function App() {
   return (
     <serverContext.Provider value={{serverAddress}}>
     <currentUserContext.Provider value={{userId, setUserId, userPin, setUserPin, userData, setUserData, authenticated, setAuthenticated}}>
-    <mediaItemSizeContext.Provider value={{mediaScrollRef, itemWidth, setItemWidth, itemsGap, setItemsGap, itemsOnPage, setItemsOnPage, manualTrigger, setManualTrigger}}>
     <browseContext.Provider value={{watchlistMediaIds, setWatchlistMediaIds, genreBrowseMedia, setGenreBrowseMedia}}>
       <BrowserRouter>
         <Routes>
@@ -96,7 +87,6 @@ function App() {
         </Routes>
       </BrowserRouter>
     </browseContext.Provider>
-    </mediaItemSizeContext.Provider>
     </currentUserContext.Provider>
     </serverContext.Provider>
   );
