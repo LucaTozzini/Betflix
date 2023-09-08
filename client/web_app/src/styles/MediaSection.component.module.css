@@ -73,7 +73,7 @@
 {
     background-position: center;
     background-size: cover;
-    transition: opacity 600ms;
+    transition: opacity 400ms;
     cursor: pointer;
     flex-direction: column;
     scroll-snap-align: start;
@@ -87,12 +87,19 @@
 
 .itemImage
 {
+    --borderWidth: 2px;
     background: linear-gradient(120deg, blue, purple);
-    border-radius: calc(var(--itemHeight) * 0.02);
+    border-radius: calc(var(--itemHeight) * 0.01);
     overflow: hidden;
-    width: 100%;
-    height: var(--itemHeight);
+    width: calc(100% - (2*var(--borderWidth)));
+    height: calc(var(--itemHeight) - (2*var(--borderWidth)));
+    border: solid rgb(44, 44, 44) var(--borderWidth);
+    transition: border-color 400ms;
+}
 
+.item:hover > .itemImage
+{
+    border-color: rgb(85, 85, 85);
 }
 
 .itemTitle
@@ -106,20 +113,10 @@
     color: white;
 }
 
-.itemOverlay 
-{
-    display: flex;
-    padding: .5rem;
-    background: radial-gradient(black, transparent);
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    font-weight: bolder;
-}
 
 .items:has(.item:hover) .item:not(:hover) 
 {
-    opacity: 0.4;
+    opacity: 0.5;
 }
 
 @media (width < 1300px)

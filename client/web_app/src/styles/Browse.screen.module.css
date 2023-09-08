@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: 3rem;
+  margin-top: 3rem;
 }
 
 .sectionsBar {
@@ -14,16 +15,50 @@
   flex-wrap: wrap;
 }
 
-.sectionsBar > button {
+.sectionButton 
+{
   font-size: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.386);
-  padding: .5rem;
-  background: transparent;
-  border-radius: .3rem;
   color: white;
-  transition: background 200ms, opacity 300ms;
+  
+  background: rgba(255, 255, 255, 0.1);
+
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.05);
+  border-radius: .2vw;
+
+  padding: .5rem;
+  flex: 1;
+  height: 5rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3%;
+  font-size: 2rem;
+
+  transition: opacity 200ms;
 }
 
-.sectionsBar > button:hover {
-  background: rgba(255, 255, 255, .1);
+.sectionButton > h3 
+{
+  font-size: 1rem;
+}
+
+.sectionsBar > button:hover 
+{
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.sectionsBar:has(button:hover) > button:not(:hover) 
+{
+  opacity: 0.7;
+}
+
+@media (width < 50rem)
+{
+  .sectionButton > h3
+  {
+    display: none;
+  }
 }

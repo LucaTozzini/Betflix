@@ -1,5 +1,8 @@
 import { useEffect, useContext, useState } from 'react';
 
+// Icons
+import { PiCardsBold, PiFilmReel, PiTelevisionSimpleBold, PiPlusBold } from "react-icons/pi";
+
 // Context
 import currentUserContext from '../contexts/currentUser.context';
 import browseContext from '../contexts/browse.context';
@@ -26,15 +29,9 @@ const Home = () => {
   const [ eightiesMedia, setEightiesMedia ] = useState(null);
   const [ ninetiesMedia, setNinetiesMedia ] = useState(null);
   const { genreBrowseMedia, setGenreBrowseMedia } = useContext(browseContext);
-  
 
-  const [ showTop, setShowTop ] = useState(true);
-  const [ showLatest, setShowLatest ] = useState(true);
-  const [ showGenres, setShowGenres ] = useState(false);
-  const [ showEighties, setShowEighties ] = useState(true);
-  const [ showNineties, setShowNineties ] = useState(true);
-  const [ showWatchlist, setShowWatchlist ] = useState(true);
-  
+  const [ browseState, setBrowseState ] = useState(0);
+    
   const [ remix, setRemix ] = useState(false);
 
   const FetchGenreBrowseMedia = async () => {
@@ -122,10 +119,6 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if(showWatchlist) FetchWatchlist();
-  }, [showWatchlist]);
-
-  useEffect(() => {
     if(remix) FetchGenreBrowseMedia();
     setRemix(false);
   }, [remix])
@@ -137,20 +130,45 @@ const Home = () => {
       <WatchlistHook/>
 
       <div className={styles.sectionsBar}>
-        <button style={{opacity: !remix ? 1 : 0.6}} onClick={() => setRemix(true)}>Remix</button>
-        <button style={{opacity: showWatchlist ? 1 : 0.6}} onClick={() => setShowWatchlist(!showWatchlist)}>Watchlist</button>
-        <button style={{opacity: showLatest ? 1 : 0.6}} onClick={() => setShowLatest(!showLatest)}>Latest</button>
-        <button style={{opacity: showTop ? 1 : 0.6}} onClick={() => setShowTop(!showTop)}>Top Rated</button>
-        <button style={{opacity: showEighties ? 1 : 0.6}} onClick={() => setShowEighties(!showEighties)}>80s</button>
-        <button style={{opacity: showNineties ? 1 : 0.6}} onClick={() => setShowNineties(!showNineties)}>90s</button>
-        <button style={{opacity: showGenres ? 1 : 0.6}} onClick={() => setShowGenres(!showGenres)}>Genres</button>
+      <button className={styles.sectionButton} onClick={() => setBrowseState(0)}>
+          <PiCardsBold/>
+          <h3>Browse</h3>
+        </button>
+        <button className={styles.sectionButton} onClick={() => setBrowseState(1)}>
+          <PiFilmReel/>
+          <h3>Movies</h3>
+        </button>
+        <button className={styles.sectionButton} onClick={() => setBrowseState(2)}>
+          <PiTelevisionSimpleBold/>
+          <h3>TV Shows</h3>
+        </button>
+        <button className={styles.sectionButton} onClick={() => setBrowseState(3)}>
+          <PiPlusBold/>
+          <h3>My Watchlist</h3>
+        </button>
       </div>
-      { showWatchlist ? <MediaSection title={'My Watchlist'} items={watchlistMedia} force={true}/> : <></> }
-      { showLatest ? <MediaSection title={'Latest Releases'} items={latestMedia}/> : <></> }
-      { showTop ? <MediaSection title={'Top Rated'} items={topRatedMedia}/> : <></> }
-      { showEighties ? <MediaSection title={'80s'} items={eightiesMedia}/> : <></> }
-      { showNineties ? <MediaSection title={'90s'} items={ninetiesMedia}/> : <></> }
-      { showGenres && genreBrowseMedia ? genreBrowseMedia.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
+
+      {
+        browseState == 0 ?
+        <>
+          <MediaSection key={'lr'} title={'Latest Releases'} items={latestMedia}/>
+          <MediaSection key={'tr'} title={'Top Rated'} items={topRatedMedia}/>
+          <MediaSection key={'8s'} title={'80s'} items={eightiesMedia}/>
+          <MediaSection key={'9s'} title={'90s'} items={ninetiesMedia}/>
+        </>
+        : browseState == 1 ? 
+        <></>
+        :browseState == 2 ?
+        <>
+          { genreBrowseMedia ? genreBrowseMedia.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
+        </>
+        :browseState == 3 ?
+        <>
+          <MediaSection key={'wl'} title={'My Watchlist'} items={watchlistMedia}/>
+        </> 
+        : <></>
+      }
+
     </div>
     </>
   );

@@ -15,7 +15,7 @@ const Database = () => {
             setStatus(json);
         }
         catch(err){
-            console.error(err.message);
+            
         }
         setTimeout(FetchStatus, 1000);
     };
