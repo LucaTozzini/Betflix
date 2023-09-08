@@ -60,12 +60,12 @@ function App() {
         <Routes>
           
           <Route path="/" element={<Layout/>}>
-            <Route index element={<Navigate to='/browse/home'/> }/>
+            <Route index element={<Navigate to='/browse'/> }/>
             <Route path="*" element={<NoPage/>}/>
           </Route>
 
           <Route path="/browse" element={<Layout/>}>
-            <Route path="home" element={<Home/>}/>
+            <Route index element={<Home/>}/>
             <Route path="item/:mediaId" element={<Item/>}/>
             <Route path="search" element={<Search/>}/>
           </Route>

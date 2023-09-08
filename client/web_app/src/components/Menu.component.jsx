@@ -48,16 +48,16 @@ const Menu = () => {
         <nav className={styles.container} ref={menuRef}>
             <div className={styles.section}>
                 <img className={styles.logo} src={'https://www.nicepng.com/png/full/60-609637_nike-logo-png-white.png'}/>
-                <Link className={styles.link} to="/">
-                    { location.pathname == '/browse/home' ? <IoHomeSharp/> : <IoHomeOutline/>}
+                <Link className={styles.link} to="/browse">
+                    { location.pathname == '/browse' || location.pathname == '/browse/' ? <IoHomeSharp/> : <IoHomeOutline/>}
                     <h3>Home</h3>
                 </Link>
                 <Link className={styles.link} to="/browse/search">
-                    { location.pathname == '/browse/search' ? <IoSearchSharp/> : <IoSearchOutline/>}
+                    { location.pathname == '/browse/search' || location.pathname == '/browse/search/' ? <IoSearchSharp/> : <IoSearchOutline/>}
                     <h3>Search</h3>
                 </Link>
                 <Link className={styles.link} to="/database">
-                    { location.pathname == '/database' ? <IoServerSharp/> : <IoServerOutline/>}
+                    { location.pathname == '/database' || location.pathname == '/database/' ? <IoServerSharp/> : <IoServerOutline/>}
                     <h3>Server</h3>
                 </Link>
             </div>

@@ -55,6 +55,19 @@ const Hero = ({ items }) => {
 
 
     const Item = ({data}) => {
+        const Completion = () => {
+            const dur = data.DURATION || data.EPISODE_DURATION;
+            const prog = data.PROGRESS_TIME || 0;
+            const left = dur - prog;
+            const hr = Math.trunc(left / 3600);
+            const mn = Math.trunc((left - (hr * 3600)) / 60);
+            const sc = Math.trunc(left - (hr * 3600) - (mn * 60));
+            const string = `${hr > 0 ? `${hr}h`:''}${hr > 0 && (mn > 0 || sc > 0) ? ', ' : ''}${mn > 0 ? `${mn}m`:''}${mn > 0 && sc > 0 && mn == 0 && hr == 0 ? ', ' : ''}${sc > 0 && mn == 0 && hr == 0  ? `${sc}s`:''} Left`
+            return (
+                <span style={{color:'rgb(180, 180, 180)'}}>{string}</span>
+            );
+        };
+
         return (
             <div className={styles.item} style={{pointerEvents: scrolling ? 'none' : null}} onClick={() => window.location.href = window.location.href = `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}`}>
                 <div className={styles.imageContainer}>
@@ -66,16 +79,14 @@ const Hero = ({ items }) => {
                     </div>
                 </div>
                 <div className={styles.infoContainer}>
-                    <div/>
-                    <div className={styles.middle}>
-                        { data.LOGO_S ? <img className={styles.logo} src={data.LOGO_S}/> : <div className={styles.title}>{data.TITLE}</div> }
-                        <div className={styles.subTitle}>{data.EPISODE_ID ? <><span style={{color: 'orange'}}>{`S${data.SEASON_NUM}:E${data.EPISODE_NUM}`}</span> {data.EPISODE_TITLE} </> : ' '}</div>
-                    </div>
-                    <div>
-                        <div className={styles.progressContainer}>
-                            <div className={styles.progressFill} style={{width: `${(data.PROGRESS_TIME / (data.DURATION || data.EPISODE_DURATION)) * 100}%`}}/>
-                        </div>
-                    </div>
+                    
+                    { data.LOGO_S ? 
+                        <img className={styles.logo} src={data.LOGO_S}/> 
+                        : 
+                        <div className={styles.title}>{data.TITLE}</div> 
+                    }
+                    <div className={styles.subTitle}>{data.EPISODE_ID ? <><span style={{color: 'orange'}}>{`S${data.SEASON_NUM}:E${data.EPISODE_NUM}`}</span> {data.EPISODE_TITLE} <Completion/> </> : <>{data.CONTENT_RATING}<Completion/></>}</div>
+                    
                 </div>
             </div>
         )
