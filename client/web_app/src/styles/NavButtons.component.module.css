@@ -1,0 +1,29 @@
+.buttons
+{
+    display: flex;
+    gap: 1rem;
+}
+
+.buttons > button
+{
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: solid rgb(127, 127, 127) 2px;
+    transition: background 200ms, opacity 300ms;
+}
+
+.buttons > button:hover 
+{
+    background: rgba(255, 255, 255, 0.25)
+}
+
+.buttons > button:active
+{
+    background: rgba(255, 255, 255, 0.35)
+}

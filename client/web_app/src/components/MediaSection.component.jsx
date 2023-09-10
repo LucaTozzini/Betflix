@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Icons
-import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
-
 // CSS
 import styles from '../styles/MediaSection.component.module.css';
+
+// Components
+import NavButtons from './NavButtons.component';
 
 const MediaSection = ({ title, items, forceShow }) => {
     const [ showButtons, setShowButtons ] = useState(false);
@@ -58,9 +58,9 @@ const MediaSection = ({ title, items, forceShow }) => {
 
     useEffect(() => {
         handleResize();
-    }, [items])
+    }, [items]);
 
-    const Item = ({ title, year, image, link }) => {
+    const Item = ({ title, image, link }) => {
         return (
             <div className={styles.item} onClick={() => window.location.href = link}>
                 <img className={styles.itemImage} src={image}/>
@@ -73,14 +73,13 @@ const MediaSection = ({ title, items, forceShow }) => {
         <div className={styles.container}>
             <div className={styles.top}>
                 <div className={styles.title}>{title}</div>
-                <div className={styles.buttons} style={ !showButtons ? {display: 'none'} : {}}>
-                    <button onClick={handleScrollLeft} style={dimLeft ? { opacity: 0.3, pointerEvents: 'none' } : {}}>
-                        <FaAngleLeft/>
-                    </button>
-                    <button onClick={handleScrollRight} style={dimRight ? { opacity: 0.3, pointerEvents: 'none' } : {}}>
-                        <FaAngleRight/>
-                    </button>
-                </div>
+                <NavButtons
+                    showButtons={showButtons}
+                    handleScrollLeft={handleScrollLeft}
+                    handleScrollRight={handleScrollRight}
+                    dimLeft={dimLeft}
+                    dimRight={dimRight}
+                />
             </div>
             <div className={styles.items} ref={ref}>
                 { items ? 
@@ -88,7 +87,6 @@ const MediaSection = ({ title, items, forceShow }) => {
                         <Item 
                         key={i.MEDIA_ID} 
                         title={i.TITLE} 
-                        year={i.YEAR} 
                         image={i.POSTER_W_S || i.BACKDROP_S} 
                         link={'/browse/item/' + i.MEDIA_ID}
                         />

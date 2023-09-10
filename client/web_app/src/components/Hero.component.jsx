@@ -1,7 +1,5 @@
 // Icons
-import { IoPlay, IoCheckmarkSharp, IoChevronBack, IoChevronForward } from 'react-icons/io5';
-
-import { FiPlus } from "react-icons/fi";
+import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 
 // Contexts
 import { useEffect, useRef, useState } from 'react';
@@ -11,14 +9,22 @@ import styles from '../styles/Hero.component.module.css';
 
 
 const Hero = ({ items }) => {
-    const [ scrolling, setScrolling ] = useState(false);
-    const scrollRef = useRef(false);
-    const [ dimLeft, setDimLeft ] = useState(true);
-    const [ dimRight, setDimRight ] = useState(true);
+    const [ dimLeft, setDimLeft ] = useState(false);
+    const [ dimRight, setDimRight ] = useState(false);
     const ref = useRef(null);
+
+    const itemDimVal = "0.5";
+
+    const dimAll = () => {
+        const items = document.getElementsByClassName(styles.item);
+        for(const item of items) {
+            item.style.opacity = itemDimVal; 
+        }
+    };
 
     const handleScrollRight = () => {
         if(ref.current) {
+            dimAll();
             const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
             const left = ref.current.scrollLeft + ref.current.offsetWidth - pad;
             ref.current.scrollTo({left})
@@ -27,34 +33,55 @@ const Hero = ({ items }) => {
 
     const handleScrollLeft = () => {
         if(ref.current) {
+            dimAll();
             const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
             const left = ref.current.scrollLeft - ref.current.offsetWidth - pad;
             ref.current.scrollTo({left})
         }
     };
 
+    const handleShowNav = () => {
+        if(ref.current) {
+            const left = ref.current.scrollLeft;
+            const offset = ref.current.offsetWidth;
+            const scroll = ref.current.scrollWidth;
+
+            setDimLeft(left == 0);
+            setDimRight(Math.abs((left + offset) - scroll) < 10);
+        }
+    };
+
+    const handleItemDims = () => {
+        if(ref.current) {
+            const left = ref.current.scrollLeft;
+            const items = document.getElementsByClassName(styles.item) 
+            const itemWidth = parseFloat(getComputedStyle(items[0]).getPropertyValue('width').replace('px', ''));
+            const itemsGap = parseFloat(getComputedStyle(ref.current).getPropertyValue('gap').replace('px', ''));
+            
+            const curr = Math.round(left / (itemWidth + itemsGap));
+
+            let i = 0;
+            for(const item of items) {
+                item.style.opacity = i == curr ? "1" : itemDimVal;
+                i++;
+            };
+        }
+    };
+
     useEffect(() => {
         if(ref.current) {
-            const snap = (doSnap) => {
-                ref.current.style.scrollSnapType = doSnap ? 'x mandatory' : 'none';
-            }
-            const yes = () => {if(!scrollRef.current) {snap(false); scrollRef.current = true; setScrolling(true)}};
-            const no = () => {snap(true); scrollRef.current = false; setScrolling(false)};
-            ref.current.addEventListener('scroll', yes);
-            ref.current.addEventListener('scrollend', no);
+            ref.current.addEventListener('scrollend', handleShowNav);
+            ref.current.addEventListener('scrollend', handleItemDims);
+            handleShowNav();
+            handleItemDims();
         }
     }, [ ref.current ]);
 
-    useEffect(() => {
-        if(!scrolling && ref.current) {
-            const left = ref.current.scrollLeft;
-            setDimLeft(left == 0);
-            setDimRight(Math.abs(left + ref.current.offsetWidth - ref.current.scrollWidth) < 10);
-        }
-    }, [ scrolling, ref.current ]);
-
-
     const Item = ({data}) => {
+        useEffect(() => {
+            handleItemDims();
+        }, []);
+
         const Completion = () => {
             const dur = data.DURATION || data.EPISODE_DURATION;
             const prog = data.PROGRESS_TIME || 0;
@@ -69,7 +96,7 @@ const Hero = ({ items }) => {
         };
 
         return (
-            <div className={styles.item} style={{pointerEvents: scrolling ? 'none' : null}} onClick={() => window.location.href = window.location.href = `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}`}>
+            <div className={styles.item} onClick={() => window.location.href = window.location.href = `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}`}>
                 <div className={styles.imageContainer}>
                     <div className={styles.imageLarge} style={{backgroundImage: `url(${data.STILL_L || data.BACKDROP_L})`}}>
                         <div className={styles.imageOverlay}></div>
@@ -98,10 +125,10 @@ const Hero = ({ items }) => {
                 { items.map(i => <Item key={i.MEDIA_ID + i.EPISODE_ID} data={i}/>) }
             </div>
             <div className={styles.overlayContainer}>
-                <button onClick={handleScrollLeft} className={styles.navButton} style={{ background: scrolling ? 'none' : null, pointerEvents: scrolling || dimLeft ? 'none' : null, opacity: scrolling ? 0.1 : dimLeft ? 0 : 1}}>
+                <button onClick={handleScrollLeft} className={styles.navButton} style={ dimLeft ? { opacity: 0, pointerEvents: 'none' } : {} }>
                     <IoChevronBack/>
                 </button>
-                <button onClick={handleScrollRight} className={styles.navButton} style={{ background: scrolling ? 'none' : null, pointerEvents: scrolling || dimRight ? 'none' : null, opacity: scrolling ? 0.2 : dimRight ? 0 : 1}}>
+                <button onClick={handleScrollRight} className={styles.navButton} style={ dimRight ? { opacity: 0, pointerEvents: 'none' } : {} }>
                     <IoChevronForward/>
                 </button>
             </div>

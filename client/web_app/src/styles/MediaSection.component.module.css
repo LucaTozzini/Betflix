@@ -1,8 +1,5 @@
 .container 
 {
-    --itemsOnPage: 5;
-    --itemHeight: 10.5vw;
-    --itemsGap: .6rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -25,38 +22,12 @@
     text-transform: capitalize;
 }
 
-.buttons
-{
-    display: flex;
-    gap: 1rem;
-}
-
-.buttons > button
-{
-    height: 2.5rem;
-    width: 2.5rem;
-    border-radius: 50%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: solid rgb(127, 127, 127) 2px;
-    transition: background 200ms;
-}
-
-.buttons > button:hover 
-{
-    background: rgba(255, 255, 255, 0.25)
-}
-
-.buttons > button:active
-{
-    background: rgba(255, 255, 255, 0.35)
-}
-
 .items 
 {
+    --itemsOnPage: 5;
+    --itemHeight: 10.5vw;
+    --itemsGap: .5rem;
+
     display: flex;
     overflow: auto;
     gap: var(--itemsGap);
@@ -71,25 +42,28 @@
 
 .item 
 {
-    background-position: center;
     background-size: cover;
-    transition: opacity 400ms;
-    cursor: pointer;
-    flex-direction: column;
-    scroll-snap-align: start;
-    width: calc((100% - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage));
-    flex-shrink: 0;
+    background-position: center;
+    
     display: flex;
-    flex-direction: column;
+    flex-shrink: 0;
     align-items: center;
+    flex-direction: column;
     gap: .5rem;
+    
+    width: calc((100% - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage));
+    
+    scroll-snap-align: start;
+    
+    cursor: pointer;
+    transition: opacity 400ms;
 }
 
 .itemImage
 {
     --borderWidth: 2px;
     background: linear-gradient(120deg, blue, purple);
-    border-radius: calc(var(--itemHeight) * 0.01);
+    border-radius: calc(var(--itemHeight) * 0.02);
     overflow: hidden;
     width: calc(100% - (2*var(--borderWidth)));
     height: calc(var(--itemHeight) - (2*var(--borderWidth)));
@@ -121,7 +95,7 @@
 
 @media (width < 1300px)
 {
-    .container
+    .items
     {
         --itemsOnPage: 4;
         --itemHeight: 12vw;
@@ -130,7 +104,7 @@
 
 @media (width < 1000px)
 {
-    .container
+    .items
     {
         --itemsOnPage: 3;
         --itemHeight: 17.5vw;
@@ -139,7 +113,7 @@
 
 @media (width < 700px)
 {
-    .container
+    .items
     {
         --itemsOnPage: 2;
         --itemHeight: 25vw;

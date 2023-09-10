@@ -24,7 +24,7 @@
 
   border-width: 2px;
   border-style: solid;
-  border-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
   border-radius: .2vw;
 
   padding: .5rem;
@@ -47,7 +47,7 @@
 
 .sectionsBar > button:hover 
 {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.13);
 }
 
 .sectionsBar:has(button:hover) > button:not(:hover) 
