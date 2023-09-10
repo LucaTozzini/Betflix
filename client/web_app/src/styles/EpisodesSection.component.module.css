@@ -7,6 +7,7 @@
     display: flex;
     flex-direction: column;
     gap: .5rem;
+    margin: 0 var(--marginHorizontal);
 }
 
 .top 
@@ -34,10 +35,10 @@
     overflow: auto;
 
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
     
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
-    scroll-behavior: smooth; /* Enable smooth scrolling behavior */
 
 }
 
@@ -112,7 +113,6 @@
 
 .infoContainer
 {
-    /* padding: 0 15% 0 5%; */
     display: flex;
     flex-direction: column;
     gap: inherit;

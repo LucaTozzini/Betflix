@@ -1,9 +1,8 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import LinesEllipsis from 'react-lines-ellipsis'
 
 // Icons
-import { IoPlay, IoCheckmarkSharp, IoChevronDownOutline, IoChevronUpOutline } from 'react-icons/io5';
+import { IoPlay, IoCheckmarkSharp } from 'react-icons/io5';
 import { IoStar } from 'react-icons/io5';
 import { FiPlus } from "react-icons/fi";
 
@@ -22,8 +21,7 @@ const Item = () => {
     const { serverAddress } = useContext(serverContext);
     const { mediaId } = useParams();
     const { userId, userPin } = useContext(currentUserContext);
-    
-    const filterRef = useRef(null);
+
     const overviewRef = useRef(null);
 
     const [ data, setData ] = useState(null);

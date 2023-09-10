@@ -8,9 +8,9 @@ import { useEffect, useRef, useState } from 'react';
 import styles from '../styles/Hero.component.module.css';
 
 
-const Hero = ({ items }) => {
-    const [ dimLeft, setDimLeft ] = useState(false);
-    const [ dimRight, setDimRight ] = useState(false);
+const Hero = ({ items, autoPlay, heroTitle }) => {
+    const [ dimLeft, setDimLeft ] = useState(true);
+    const [ dimRight, setDimRight ] = useState(true);
     const ref = useRef(null);
 
     const itemDimVal = "0.5";
@@ -95,8 +95,12 @@ const Hero = ({ items }) => {
             );
         };
 
+        const handleClick = () => {
+            window.location.href = autoPlay ? `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}` : `/browse/item/${data.MEDIA_ID}`;
+        }
+
         return (
-            <div className={styles.item} onClick={() => window.location.href = window.location.href = `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}`}>
+            <div className={styles.item} onClick={handleClick}>
                 <div className={styles.imageContainer}>
                     <div className={styles.imageLarge} style={{backgroundImage: `url(${data.STILL_L || data.BACKDROP_L})`}}>
                         <div className={styles.imageOverlay}></div>
@@ -125,10 +129,10 @@ const Hero = ({ items }) => {
                 { items.map(i => <Item key={i.MEDIA_ID + i.EPISODE_ID} data={i}/>) }
             </div>
             <div className={styles.overlayContainer}>
-                <button onClick={handleScrollLeft} className={styles.navButton} style={ dimLeft ? { opacity: 0, pointerEvents: 'none' } : {} }>
+                <button onClick={handleScrollLeft} className={styles.navButton} style={ !dimLeft ? { opacity: 1, pointerEvents: 'all' } : {} }>
                     <IoChevronBack/>
                 </button>
-                <button onClick={handleScrollRight} className={styles.navButton} style={ dimRight ? { opacity: 0, pointerEvents: 'none' } : {} }>
+                <button onClick={handleScrollRight} className={styles.navButton} style={ !dimRight ? { opacity: 1, pointerEvents: 'all' } : {} }>
                     <IoChevronForward/>
                 </button>
             </div>

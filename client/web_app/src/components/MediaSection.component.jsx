@@ -7,58 +7,12 @@ import styles from '../styles/MediaSection.component.module.css';
 import NavButtons from './NavButtons.component';
 
 const MediaSection = ({ title, items, forceShow }) => {
-    const [ showButtons, setShowButtons ] = useState(false);
-    const [ dimLeft, setDimLeft ] = useState(true);
-    const [ dimRight, setDimRight ] = useState(true);
     const ref = useRef(null);
-
-    const handleScrollRight = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft += ref.current.offsetWidth;
-            ref.current.scrollTo({left, behavior: "smooth"});
-        }
-    };
-
-    const handleScrollLeft = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft -= ref.current.offsetWidth;
-            ref.current.scrollTo({top: 0, left, behavior: 'smooth'});
-        }
-    };
-
-    const handleResize = () => {
-        if(ref.current) {
-            setShowButtons(ref.current.offsetWidth < ref.current.scrollWidth);
-            setDimLeft(ref.current.scrollLeft == 0);
-            setDimRight(ref.current.scrollLeft + ref.current.offsetWidth >= ref.current.scrollWidth)
-        }
-    };
-
-    const handleScroll = (e) => {
-        const scrollLeft = e.target.scrollLeft;
-        const offsetWidth = e.target.offsetWidth;
-        const scrollWidth = e.target.scrollWidth;
-
-        setDimLeft(scrollLeft == 0);
-        setDimRight(Math.abs(scrollLeft + offsetWidth - scrollWidth) < 1);
-    };
-
+    const [ scroll, setScroll ] = useState(null);
+    
     useEffect(() => {
-        window.addEventListener('resize', handleResize);
-        handleResize();
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        handleResize();
-        if(ref.current) {
-            ref.current.addEventListener('scrollend', handleScroll);
-        }
-    }, [ref.current]);
-
-    useEffect(() => {
-        handleResize();
-    }, [items]);
+        setScroll(ref.current);
+    }, [ref, ref.current]);
 
     const Item = ({ title, image, link }) => {
         return (
@@ -73,13 +27,7 @@ const MediaSection = ({ title, items, forceShow }) => {
         <div className={styles.container}>
             <div className={styles.top}>
                 <div className={styles.title}>{title}</div>
-                <NavButtons
-                    showButtons={showButtons}
-                    handleScrollLeft={handleScrollLeft}
-                    handleScrollRight={handleScrollRight}
-                    dimLeft={dimLeft}
-                    dimRight={dimRight}
-                />
+                <NavButtons scroll={scroll} items={items}/>
             </div>
             <div className={styles.items} ref={ref}>
                 { items ? 

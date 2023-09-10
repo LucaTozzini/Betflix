@@ -124,10 +124,9 @@ const Home = () => {
   }, [remix])
 
   return (
-    <>
-    <Hero items={continueItems}/>
     <div className={styles.container}>
       <WatchlistHook/>
+      <Hero key={'hr'} items={continueItems} autoPlay={browseState == 0} heroTitle={browseState == 0 ? 'Continue Watching' : ''}/>
 
       <div className={styles.sectionsBar}>
       <button className={styles.sectionButton} onClick={() => setBrowseState(0)}>
@@ -168,9 +167,7 @@ const Home = () => {
         </> 
         : <></>
       }
-
     </div>
-    </>
   );
 };
   

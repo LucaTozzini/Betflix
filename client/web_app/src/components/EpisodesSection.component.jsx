@@ -7,58 +7,11 @@ import NavButtons from './NavButtons.component';
 import styles from '../styles/EpisodesSection.component.module.css';
 
 const EpisodesSection = ({ data, mediaId }) => {
-    const [ showButtons, setShowButtons ] = useState(false);
-    const [ dimLeft, setDimLeft ] = useState(true);
-    const [ dimRight, setDimRight ] = useState(true);
     const ref = useRef(null);
-
-    const handleScrollRight = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft += ref.current.offsetWidth;
-            ref.current.scrollTo({left, behavior: "smooth"});
-        }
-    };
-
-    const handleScrollLeft = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft -= ref.current.offsetWidth;
-            ref.current.scrollTo({top: 0, left, behavior: 'smooth'});
-        }
-    };
-
-    const handleResize = () => {
-        if(ref.current) {
-            setShowButtons(ref.current.offsetWidth < ref.current.scrollWidth);
-            setDimLeft(ref.current.scrollLeft == 0);
-            setDimRight(ref.current.scrollLeft + ref.current.offsetWidth >= ref.current.scrollWidth)
-        }
-    };
-
-    const handleScroll = (e) => {
-        const scrollLeft = e.target.scrollLeft;
-        const offsetWidth = e.target.offsetWidth;
-        const scrollWidth = e.target.scrollWidth;
-
-        setDimLeft(scrollLeft == 0);
-        setDimRight(Math.abs(scrollLeft + offsetWidth - scrollWidth) < 1);
-    };
-
+    const [ scroll, setScroll ] = useState(null);
     useEffect(() => {
-        window.addEventListener('resize', handleResize);
-        handleResize();
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        handleResize();
-        if(ref.current) {
-            ref.current.addEventListener('scrollend', handleScroll);
-        }
+        setScroll(ref.current);
     }, [ref.current]);
-
-    useEffect(() => {
-        handleResize();
-    }, [data])
 
     const Item = ({ episodeId, still, title, seasonNum, episodeNum, airDate, progress, overview }) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -92,13 +45,7 @@ const EpisodesSection = ({ data, mediaId }) => {
         <div className={styles.container}>
             <div className={styles.top}>
                 <h2 className={styles.topTitle}></h2>
-                <NavButtons
-                    showButtons={showButtons}
-                    handleScrollLeft={handleScrollLeft}
-                    handleScrollRight={handleScrollRight}
-                    dimLeft={dimLeft}
-                    dimRight={dimRight}
-                />
+                <NavButtons scroll={scroll} items={data}/>
             </div>
             <div className={styles.items} ref={ref}>
                 {data.map(i => 

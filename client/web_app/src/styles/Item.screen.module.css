@@ -3,6 +3,7 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    padding-bottom: 3rem;
 }
 
 .heroSection
@@ -20,12 +21,12 @@
     flex: 1;
     background: 
     linear-gradient(rgba(0, 0, 0, 0.5), transparent 20% 60%, black), 
-    linear-gradient(20deg, black, transparent 60%);
+    linear-gradient(20deg, black, transparent 60%),
+    linear-gradient(90deg, black, transparent 20%);
 }
 
 .infoSection
 {
-    margin: 0 var(--marginHorizontal);
     display: flex;
     flex-direction: column;
     gap: inherit;
@@ -72,7 +73,15 @@ h1.title{
     color: orange;
 }
 
+.buttonBar {
+    display: flex;
+    gap: 1rem;
+    --size: 3.5rem
+}
+
 .overview {
+    margin: 0 var(--marginHorizontal);
+
     max-width: 40rem;
     margin-top: 1rem;
     color: white;
@@ -87,12 +96,6 @@ h1.title{
     transition: opacity 300ms;
 
     user-select: none;
-}
-
-.buttonBar {
-    display: flex;
-    gap: 1rem;
-    --size: 3.5rem
 }
 
 .playButton {
@@ -127,6 +130,7 @@ h1.title{
 }
 
 .seasonSelect {
+    margin: 0 var(--marginHorizontal);
     cursor: pointer;
     font-size: 2rem;
     border-radius: .4rem;

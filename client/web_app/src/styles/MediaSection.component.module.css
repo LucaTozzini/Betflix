@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: column;
     gap: .5rem;
+    margin: 0 var(--marginHorizontal);
 }
 
 .top 
@@ -33,6 +34,9 @@
     gap: var(--itemsGap);
     scroll-snap-type: x proximity;
     scroll-behavior: smooth;
+
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .items::-webkit-scrollbar 

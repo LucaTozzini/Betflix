@@ -1,11 +1,10 @@
 .container {
   flex: 1;
-  padding: 0 var(--marginHorizontal) 5rem var(--marginHorizontal);
+  padding-bottom: 5rem;
   color: white;
   display: flex;
   flex-direction: column;
   gap: 3rem;
-  margin-top: 3rem;
 }
 
 .sectionsBar {
@@ -13,6 +12,7 @@
   gap: .5rem;
   overflow: auto;
   flex-wrap: wrap;
+  margin: 0 var(--marginHorizontal);
 }
 
 .sectionButton 
