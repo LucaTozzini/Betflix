@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { MdClear } from "react-icons/md";
 
 // Components
@@ -14,6 +14,7 @@ const Search = () => {
     const { serverAddress } = useContext(serverContext);
     const [ query, setQuery ] = useState(null);
     const [ results, setResults ] = useState(null);
+    const ref = useRef(null);
 
     const FetchSearch = async () => {
         try {
@@ -43,10 +44,17 @@ const Search = () => {
         FetchSearch();
     }, [ query ]);
 
+    useEffect(() => {
+        if(ref.current) {
+            ref.current.focus();
+            ref.current.select();
+        }
+    }, [ref.current]);
+
     return (
         <div className={styles.container}>
             <div className={styles.searchBar}>
-                <input className={styles.inputText} type='text' placeholder='Search media...' onChange={(e) => handleInput(e.target.value)}/>
+                <input className={styles.inputText} ref={ref} type='text' placeholder='Search media...' onChange={(e) => handleInput(e.target.value)}/>
                 { query && query.length > 0 ? <button className={styles.clearButton} onClick={handleClear}> <MdClear size='2rem'/> </button> : <></> }
             </div>
             <div className={styles.items}>

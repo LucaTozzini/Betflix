@@ -6,7 +6,7 @@ import NavButtons from './NavButtons.component';
 // CSS
 import styles from '../styles/EpisodesSection.component.module.css';
 
-const EpisodesSection = ({ data, mediaId }) => {
+const EpisodesSection = ({ data, mediaId, Selector }) => {
     const ref = useRef(null);
     const [ scroll, setScroll ] = useState(null);
     useEffect(() => {
@@ -44,7 +44,7 @@ const EpisodesSection = ({ data, mediaId }) => {
     return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <h2 className={styles.topTitle}></h2>
+                {Selector ? <Selector/> : <div/>}
                 <NavButtons scroll={scroll} items={data}/>
             </div>
             <div className={styles.items} ref={ref}>

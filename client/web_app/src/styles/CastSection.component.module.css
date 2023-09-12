@@ -24,6 +24,9 @@
     --width: calc((100% - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage));
     --height: calc((100vw - (2*var(--marginHorizontal)) - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage));
 
+    --start: 2;
+    --inc: 2;
+
     display: flex;
     overflow: auto;
     gap: var(--itemsGap);
@@ -79,11 +82,51 @@
     color: gray;
 }
 
-@media (width > 2000px)
+@media (width >= 4000px)
 {
     .items
     {
-        --itemsOnPage: 11;
+        --itemsOnPage: calc(var(--start) + (8 * var(--inc)));;
+    }
+}
+
+@media (width < 4000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (7 * var(--inc)));;
+    }
+}
+
+@media (width < 3500px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (6 * var(--inc)));;
+    }
+}
+
+@media (width < 3000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (5 * var(--inc)));;
+    }
+}
+
+@media (width < 2500px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (4 * var(--inc)));;
+    }
+}
+
+@media (width < 2000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (3 * var(--inc)));;
     }
 }
 
@@ -91,22 +134,22 @@
 {
     .items
     {
-        --itemsOnPage: 7;
+        --itemsOnPage: calc(var(--start) + (2 * var(--inc)));;
     }
 }
 
-@media (width < 1050px)
+@media (width < 1000px)
 {
     .items
     {
-        --itemsOnPage: 5;
+        --itemsOnPage: calc(var(--start) + (1 * var(--inc)));;
     }
 }
 
-@media (width < 600px)
+@media (width < 500px)
 {
     .items
     {
-        --itemsOnPage: 3;
+        --itemsOnPage: var(--start);
     }
 }

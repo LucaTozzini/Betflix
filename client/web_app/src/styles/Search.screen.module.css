@@ -21,6 +21,5 @@
 }
 
 .items {
-    padding: 0 var(--marginHorizontal);
     margin-top: 2rem;
 }

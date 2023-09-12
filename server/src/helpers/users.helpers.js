@@ -17,21 +17,23 @@ const addUser = (userName, userImage, childAccount) => new Promise( async (res, 
     }
 });
 
-const authenticateUser = (userId, userPin) => new Promise((res, rej) => db.get(`SELECT * FROM users_main WHERE USER_ID = ?`, [userId], (err, row) => {
-    if(err) return rej(err);
-    try{
-        if(row == undefined) return res(false);
-        if(!row.ADMIN) return res(true);
-        res(false);
-    }
-    catch(err){
-        rej(err);
-    }
-}));
+const authenticateUser = (userId, userPin) => new Promise((res, rej) => db.get(
+    `SELECT * FROM users_main WHERE USER_ID = ?`, 
+    [userId], 
+    (err, row) => err ? rej(err) : res(row != undefined)
+));
 
-const userData = (userId) => new Promise((res, rej) => db.get(`SELECT USER_NAME, USER_IMAGE FROM users_main WHERE USER_ID = ?`, [userId], (err, row) => err ? rej(err) : res(row)));
+const userData = (userId) => new Promise((res, rej) => db.get(
+    `SELECT USER_NAME, USER_IMAGE FROM users_main WHERE USER_ID = ?`, 
+    [userId], 
+    (err, row) => err ? rej(err) : res(row)
+));
 
-const inWatchlist = (userId, mediaId) => new Promise((res, rej) => db.get(`SELECT KEY FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`, [userId, mediaId], (err, row) => err ? rej(err) : res(row != undefined)));
+const inWatchlist = (userId, mediaId) => new Promise((res, rej) => db.get(
+    `SELECT KEY FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`, 
+    [userId, mediaId], 
+    (err, row) => err ? rej(err) : res(row != undefined)
+));
 
 const addWatchlist = (userId, mediaId) => new Promise(async(res, rej) => {
     if(await inWatchlist(userId, mediaId)) return res();
@@ -44,7 +46,11 @@ const addWatchlist = (userId, mediaId) => new Promise(async(res, rej) => {
     );
 }); 
 
-const removeWatchlist = (userId, mediaId) => new Promise((res, rej) => db.run(`DELETE FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`, [userId, mediaId], err => err ? rej(err) : res())); 
+const removeWatchlist = (userId, mediaId) => new Promise((res, rej) => db.run(
+    `DELETE FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`, 
+    [userId, mediaId], 
+    err => err ? rej(err) : res()
+)); 
 
 const watchlist = (userId) => new Promise((res, rej) => db.all(
     `SELECT i.*, m.*, d.YEAR, 1 AS IN_WATCHLIST

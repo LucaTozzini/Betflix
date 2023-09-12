@@ -4,7 +4,7 @@ import episode from 'episode';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import env from '../../env.js';
 import { manager } from './database.helpers.js';
-import { haveMedia } from './queries.helpers.js';
+import { haveMedia, haveEpisode } from './queries.helpers.js';
 import { db } from '../helpers/database.helpers.js';
 
 const parseString = (string) => {
@@ -64,12 +64,14 @@ const scanShows = () => new Promise( async (res, rej) => {
             const episodesArray = []
     
             for(const file of episodesFiles){
-                episodesArray.push({
-                    path: `${path}/${file}`,
-                    season_num: episode(file).season,
-                    episode_num: episode(file).episode,
-                    duration: await getVideoDurationInSeconds(`${path}/${file}`)
-                });
+                if(!await haveEpisode(`${path}/${file}`)) {
+                    episodesArray.push({
+                        path: `${path}/${file}`,
+                        season_num: episode(file).season,
+                        episode_num: episode(file).episode,
+                        duration: await getVideoDurationInSeconds(`${path}/${file}`)
+                    });
+                }
             };
     
             returnArray.push({
@@ -79,7 +81,7 @@ const scanShows = () => new Promise( async (res, rej) => {
                 episodes: episodesArray
             });
         }
-        res(returnArray);
+        res(returnArray.filter(i => i.episodes.length > 0));
     }
     catch(err){
         rej(err);

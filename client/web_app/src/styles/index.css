@@ -1,6 +1,6 @@
 :root {
   --marginHorizontal: clamp(2rem, 5vw, 10rem);
-  --menuHeight: 4rem;
+  --menuHeight: 5rem;
 }
 
 button {

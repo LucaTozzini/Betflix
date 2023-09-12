@@ -21,7 +21,6 @@ const Player = () => {
     const [ mediaData, setMediaData ] = useState(null);
     const mediaRef = useRef(null);
     const episodeRef = useRef(null);
-    const resumeRef = useRef(null);
     const [ nextEpisode, setNextEpisode] = useState(null);
     
     // video

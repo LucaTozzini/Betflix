@@ -60,9 +60,22 @@ const orphans = () => new Promise((res, rej) => db.all(`
     `, (err, rows) => err ? rej(err) : res(rows.map(i => i.PERSON_ID))
 ));
 
-const haveMedia = (path) => new Promise((res, rej) => db.get(`SELECT * FROM media_main WHERE PATH = ?`, [path], (err, row) => err ? rej(err) : row ? res(true) : res(false))); 
+const haveMedia = (path) => new Promise((res, rej) => db.get(
+    `SELECT * FROM media_main WHERE PATH = ?`, 
+    [path], 
+    (err, row) => err ? rej(err) : res(row != undefined)
+)); 
 
-const userList = () => new Promise((res, rej) => db.all(`SELECT * FROM users_main`, (err, rows) => err ? rej(err) : res(rows))); 
+const haveEpisode = (path) => new Promise((res, rej) => db.get(
+    `SELECT * FROM episodes_main WHERE PATH = ?`,
+    [path],
+    (err, row) => err ? rej(err) : res(row != undefined)
+)); 
+
+const userList = () => new Promise((res, rej) => db.all(
+    `SELECT * FROM users_main`, 
+    (err, rows) => err ? rej(err) : res(rows)
+)); 
 
 const mediaInfo = (mediaId) => new Promise((res, rej) => db.get(
     `SELECT info.*, images.*, dates.*, main.TYPE
@@ -106,7 +119,11 @@ const mediaSeason = (mediaId, seasonNum, userId) => new Promise((res, rej) => db
     (err, rows) => err ? rej(err) : res(rows)
 )); 
 
-const availableSeasons = (mediaId) => new Promise((res, rej) => db.all(`SELECT DISTINCT SEASON_NUM FROM episodes_main WHERE MEDIA_ID = ? ORDER BY SEASON_NUM ASC`, [mediaId], (err, rows) => err ? rej(err) : res(rows)));
+const availableSeasons = (mediaId) => new Promise((res, rej) => db.all(
+    `SELECT DISTINCT SEASON_NUM FROM episodes_main WHERE MEDIA_ID = ? ORDER BY SEASON_NUM ASC`, 
+    [mediaId], 
+    (err, rows) => err ? rej(err) : res(rows)
+));
 
 const mediaEpisodeInfo = (episodeId) => new Promise((res, rej) => db.get(
     `SELECT i.*, m.MEDIA_ID, m.SEASON_NUM, m.EPISODE_NUM, x.TYPE
@@ -188,10 +205,25 @@ const dateRange = (startDate, endDate, limit) => new Promise((res, rej) => db.al
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
+const filmography = (personId, limit) => new Promise((res, rej) => db.all(
+    `SELECT DISTINCT info.*, images.*, dates.*, main.TYPE
+    FROM cast AS c
+    JOIN media_info AS info ON c.MEDIA_ID = info.MEDIA_ID
+    JOIN media_images AS images ON info.MEDIA_ID = images.MEDIA_ID
+    JOIN media_dates AS dates ON info.MEDIA_ID = dates.MEDIA_ID
+    JOIN media_main AS main ON info.MEDIA_ID = main.MEDIA_ID
+    WHERE c.PERSON_ID = ?
+    ORDER BY dates.START_DATE DESC
+    LIMIT ?`,
+    [personId, limit],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
 export { 
     browseGenres, 
     orphans, 
-    haveMedia, 
+    haveMedia,
+    haveEpisode,
     userList, 
     mediaInfo, 
     mediaGenres, 
@@ -205,4 +237,5 @@ export {
     latestEpisodes, 
     topRated,
     dateRange,
+    filmography
 };

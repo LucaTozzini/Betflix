@@ -1,6 +1,21 @@
 import express from 'express';
 import { authenticateUser, inWatchlist } from '../helpers/users.helpers.js';
-import { browseGenres, mediaInfo, mediaGenres, mediaCast, availableSeasons, mediaSeason, mediaEpisodeInfo, searchMedia, latestReleases, latestEpisodes, topRated, dateRange } from '../helpers/queries.helpers.js';
+import { 
+    browseGenres,
+    mediaInfo, 
+    mediaGenres, 
+    mediaCast, 
+    availableSeasons, 
+    mediaSeason, 
+    mediaEpisodeInfo, 
+    searchMedia, 
+    latestReleases, 
+    latestEpisodes, 
+    topRated, 
+    dateRange,
+    filmography
+} from '../helpers/queries.helpers.js';
+
 
 const router = express.Router();
 
@@ -138,6 +153,18 @@ router.post('/date-range', async (req, res) => {
     }
     catch(err) {
         console.log(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/filmography', async (req, res) => {
+    try {
+        const { personId, limit } = req.query;
+        const data = await filmography(personId, limit || 30);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message);
         res.sendStatus(500);
     }
 });
