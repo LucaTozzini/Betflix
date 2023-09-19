@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import styles from '../styles/searchAddress.screen.module.css';
+import styles from '../styles/SearchAddress.screen.module.css';
 
 const SearchAddress = ({address, set, valid}) => {
     const found = useRef(false);

@@ -2,8 +2,7 @@ import fs from 'fs';
 import env from '../../env.js';
 import express from 'express';
 
-import { userList } from '../helpers/queries.helpers.js';
-import { addUser, authenticateUser, userData, updateContinue, continueList } from '../helpers/users.helpers.js';
+import { addUser, deleteUser, userList, authenticateUser, userData, updateContinue, continueList } from '../helpers/users.helpers.js';
 
 const router = express.Router();
 
@@ -31,8 +30,12 @@ router.get('/images', async (req, res) => {
 
 router.post('/add', async (req, res) => {
     try{
-        const { userName, userImage, childAccount } = req.body;
-        await addUser(userName, userImage, childAccount);
+        const { userName, userImage, childAccount, adminAccount, userPin } = req.body;
+        
+        if(isNaN(userPin) || userPin > 9999 || userPin < 0) return res.status(400).send('Invalid Pin');
+        if(!userPin && adminAccount) return res.status(400).send('Admin must have a pin');
+
+        await addUser(userName, userImage, childAccount || 0, adminAccount || 0, userPin || null);
         res.sendStatus(201);
     }
     catch(err){
@@ -41,11 +44,25 @@ router.post('/add', async (req, res) => {
     }
 });
 
+router.delete('/delete', async (req, res) => {
+    try {
+        const { userId, userPin } = req.body;
+        const auth = authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        if(!auth) return res.sendStatus(401);
+        await deleteUser(userId);
+        res.sendStatus(200);
+    }
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
 router.post('/data', async (req, res) => {
     try{
         const { userId, userPin } = req.body;
         
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
         const data = await userData(userId);
         res.json(data);
@@ -60,7 +77,7 @@ router.post('/update-continue', async (req, res) => {
     try{
         const { userId, userPin, mediaId, episodeId, progressTime, endTime } = req.body;
 
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
 
         await updateContinue(userId, mediaId, episodeId, progressTime, endTime);
@@ -77,7 +94,7 @@ router.post('/continue', async(req, res) => {
     try{
         const { userId, userPin, limit } = req.body;
 
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401)
 
         const data = await continueList(userId, limit || 30);

@@ -1,7 +1,9 @@
 import express from 'express';
-import { authenticateUser, inWatchlist } from '../helpers/users.helpers.js';
+import { fetchImages } from '../helpers/TMDb-api.helpers.js';
+import { authenticateUser, inWatchlist, watchAgain } from '../helpers/users.helpers.js';
 import { 
     browseGenres,
+    genre,
     mediaInfo, 
     mediaGenres, 
     mediaCast, 
@@ -13,7 +15,7 @@ import {
     latestEpisodes, 
     topRated, 
     dateRange,
-    filmography
+    filmography,
 } from '../helpers/queries.helpers.js';
 
 
@@ -23,7 +25,7 @@ router.post('/item', async (req, res) => {
     try{
         const { mediaId, userId, userPin } = req.body;
     
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
 
         const data = await mediaInfo(mediaId, userId);
@@ -43,11 +45,24 @@ router.post('/item', async (req, res) => {
 
 router.get('/genres', async (req, res) => {
     try{
-        const { limit } = req.query;
-        const data = await browseGenres(limit || 30);
+        const { type, limit } = req.query;
+        const data = await browseGenres(type || 1, limit || 30);
         res.json(data);
     }
     catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/genre', async (req, res) => {
+    try {
+        const { genreName, limit } = req.query;
+        if(!genreName) return res.sendStatus(400);
+        const data = await genre(genreName, limit || 30);
+        res.json(data);
+    }
+    catch(err) {
         console.error(err.message);
         res.sendStatus(500);
     }
@@ -59,7 +74,7 @@ router.post('/season', async (req, res) => {
 
         if(!seasonNum) return res.sendStatus(400);
 
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
         if(!mediaId) return res.sendStatus(400);
         
@@ -100,12 +115,10 @@ router.get('/search', async(req, res) => {
     }
 });
 
-router.post('/latest/releases', async (req, res) => {
+router.get('/latest/releases', async (req, res) => {
     try{
-        const { userId, userPin, limit } = req.body;
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
-        const data = await latestReleases(limit);
+        const { limit } = req.query;
+        const data = await latestReleases(limit || 30);
         res.json(data);
     }
     catch(err) {
@@ -114,11 +127,9 @@ router.post('/latest/releases', async (req, res) => {
     }
 });
 
-router.post('/latest/episodes', async (req, res) => {
+router.get('/latest/episodes', async (req, res) => {
     try{
-        const { userId, userPin, limit } = req.body;
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
+        const { limit } = req.query;
         const data = await latestEpisodes(limit);
         res.json(data);
     }
@@ -128,11 +139,9 @@ router.post('/latest/episodes', async (req, res) => {
     }
 });
 
-router.post('/top-rated', async (req, res) => {
+router.get('/top-rated', async (req, res) => {
     try{
-        const { userId, userPin, limit, minVote } = req.body;
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
+        const { limit, minVote } = req.query;
         const data = await topRated(limit, minVote);
         res.json(data);
     }
@@ -142,11 +151,10 @@ router.post('/top-rated', async (req, res) => {
     }
 });
 
-router.post('/date-range', async (req, res) => {
+router.get('/date-range', async (req, res) => {
     try {
-        const { userId, userPin, startDate, endDate, limit } = req.body;
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
+        const { startDate, endDate, limit } = req.query;
+        
         if(!startDate || !endDate) return res.sendStatus(400);
         const data = await dateRange(startDate, endDate, limit);
         res.json(data);
@@ -161,6 +169,32 @@ router.get('/filmography', async (req, res) => {
     try {
         const { personId, limit } = req.query;
         const data = await filmography(personId, limit || 30);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.post('/watch-again', async (req, res) => {
+    try {
+        const { userId, userPin, limit } = req.body;
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        if(!auth) return res.sendStatus(401);
+        const data = await watchAgain(userId, limit);
+        res.json(data);
+    }   
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/images', async (req, res) => {
+    try {
+        const { mediaId } = req.query;
+        const data = await fetchImages(mediaId);
         res.json(data);
     }
     catch(err) {

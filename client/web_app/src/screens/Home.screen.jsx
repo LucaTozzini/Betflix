@@ -22,111 +22,145 @@ const Home = () => {
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
   
+  const [ againMedia, setAgainMedia ] = useState(null);
   const [ latestMedia, setLatestMedia ] = useState(null);
-  const [ continueItems, setContinueItems ] = useState(null);
-  const [ watchlistMedia, setWatchlistMedia ] = useState(null);
   const [ topRatedMedia, setTopRatedMedia ] = useState(null);
   const [ eightiesMedia, setEightiesMedia ] = useState(null);
   const [ ninetiesMedia, setNinetiesMedia ] = useState(null);
-  const { genreBrowseMedia, setGenreBrowseMedia } = useContext(browseContext);
+  const [ continueMedia, setContinueMedia ] = useState(null);
+  const [ watchlistMedia, setWatchlistMedia ] = useState(null);
+  
+  const [ showGenres, setShowGenres ] = useState(null);
+  const [ movieGenres, setMovieGenres ] = useState(null);
 
   const [ browseState, setBrowseState ] = useState(0);
-    
-  const [ remix, setRemix ] = useState(false);
 
-  const FetchGenreBrowseMedia = async () => {
-    const response = await fetch(`${serverAddress}/browse/genres`);
-    const json = await response.json(); 
-    setGenreBrowseMedia(json);
+  const FetchMovieGenres = async () => {
+    try {
+      const response = await fetch(`${serverAddress}/browse/genres?limit=30&type=1`);
+      const json = await response.json(); 
+      setMovieGenres(json);
+    }
+    catch(err) {
+
+    }
+  };
+
+  const FetchShowGenres = async () => {
+    try {
+      const response = await fetch(`${serverAddress}/browse/genres?limit=30&type=2`);
+      const json = await response.json(); 
+      setShowGenres(json);
+    }
+    catch(err) {
+
+    }
   };
 
   const FetchContinue = async () => {
-    const options = {method:'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin, limit: 30})};
-    const response = await fetch(`${serverAddress}/users/continue`, options);
-    const json = await response.json();
-    setContinueItems(json);
+    try {
+      const options = {method:'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin, limit: 30})};
+      const response = await fetch(`${serverAddress}/users/continue`, options);
+      const json = await response.json();
+      setContinueMedia(json);
+    }
+    catch(err) {
+
+    }
   }
 
-
   const FetchWatchlist = async () => {
-      try{
-          const options = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin})};
-          const response = await fetch(`${serverAddress}/watchlist/`, options);
-          const json = await response.json();
-          setWatchlistMedia(json);
-      }
-      catch(err){
-          console.error(err.message);
-      }
+    try{
+      const options = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin})};
+      const response = await fetch(`${serverAddress}/watchlist/`, options);
+      const json = await response.json();
+      setWatchlistMedia(json);
+    }
+    catch(err){
+
+    }
   };
+
+  const FetchWatchAgain = async () => {
+    try{
+      const options = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin, limit: 30})};
+      const response = await fetch(`${serverAddress}/browse/watch-again`, options);
+      const json = await response.json();
+      setAgainMedia(json);
+    }
+    catch(err){
+      
+    }
+  }
 
   const FetchLatestReleases = async () => {
     try {
-      const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, limit: 35}) };
-      const response = await fetch(`${serverAddress}/browse/latest/releases`, options);
+      const response = await fetch(`${serverAddress}/browse/latest/releases?limit=30`);
       const json = await response.json();
       setLatestMedia(json);
     }
     catch(err) {
-      console.error(err.message);
+      
     }
   };
 
   const FetchTopRated = async () => {
     try {
-      const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, limit: 35, minVote: 8.5}) };
-      const response = await fetch(`${serverAddress}/browse/top-rated`, options);
+      const response = await fetch(`${serverAddress}/browse/top-rated?limit=30&minVote=8.5`);
       const json = await response.json();
       setTopRatedMedia(json);
     }
     catch(err) {
-      console.error(err.message);
+      
     }
   };
 
   const Fetch80s = async () => {
     try {
-      const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, startDate: '1980-01-01', endDate: '1989-12-31'}) };
-      const response = await fetch(`${serverAddress}/browse/date-range`, options);
+      const response = await fetch(`${serverAddress}/browse/date-range?startDate=1980-01-01&endDate=1989-12-31`);
       const json = await response.json();
       setEightiesMedia(json);
     }
     catch(err) {
-      console.error(err.message);
+     
     }
   };
 
   const Fetch90s = async () => {
     try {
-      const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({userId, userPin, startDate: '1990-01-01', endDate: '1999-12-31'}) };
-      const response = await fetch(`${serverAddress}/browse/date-range`, options);
+      const response = await fetch(`${serverAddress}/browse/date-range?startDate=1990-01-01&endDate=1999-12-31`);
       const json = await response.json();
       setNinetiesMedia(json);
     }
     catch(err) {
-      console.error(err.message);
+      
     }
   };
 
   useEffect(() => {
-    if(!genreBrowseMedia) FetchGenreBrowseMedia();
-    FetchWatchlist();
-    FetchContinue();
-    FetchLatestReleases();
-    FetchTopRated();
-    Fetch80s();
-    Fetch90s();
-  }, []);
-
-  useEffect(() => {
-    if(remix) FetchGenreBrowseMedia();
-    setRemix(false);
-  }, [remix])
+    if(browseState == 0) {
+      if(!continueMedia) FetchContinue();
+      if(!latestMedia) FetchLatestReleases();
+      if(!topRatedMedia) FetchTopRated();
+      if(!eightiesMedia) Fetch80s();
+      if(!ninetiesMedia) Fetch90s();
+    }
+    else if(browseState == 1) {
+      if(!movieGenres) FetchMovieGenres();
+    }
+    else if(browseState == 2) {
+      if(!showGenres) FetchShowGenres();
+    }
+    else if(browseState == 3) {
+      if(!watchlistMedia) FetchWatchlist();
+      if(!againMedia) FetchWatchAgain();
+    }
+  }, [browseState]);
 
   return (
     <div className={styles.container}>
       <WatchlistHook/>
-      <Hero key={'hr'} items={continueItems} autoPlay={browseState == 0} heroTitle={browseState == 0 ? 'Continue Watching' : ''}/>
+      <Hero key={'hr'} items={continueMedia} autoPlay={browseState == 0} heroTitle={browseState == 0 ? 'Continue Watching' : ''}/>
 
       <div className={styles.sectionsBar}>
       <button className={styles.sectionButton} onClick={() => setBrowseState(0)}>
@@ -143,7 +177,7 @@ const Home = () => {
         </button>
         <button className={styles.sectionButton} onClick={() => setBrowseState(3)}>
           <PiPlusBold/>
-          <h3>My Watchlist</h3>
+          <h3>Watchlist</h3>
         </button>
       </div>
 
@@ -156,14 +190,17 @@ const Home = () => {
           <MediaSection key={'9s'} title={'90s'} items={ninetiesMedia}/>
         </>
         : browseState == 1 ? 
-        <></>
+        <>
+          { movieGenres ? movieGenres.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
+        </>
         :browseState == 2 ?
         <>
-          { genreBrowseMedia ? genreBrowseMedia.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
+          { showGenres ? showGenres.map(i => <MediaSection key={i.genre} title={i.genre} items={i.data}/>) : <></> }
         </>
         :browseState == 3 ?
         <>
-          <MediaSection key={'wl'} title={'My Watchlist'} items={watchlistMedia}/>
+          <MediaSection key={'wl'} title={'My List'} items={watchlistMedia}/>
+          <MediaSection key={'wa'} title={'Watch Again'} items={againMedia}/>
         </> 
         : <></>
       }

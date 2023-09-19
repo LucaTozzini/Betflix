@@ -7,7 +7,7 @@ router.put(`/add`, async (req, res) => {
     try{
         const { userId, userPin, mediaId } = req.body;
 
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
 
         await addWatchlist(userId, mediaId);
@@ -22,7 +22,7 @@ router.put(`/add`, async (req, res) => {
 router.delete('/remove', async (req, res) => {
     const { userId, userPin, mediaId } = req.body;
 
-    const auth = await authenticateUser(userId, userPin);
+    const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
     if(!auth) return res.sendStatus(401);
 
     await removeWatchlist(userId, mediaId);
@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
     try{
         const { userId, userPin } = req.body;
     
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
         if(!auth) return res.sendStatus(401);
     
         const data = await watchlist(userId);

@@ -1,22 +1,33 @@
 import { db } from './database.helpers.js';
 
-const browseGenres = (limit) => new Promise( async (res, rej) => {
-    try{
-        const 
-        query_1 = (id) => new Promise((res, rej) => db.all(`${main_q} WHERE GENRE_ID = ? ${order_limit_q}`, [id, limit], (err, rows) => err ? rej(err) : res(rows))),
-        query_2 = (id1, id2) => new Promise((res, rej) => db.all(`${main_q} WHERE (GENRE_ID = ? OR GENRE_ID = ?) ${order_limit_q}`, [id1, id2, limit], (err, rows) => err ? rej(err) : res(rows))),
+const browseGenres = (type, limit) => new Promise( async (res, rej) => {
+    try{ 
+        const
+        main_q = 
+        `SELECT i.*, d.YEAR, m.*
+        FROM media_genres AS g
+        JOIN media_main AS mm ON mm.MEDIA_ID = g.MEDIA_ID
+        JOIN media_info AS i ON i.MEDIA_ID = g.MEDIA_ID 
+        JOIN media_dates AS d ON d.MEDIA_ID = g.MEDIA_ID 
+        JOIN media_images AS m ON m.MEDIA_ID = g.MEDIA_ID `,
 
-        main_q = `
-            SELECT 
-                i.*, 
-                d.YEAR,
-                m.*
-            FROM media_genres AS g 
-            JOIN media_info AS i ON i.MEDIA_ID = g.MEDIA_ID 
-            JOIN media_dates AS d ON d.MEDIA_ID = g.MEDIA_ID 
-            JOIN media_images AS m ON m.MEDIA_ID = g.MEDIA_ID 
-        `,
         order_limit_q = `ORDER BY RANDOM() LIMIT ?`,
+
+        query_1 = (id) => new Promise((res, rej) => db.all(
+            `${main_q} 
+            WHERE GENRE_ID = ? AND TYPE = ? 
+            ${order_limit_q}`, 
+            [id, type, limit], 
+            (err, rows) => err ? rej(err) : res(rows)
+        )),
+
+        query_2 = (id1, id2) => new Promise((res, rej) => db.all(
+            `${main_q} 
+            WHERE (GENRE_ID = ? OR GENRE_ID = ?) AND TYPE = ? 
+            ${order_limit_q}`, 
+            [id1, id2, type, limit], 
+            (err, rows) => err ? rej(err) : res(rows)
+        )),
         
         data = [
             {genre: 'action', data: await query_2(28, 10759)},
@@ -53,6 +64,18 @@ const browseGenres = (limit) => new Promise( async (res, rej) => {
     }
 });
 
+const genre = (genreName, limit) => new Promise((res, rej) => db.all(
+    `SELECT info.*, images.*
+    FROM media_genres
+    JOIN genres ON media_genres.GENRE_ID = genres.GENRE_ID
+    JOIN media_info AS info ON media_genres.MEDIA_ID = info.MEDIA_ID
+    JOIN media_images AS images ON media_genres.MEDIA_ID = images.MEDIA_ID
+    WHERE genres.GENRE_NAME = ?
+    LIMIT ?`,
+    [genreName, limit],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
 const orphans = () => new Promise((res, rej) => db.all(`
         SELECT DISTINCT PERSON_ID 
         FROM cast 
@@ -70,11 +93,6 @@ const haveEpisode = (path) => new Promise((res, rej) => db.get(
     `SELECT * FROM episodes_main WHERE PATH = ?`,
     [path],
     (err, row) => err ? rej(err) : res(row != undefined)
-)); 
-
-const userList = () => new Promise((res, rej) => db.all(
-    `SELECT * FROM users_main`, 
-    (err, rows) => err ? rej(err) : res(rows)
 )); 
 
 const mediaInfo = (mediaId) => new Promise((res, rej) => db.get(
@@ -221,10 +239,10 @@ const filmography = (personId, limit) => new Promise((res, rej) => db.all(
 
 export { 
     browseGenres, 
+    genre,
     orphans, 
     haveMedia,
     haveEpisode,
-    userList, 
     mediaInfo, 
     mediaGenres, 
     mediaCast, 

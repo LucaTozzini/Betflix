@@ -1,11 +1,10 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Select from 'react-select';
 
 // Icons
-import { FiPlus } from "react-icons/fi";
 import { SiThemoviedatabase } from "react-icons/si";
-import { IoPlay, IoCheckmarkSharp } from 'react-icons/io5';
+import { IoPlay, IoCheckmarkSharp, IoAddSharp, IoPencilSharp } from 'react-icons/io5';
 
 
 // Contexts
@@ -18,6 +17,7 @@ import styles from '../styles/Item.screen.module.css';
 
 // Components
 import CastSection from '../components/CastSection.component';
+import ImagesModal from '../components/ImagesModal.component';
 import EpisodesSection from '../components/EpisodesSection.component';
 
 const Item = () => {
@@ -32,15 +32,18 @@ const Item = () => {
     const [ overviewShow, setOverviewShow ] = useState(false);
     const [ currentSeason, setCurrentSeason ] = useState(null);
     const [ currentEpisode, setCurrentEpisode ] = useState(null);
-    const [ moreWith, setMoreWith ] = useState(null);
+    const [ moreWithStar, setMoreWithStar ] = useState(null);
+    const [ moreWithOther, setMoreWithOther ] = useState(null);
+    const [ genreMedia, setGenreMedia ] = useState(null);
+
+    const [ showImagesModal, setShowImagesModal ] = useState(false);
 
     const FetchMediaInfo = async () => {
         try{
-            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId})};
+            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId, userPin})};
             const response = await fetch(`${serverAddress}/browse/item`, options);
             const json = await response.json();
             setAdded(json.IN_WATCHLIST);
-            console.log(json);
             setData(json);
         }
         catch(err){
@@ -50,7 +53,7 @@ const Item = () => {
 
     const FetchSeasonData = async (seasonNum) => {
         try{
-            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId, seasonNum})};
+            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId, userPin, seasonNum})};
             const response = await fetch(`${serverAddress}/browse/season`, options);
             const json = await response.json();
             setCurrentSeason(json.SEASON_NUM);
@@ -63,7 +66,7 @@ const Item = () => {
 
     const FetchCurrentEpisode = async () => {
         try{
-            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId})};
+            const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({mediaId, userId, userPin})};
             const response = await fetch(`${serverAddress}/player/current-episode`, options);
             const json = await response.json();
             setCurrentEpisode(json);
@@ -84,17 +87,47 @@ const Item = () => {
     };
 
     const FetchMoreWith = async () => {
-        if(data) {
-            const len = data.CAST.length; 
-            if(len > 0) {
-                const max = len >= 3 ? 2 : len - 1; 
-                const rand = Math.floor(Math.random() * max);
-                const person = data.CAST[rand];
-                console.log(person);
-                const response = await fetch(`${serverAddress}/browse/filmography?personId=${person.PERSON_ID}&limit=30`);
-                const json = await response.json();
-                setMoreWith({name: person.NAME, filmography: json.filter(i => i.MEDIA_ID != mediaId)});
+        try {
+            if(data) {
+                const len = data.CAST.length; 
+                if(len > 0) {
+                    async function get(index) {
+                        return new Promise(async res => {
+                            const person = data.CAST[index];
+                            const response = await fetch(`${serverAddress}/browse/filmography?personId=${person.PERSON_ID}&limit=30`);
+                            const json = await response.json();
+                            res({name: person.NAME, filmography: json.filter(i => i.MEDIA_ID != mediaId)});
+                        });
+                    }
+    
+                    const withStar = await get(0);
+                    setMoreWithStar(withStar);
+    
+                    if(len == 1) return;
+                    const max = len >= 5 ? 3 : len -2;
+                    const randI = Math.floor((Math.random() * max) + 1);
+                    const withOther = await get(randI);
+                    setMoreWithOther(withOther);
+                }
             }
+        }
+        catch(err) {
+            // console.error(err.message);
+        }
+    };
+
+    const FetchGenre = async () => {
+        try {
+            const genres = data.GENRES;
+            const max = genres.length - 1;
+            const rand = Math.floor(Math.random() * max);
+            const name = genres[rand].GENRE_NAME;
+            const response = await fetch(`${serverAddress}/browse/genre?genreName=${name}`);
+            const json = await response.json();
+            setGenreMedia({name, items: json.filter(i => i.MEDIA_ID != data.MEDIA_ID)});
+        }
+        catch(err) {
+            console.error(err.message);
         }
     };
 
@@ -133,6 +166,7 @@ const Item = () => {
                 FetchCurrentEpisode();
             }
             FetchMoreWith();
+            FetchGenre();
         } 
     }, [data]);
 
@@ -243,32 +277,45 @@ const Item = () => {
         }
     };
 
+    const Genres = () => {
+        const names = data.GENRES.map(i => i.GENRE_NAME);
+        const array = names.join(', ').split(' ');
+        return (
+            <div className={styles.genres}>
+                { array.map(i => <div className={styles.genre}>{i}</div>) }
+            </div>
+        )
+    }
+
     if(data) return (
         <div className={styles.container}>
+            <ImagesModal show={showImagesModal} setShow={setShowImagesModal} mediaId={data.MEDIA_ID}/>
             <div className={styles.heroSection} style={{backgroundImage: `url(${data.BACKDROP_L})`}}>
                 <div className={styles.heroOverlay}>
                     <img className={styles.logo} src={data.LOGO_L} style={{opacity: data.LOGO_L ? 1 : 0}}/>
                     <InfoBar/>
-                    {/* <div className={styles.genres}>{data.GENRES.map(i => i.GENRE_NAME).join(' | ').split(' ').map(i => <h3>{i}</h3>)}</div> */}
                     {/* <div className={styles.year}>{data.YEAR}</div> */}
-                    <h1 className={styles.title}>{data.TITLE}</h1>
+                    <div className={styles.title}>{data.TITLE}</div>
                     <div className={styles.buttonBar}>
                         <Link className={styles.playButton} to={`/player/${data.MEDIA_ID}/a`}>
                             <IoPlay className={styles.playButtonIcon}/>
                             <PlayButtonText/>
                         </Link>
-                        <button className={styles.watchlistButton}>
-                            { added ?
-                                <IoCheckmarkSharp onClick={handleRemove}/>
-                                :
-                                <FiPlus onClick={handleAdd}/>
-                            }
+                        <button className={styles.barButton} onClick={() => setShowImagesModal(true)}>
+                            <IoPencilSharp size={'2.3rem'}/>
+                        </button>
+                        <button className={styles.barButton} onClick={() => added ? handleRemove() : handleAdd() }>
+                            { added ? <IoCheckmarkSharp/> : <IoAddSharp/> }
                         </button>
                     </div>
                 </div>
             </div>
             <div className={styles.infoSection}>
-                
+                <div className={styles.yearGenres}>
+                    <div className={styles.year}>{data.YEAR}</div>
+                    <div className={styles.dividor}/>
+                    <Genres/>
+                </div>
                 <div 
                 className={styles.overview} 
                 onClick={() => setOverviewShow(!overviewShow)}
@@ -278,7 +325,9 @@ const Item = () => {
                 </div>
                 {data.TYPE == 2 ? <EpisodesSection  Selector={Selector} data={seasonData || []} mediaId={data.MEDIA_ID}/> : <></>}
                 {data.CAST.length > 0 ? <CastSection data={data.CAST}/> : <></>}
-                {moreWith ? <MediaSection title={`More With: ${moreWith.name}`} items={moreWith.filmography}/> : <></>}
+                {moreWithStar ? <MediaSection title={`More With: ${moreWithStar.name}`} items={moreWithStar.filmography}/> : <></>}
+                {moreWithOther ? <MediaSection title={`More With: ${moreWithOther.name}`} items={moreWithOther.filmography}/> : <></>}
+                {genreMedia ? <MediaSection title={`More In: ${genreMedia.name}`} items={genreMedia.items}/> : <></> }
             </div>
         </div>
     );

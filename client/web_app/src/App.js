@@ -13,6 +13,7 @@ import Search from "./screens/Search.screen";
 import NewUser from "./screens/NewUser.screen";
 import Database from "./screens/Database.screen";
 import SelectUser from "./screens/SelectUser.screen";
+import UserSettings from "./screens/UserSettings.screen";
 import SearchAddress from "./screens/SearchAddress.screen";
 import PlayerReroute from "./screens/PlayerReroute.screen";
 
@@ -76,8 +77,9 @@ function App() {
           </Route>
 
           <Route path="/users">
-            <Route path="select" element={<SelectUser/>}/>
+            <Route index element={<SelectUser/>}/>
             <Route path="new" element={<NewUser/>}/>
+            <Route path="settings" element={<UserSettings/>}/>
           </Route>
 
           <Route path="/database" element={<Layout/>}>

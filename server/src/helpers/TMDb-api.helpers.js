@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { manager } from "./database.helpers.js";
+import { manager, db } from "./database.helpers.js";
 import env from '../../env.js';
 
 const TMDb_Key = env.TMDB_KEY;
@@ -242,4 +242,60 @@ const fetchShows = (shows) => new Promise( async (res, rej) => {
     }
 });
 
-export { fetchMovies, fetchPeople, fetchShows };
+const mediaInfo = (mediaId) => new Promise((res, rej) => db.get(
+    `SELECT ITEM_ID, TYPE
+    FROM media_main
+    WHERE MEDIA_ID = ?`,
+    [mediaId],
+    (err, row) => err ? rej(err) : res(row)
+));
+
+const fetchImages = (mediaId) => new Promise( async (res, rej) => {
+    try {
+        const info = await mediaInfo(mediaId);
+        const id = info.ITEM_ID;
+        const type = info.TYPE;
+
+        const url = `${BASE}/${type == 2 ? 'tv' : 'movie'}/${id}/images?api_key=${TMDb_Key}`;
+        const response = await axios.get(url);
+        const data = response.data;
+
+        const backdrops = data.backdrops ? data.backdrops.filter(i => i.iso_639_1 == null).map(i => ({
+            large: Img_Base + i.file_path, 
+            small: Img_Base_500 + i.file_path
+        })) : [];
+
+        const posters_wide = data.backdrops ? data.backdrops.filter(i => i.iso_639_1 == 'en').map(i => ({
+            large: Img_Base + i.file_path,
+            small: Img_Base_500 + i.file_path,
+        })) : [];
+
+        const posters = data.posters ? data.posters.filter(i => i.iso_639_1 == 'en').map(i => ({
+            large: Img_Base + i.file_path,
+            small: Img_Base_200 + i.file_path,
+        })) : [];
+
+        const posters_nt = data.posters ? data.posters.filter(i => i.iso_639_1 == null).map(i => ({
+            large: Img_Base + i.file_path,
+            small: Img_Base_200 + i.file_path,
+        })) : [];
+
+        const logos = data.logos ? data.logos.filter(i => i.iso_639_1 == 'en').map(i => ({
+            large: Img_Base + i.file_path,
+            small: Img_Base_500 + i.file_path,
+        })) : [];
+        
+        res({
+            backdrops,
+            posters,
+            posters_nt,
+            posters_wide,
+            logos
+        });
+    }
+    catch(err) {
+        rej(err);
+    }
+});
+
+export { fetchMovies, fetchPeople, fetchShows, fetchImages };

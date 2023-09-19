@@ -1,18 +1,19 @@
-#select-user {
+.container {
     flex: 1;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     padding: var(--marginHorizontal);
     gap: var(--marginHorizontal);
+    user-select: none;
 }
 
-#select-user h1 {
+.title {
     color: white;
     text-align: center;
 }
 
-#select-user > #container {
+.users {
     display: grid;
     flex: 1;
     grid-template-columns: repeat(auto-fit, 10rem);
@@ -22,7 +23,7 @@
     overflow: auto;
 }
 
-#select-user .user {
+.user {
     padding: 1rem;
     border-radius: 1rem;
     height: 10rem;
@@ -33,7 +34,7 @@
     cursor: pointer;
 }
 
-#select-user .user-image {
+.userImage {
     height: 8rem;
     width: 8rem;
     border-radius: 50%;
@@ -42,8 +43,60 @@
     object-fit: cover;
 }
 
-#select-user .user-name {
+.userName {
     color: white;
     font-size: 1.2rem;
     text-decoration: none;
+}
+
+.modalDock
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    background-color: rgba(128, 128, 128, 0.2);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: black;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.modalTitle
+{
+    color: white;
+}
+
+.pinSpan
+{
+    display: flex;
+    gap: .6rem;
+}
+
+.pinInput
+{
+    --size: 4rem;
+    height: var(--size);
+    width: var(--size);
+    font-size: 2rem;
+    font-weight: bolder;
+    text-align: center;
+    appearance: none;
+}
+
+.modalButton
+{
+    
 }

@@ -71,8 +71,8 @@ const Menu = () => {
 
 
             { dropDown ? <div className={styles.dropDown}>
-                <Link>User Settings</Link>
-                <Link to={'/users/select'}>Change User</Link>
+                <Link to={'/users/settings'}>User Settings</Link>
+                <Link to={'/users'}>Change User</Link>
             </div> : <></>}
 
         </nav>

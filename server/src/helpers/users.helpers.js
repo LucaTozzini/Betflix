@@ -2,12 +2,12 @@ import { db, continuePrep } from "./database.helpers.js";
 import { nextEpisode, mediaEpisodeInfo } from "./queries.helpers.js";
 import uniqid from 'uniqid';
 
-const addUser = (userName, userImage, childAccount) => new Promise( async (res, rej) => {
+const addUser = (userName, userImage, childAccount, adminAccount, userPin) => new Promise( async (res, rej) => {
     try{
         const userId = uniqid('user-');
         await new Promise((res, rej) => db.run(
-            `INSERT INTO users_main (USER_ID, USER_NAME, USER_IMAGE, CHILD, ADMIN) VALUES (?,?,?,?, 0)`, 
-            [userId, userName, userImage, childAccount],
+            `INSERT INTO users_main (USER_ID, USER_NAME, USER_IMAGE, CHILD, ADMIN, USER_PIN) VALUES (?,?,?,?,?,?)`, 
+            [userId, userName, userImage, childAccount, adminAccount, userPin],
             err => err ? rej(err) : res()
         ));
         res();
@@ -17,9 +17,33 @@ const addUser = (userName, userImage, childAccount) => new Promise( async (res, 
     }
 });
 
+const deleteUser = (userId) => new Promise( async (res, rej) => db.run(
+    `DELETE 
+    FROM users_main
+    WHERE USER_ID = ?`,
+    [userId],
+    (err) => err ? rej(err) : res()
+));
+
+const userList = () => new Promise((res, rej) => db.all(
+    `SELECT USER_ID, USER_NAME, USER_IMAGE, ADMIN, CHILD  
+    FROM users_main`, 
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
 const authenticateUser = (userId, userPin) => new Promise((res, rej) => db.get(
-    `SELECT * FROM users_main WHERE USER_ID = ?`, 
-    [userId], 
+    `SELECT * 
+    FROM users_main 
+    WHERE USER_ID = ? AND USER_PIN ${userPin ? '=' : 'IS'} ?`, 
+    [userId, userPin || null], 
+    (err, row) => err ? rej(err) : res(row != undefined)
+));
+
+const authenticateAdmin = (userId, userPin) => new Promise((res, rej) => db.get(
+    `SELECT USER_NAME
+    FROM users_main
+    WHERE USER_ID = ? AND USER_PIN = ? AND ADMIN = 1`,
+    [userId, userPin],
     (err, row) => err ? rej(err) : res(row != undefined)
 ));
 
@@ -146,4 +170,34 @@ const episodeResumeTime = (userId, episodeId) => new Promise((res, rej) => db.ge
     (err, row) => err ? rej(err) : res(row ? row.PROGRESS_TIME : 0)
 ));
 
-export { addUser, authenticateUser, userData, addWatchlist, removeWatchlist, watchlist, inWatchlist, updateContinue, currentEpisode, continueList, movieResumeTime, episodeResumeTime };
+const watchAgain = (userId, limit) => new Promise((res, rej) => db.all(
+    `SELECT mm.TYPE, uc.PROGRESS_TIME, mn.*, mi.*
+    FROM users_continue AS uc
+    JOIN media_main AS mm ON mm.MEDIA_ID = uc.MEDIA_ID
+    JOIN media_images AS mi ON mi.MEDIA_ID = uc.MEDIA_ID
+    JOIN media_info AS mn ON mn.MEDIA_ID = uc.MEDIA_ID
+    WHERE uc.USER_ID = ? AND mm.TYPE = 1 AND uc.END_TIME <= 60
+    ORDER BY RANDOM()
+    LIMIT ?`,
+    [userId, limit],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
+export { 
+    addUser, 
+    deleteUser,
+    userList,
+    authenticateUser,
+    authenticateAdmin,
+    userData, 
+    addWatchlist, 
+    removeWatchlist, 
+    watchlist, 
+    inWatchlist, 
+    updateContinue, 
+    currentEpisode, 
+    continueList, 
+    movieResumeTime, 
+    episodeResumeTime,
+    watchAgain
+};

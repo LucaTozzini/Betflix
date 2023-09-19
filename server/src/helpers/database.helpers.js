@@ -43,6 +43,7 @@ const genres = [
 const db = new sqlite3.Database(env.databasePath, sqlite3.OPEN_READWRITE, async err => {
     if(err) console.error(err.message);
     else {
+        await foreignKeys();
         await createTables();
         mediaPrep = {
             main: db.prepare(`INSERT INTO media_main (MEDIA_ID, ITEM_ID, TYPE, PATH) VALUES (?,?,?,?)`),
@@ -72,6 +73,14 @@ const transaction = {
     commit: () => new Promise((res, rej) => db.run(`COMMIT TRANSACTION`, err => err ? rej(err) : res())) 
 };
 
+const foreignKeys = () => new Promise(async res => db.run(
+    'PRAGMA foreign_keys = ON',
+    (err) => {
+        if(err) console.error(err.message);
+        res();
+    }
+))
+
 const createTables = () => new Promise(async res => {
     // Media Main
     await new Promise(res => 
@@ -97,7 +106,7 @@ const createTables = () => new Promise(async res => {
             LOGO_L TEXT,
             BACKDROP_S TEXT,
             BACKDROP_L TEXT,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Images', err.message) : res())
     );
     
@@ -108,7 +117,7 @@ const createTables = () => new Promise(async res => {
             YEAR INT NOT NULL,
             START_DATE TEXT NOT NULL,
             END_DATE TEXT NOT NULL,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Dates', err.message) : res())
     );
     
@@ -118,7 +127,7 @@ const createTables = () => new Promise(async res => {
             MEDIA_ID TEXT PRIMARY KEY,
             BUDGET INT,
             REVENUE INT,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Finances', err.message) : res())
     );
     
@@ -128,7 +137,7 @@ const createTables = () => new Promise(async res => {
             KEY TEXT PRIMARY KEY,
             MEDIA_ID TEXT NOT NULL,
             COMPANY_NAME TEXT NOT NULL,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Info', err.message) : res())
     );
     
@@ -141,7 +150,7 @@ const createTables = () => new Promise(async res => {
             CONTENT_RATING TEXT,
             DURATION REAL,
             VOTE REAL,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Info', err.message) : res())
     );
     
@@ -153,7 +162,7 @@ const createTables = () => new Promise(async res => {
             SEASON_NUM INT NOT NULL,
             EPISODE_NUM INT NOT NULL,
             PATH TEXT NOT NULL,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Episodes Main', err.message) : res())
     );
     
@@ -163,7 +172,7 @@ const createTables = () => new Promise(async res => {
             EPISODE_ID INT PRIMARY KEY,
             STILL_S TEXT,
             STILL_L TEXT,
-            FOREIGN KEY (EPISODE_ID) REFERENCES episodes_main (EPISODE_ID)
+            FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Episodes Images', err.message) : res())
     );
     
@@ -173,7 +182,7 @@ const createTables = () => new Promise(async res => {
             EPISODE_ID INT PRIMARY KEY,
             YEAR INT,
             AIR_DATE TEXT,
-            FOREIGN KEY (EPISODE_ID) REFERENCES episodes_main (EPISODE_ID)
+            FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Episodes Dates', err.message) : res())
     );
     
@@ -185,21 +194,28 @@ const createTables = () => new Promise(async res => {
             OVERVIEW TEXT,
             DURATION REAL NOT NULL,
             VOTE REAL,
-            FOREIGN KEY (EPISODE_ID) REFERENCES episodes_main (EPISODE_ID)
+            FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Episodes Info', err.message) : res())
     );
     
     // Genres
-    await new Promise(res => db.run(`CREATE TABLE IF NOT EXISTS genres (KEY TEXT PRIMARY KEY, GENRE_ID INT NOT NULL, GENRE_NAME TEXT NOT NULL)`, err => {
-        if(err) console.error(err.message);
-        else{
-            const prep = db.prepare(`INSERT INTO genres (KEY, GENRE_ID, GENRE_NAME) VALUES (?,?,?)`);
-            for(const genre of genres){
-                prep.run([`${genre.id}_${genre.name}`, genre.id, genre.name], err => err ? {} : {});
+    await new Promise(res => 
+        db.run(`CREATE TABLE IF NOT EXISTS genres (
+            KEY TEXT PRIMARY KEY, 
+            GENRE_ID INT NOT NULL, 
+            GENRE_NAME TEXT NOT NULL
+        )`, 
+        err => {
+            if(err) console.error(err.message);
+            else{
+                const prep = db.prepare(`INSERT INTO genres (KEY, GENRE_ID, GENRE_NAME) VALUES (?,?,?)`);
+                for(const genre of genres){
+                    prep.run([`${genre.id}_${genre.name}`, genre.id, genre.name], err => err ? {} : {});
+                };
+                res();
             };
-            res();
-        };
-    }));
+        }
+    ));
     
     // Media Genres
     await new Promise(res => 
@@ -207,8 +223,7 @@ const createTables = () => new Promise(async res => {
             KEY TEXT PRIMARY KEY,
             MEDIA_ID TEXT NOT NULL,
             GENRE_ID INT NOT NULL,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID),
-            FOREIGN KEY (GENRE_ID) REFERENCES genres (GENRE_ID)
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('Media Genres', err.message) : res())
     );
     
@@ -231,9 +246,7 @@ const createTables = () => new Promise(async res => {
             MEDIA_ID TEXT NOT NULL,
             PERSON_ID INT NOT NULL,
             CHARACTER TEXT,
-            CAST_ORDER INT,
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID),
-            FOREIGN KEY (PERSON_ID) REFERENCES people (PERSON_ID)
+            CAST_ORDER INT
         )`, err => err ? console.error('Cast', err.message) : res())
     );
     
@@ -259,9 +272,9 @@ const createTables = () => new Promise(async res => {
             PROGRESS_TIME REAL NOT NULL,
             END_TIME REAL NOT NULL,
             TIME_STAMP TEXT NOT NULL,
-            FOREIGN KEY (USER_ID) REFERENCES users_main (USER_ID),
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID),
-            FOREIGN KEY (EPISODE_ID) REFERENCES episodes_main (EPISODE_ID)
+            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE,
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+            FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`, err => err ? console.error('User Continue', err.message) : res())
     );
     
@@ -272,9 +285,8 @@ const createTables = () => new Promise(async res => {
             USER_ID TEXT NOT NULL, 
             MEDIA_ID TEXT NOT NULL, 
             TIME_STAMP TEXT NOT NULL,
-            FOREIGN KEY (USER_ID) REFERENCES users_main (USER_ID),
-            FOREIGN KEY (USER_ID) REFERENCES user_list (USER_ID),
-            FOREIGN KEY (MEDIA_ID) REFERENCES media_main (MEDIA_ID)
+            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE,
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('User Watchlist', err.message) : res())
     );
     res();
@@ -389,6 +401,46 @@ const updatePeople = (data) => new Promise( async (res, rej) => {
     res();
 });
 
+const setPoster = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+    `UPDATE media_images
+    SET POSTER_L = ?, POSTER_S = ?
+    WHERE MEDIA_ID = ?`,
+    [large, small, mediaId],
+    (err) => err ? rej() : res()
+));
+
+const setPosterNt = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+    `UPDATE media_images
+    SET POSTER_NT_L = ?, POSTER_NT_S = ?
+    WHERE MEDIA_ID = ?`,
+    [large, small, mediaId],
+    (err) => err ? rej() : res()
+));
+
+const setPosterWide = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+    `UPDATE media_images
+    SET POSTER_W_L = ?, POSTER_W_S = ?
+    WHERE MEDIA_ID = ?`,
+    [large, small, mediaId],
+    (err) => err ? rej() : res()
+));
+
+const setBackdrop = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+    `UPDATE media_images
+    SET BACKDROP_L = ?, BACKDROP_S = ?
+    WHERE MEDIA_ID = ?`,
+    [large, small, mediaId],
+    (err) => err ? rej() : res()
+));
+
+const setLogo = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+    `UPDATE media_images
+    SET LOGO_L = ?, LOGO_S = ?
+    WHERE MEDIA_ID = ?`,
+    [large, small, mediaId],
+    (err) => err ? rej() : res()
+));
+
 const manager = {
     status: {
         ACTIVE: false,
@@ -432,4 +484,13 @@ const manager = {
     })
 };
 
-export { db, manager, continuePrep };
+export { 
+    db, 
+    manager, 
+    continuePrep, 
+    setPoster,
+    setPosterNt,
+    setPosterWide,
+    setBackdrop,
+    setLogo
+};
