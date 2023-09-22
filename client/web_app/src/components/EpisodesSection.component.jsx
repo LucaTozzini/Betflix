@@ -8,10 +8,6 @@ import styles from '../styles/EpisodesSection.component.module.css';
 
 const EpisodesSection = ({ data, mediaId, Selector }) => {
     const ref = useRef(null);
-    const [ scroll, setScroll ] = useState(null);
-    useEffect(() => {
-        setScroll(ref.current);
-    }, [ref.current]);
 
     const Item = ({ episodeId, still, title, seasonNum, episodeNum, airDate, progress, overview }) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -45,7 +41,7 @@ const EpisodesSection = ({ data, mediaId, Selector }) => {
         <div className={styles.container}>
             <div className={styles.top}>
                 {Selector ? <Selector/> : <div/>}
-                <NavButtons scroll={scroll} items={data}/>
+                <NavButtons scrollRef={ref} items={data}/>
             </div>
             <div className={styles.items} ref={ref}>
                 {data.map(i => 

@@ -4,6 +4,7 @@ import { authenticateUser, inWatchlist, watchAgain } from '../helpers/users.help
 import { 
     browseGenres,
     genre,
+    personInfo,
     mediaInfo, 
     mediaGenres, 
     mediaCast, 
@@ -38,6 +39,18 @@ router.post('/item', async (req, res) => {
         res.json(data);
     }
     catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/person', async (req, res) => {
+    try {
+        const { personId } = req.query;
+        const data = await personInfo(personId);
+        res.json(data);
+    }
+    catch(err) {
         console.error(err.message);
         res.sendStatus(500);
     }

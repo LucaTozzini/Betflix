@@ -76,6 +76,14 @@ const genre = (genreName, limit) => new Promise((res, rej) => db.all(
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
+const personInfo = (personId) => new Promise((res, rej) => db.get(
+    `SELECT *
+    FROM people
+    WHERE PERSON_ID = ?`,
+    [personId],
+    (err, row) => err ? rej() : res(row)
+));
+
 const orphans = () => new Promise((res, rej) => db.all(`
         SELECT DISTINCT PERSON_ID 
         FROM cast 
@@ -240,6 +248,7 @@ const filmography = (personId, limit) => new Promise((res, rej) => db.all(
 export { 
     browseGenres, 
     genre,
+    personInfo,
     orphans, 
     haveMedia,
     haveEpisode,

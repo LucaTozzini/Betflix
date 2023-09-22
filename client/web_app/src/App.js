@@ -10,6 +10,7 @@ import Item from "./screens/Item.screen";
 import NoPage from './screens/NoPage.screen';
 import Player from "./screens/Player.screen";
 import Search from "./screens/Search.screen";
+import Person from "./screens/Person.screen";
 import NewUser from "./screens/NewUser.screen";
 import Database from "./screens/Database.screen";
 import SelectUser from "./screens/SelectUser.screen";
@@ -67,8 +68,9 @@ function App() {
 
           <Route path="/browse" element={<Layout/>}>
             <Route index element={<Home/>}/>
-            <Route path="item/:mediaId" element={<Item/>}/>
             <Route path="search" element={<Search/>}/>
+            <Route path="item/:mediaId" element={<Item/>}/>
+            <Route path="person/:personId" element={<Person/>}/>
           </Route>
 
           <Route path="player">

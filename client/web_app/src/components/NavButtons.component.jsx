@@ -6,32 +6,27 @@ import styles from '../styles/NavButtons.component.module.css';
 // Icons
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
 
-const NavButtons = ({scroll, items}) => {
+const NavButtons = ({scrollRef, items}) => {
     const [ dimLeft, setDimLeft ] = useState(false);
     const [ dimRight, setDimRight ] = useState(false);
     const [ showButtons, setShowButtons ] = useState(true);
 
-    const scrollRef = useRef(null);
-    useEffect(() => {
-        scrollRef.current = scroll;
-    }, [scroll]);
-
     const handleScrollRight = () => {
-        if(scroll) {
-            const left = scroll.scrollLeft += scroll.offsetWidth;
-            scroll.scrollTo({left});
+        if(scrollRef && scrollRef.current) {
+            const left = scrollRef.current.scrollLeft += scrollRef.current.offsetWidth;
+            scrollRef.current.scrollTo({left});
         }
     };
 
     const handleScrollLeft = () => {
-        if(scroll) {
-            const left = scroll.scrollLeft -= scroll.offsetWidth;
-            scroll.scrollTo({left});
+        if(scrollRef && scrollRef.current) {
+            const left = scrollRef.current.scrollLeft -= scrollRef.current.offsetWidth;
+            scrollRef.current.scrollTo({left});
         }
     };
 
     const handleResize = () => {
-        if(scrollRef.current) {
+        if(scrollRef && scrollRef.current) {
             setShowButtons(scrollRef.current.offsetWidth < scrollRef.current.scrollWidth);
             setDimLeft(scrollRef.current.scrollLeft == 0);
             setDimRight(scrollRef.current.scrollLeft + scrollRef.current.offsetWidth >= scrollRef.current.scrollWidth)
@@ -54,10 +49,10 @@ const NavButtons = ({scroll, items}) => {
 
     useEffect(() => {
         handleResize();
-        if(scroll) {
-            scroll.addEventListener('scrollend', handleScroll);
+        if(scrollRef && scrollRef.current) {
+            scrollRef.current.addEventListener('scrollend', handleScroll);
         }
-    }, [scroll]);
+    }, [scrollRef && scrollRef.current]);
 
     useEffect(() => {
         handleResize();

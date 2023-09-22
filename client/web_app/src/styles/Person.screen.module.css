@@ -1,0 +1,74 @@
+.container
+{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    color: white;
+    padding-bottom: 4rem;
+    gap: 2rem;
+    user-select: none;
+    --profileSize: 20rem;
+}
+
+.top
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 var(--marginHorizontal);
+}
+
+.info
+{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-items: center;
+}
+
+.profileImage
+{
+    height: var(--profileSize);
+    width: var(--profileSize);
+    object-fit: cover;
+    border-radius: 50%;
+    object-position: 0% 20%;
+}
+
+.profileIcon
+{
+    height: var(--profileSize);
+    width: var(--profileSize);
+    flex-shrink: 0;
+    border-radius: 50%;
+    font-size: 15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(149, 149, 149);
+}
+
+.name
+{
+    font-size: 3rem;
+}
+
+.birthdate
+{
+    color: gray;
+    font-size: 1.7rem;
+    font-weight: normal;
+}
+
+.biography
+{
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 4;
+    font-size: 1.3rem;
+    color: rgb(181, 181, 181);
+    cursor: default;
+    margin-top: 1rem;
+}
