@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+// CSS
 import styles from '../styles/SearchAddress.screen.module.css';
 
 const SearchAddress = ({address, set, valid}) => {

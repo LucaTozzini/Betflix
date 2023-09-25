@@ -13,12 +13,14 @@ import currentUserContext from '../contexts/currentUser.context';
 import styles from '../styles/Menu.component.module.css';
 
 const Menu = () => {
-    const { userData } = useContext(currentUserContext);
+    const { userName, userImage, isAdmin } = useContext(currentUserContext);
     const { serverAddress } = useContext(serverContext);
+    const location = useLocation();
+
     const menuRef = useRef(null);
     const userButtonRef = useRef(null);
+    
     const [ dropDown, setDropDown ] = useState(false);
-    const location = useLocation();
 
     const handleScroll = () => {
         if(!menuRef.current) return;
@@ -56,16 +58,18 @@ const Menu = () => {
                     { location.pathname == '/browse/search' || location.pathname == '/browse/search/' ? <IoSearchSharp/> : <IoSearchOutline/>}
                     <h3>Search</h3>
                 </Link>
+                { isAdmin ?
                 <Link className={styles.link} to="/database">
                     { location.pathname == '/database' || location.pathname == '/database/' ? <IoServerSharp/> : <IoServerOutline/>}
                     <h3>Server</h3>
                 </Link>
+                : <></> }
             </div>
 
             <div className={styles.section}>
                 <button className={styles.userButton} onClick={() => setDropDown(!dropDown)} ref={userButtonRef}>
-                    <h3 className={styles.userName}>{userData.userName}</h3>
-                    <img className={styles.userImage} src={`${serverAddress}/${userData.userImage}`}/>
+                    <h3 className={styles.userName}>{userName}</h3>
+                    <img className={styles.userImage} src={`${serverAddress}/${userImage}`}/>
                 </button>
             </div>
 

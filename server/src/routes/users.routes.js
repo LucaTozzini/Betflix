@@ -47,7 +47,7 @@ router.post('/add', async (req, res) => {
 router.delete('/delete', async (req, res) => {
     try {
         const { userId, userPin } = req.body;
-        const auth = authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await deleteUser(userId);
         res.sendStatus(200);
@@ -62,7 +62,7 @@ router.post('/data', async (req, res) => {
     try{
         const { userId, userPin } = req.body;
         
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
         const data = await userData(userId);
         res.json(data);
@@ -77,7 +77,7 @@ router.post('/update-continue', async (req, res) => {
     try{
         const { userId, userPin, mediaId, episodeId, progressTime, endTime } = req.body;
 
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
 
         await updateContinue(userId, mediaId, episodeId, progressTime, endTime);
@@ -94,7 +94,7 @@ router.post('/continue', async(req, res) => {
     try{
         const { userId, userPin, limit } = req.body;
 
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401)
 
         const data = await continueList(userId, limit || 30);

@@ -11,7 +11,7 @@ import currentUserContext from "../contexts/currentUser.context";
 
 const SelectUser = () => {
     const { serverAddress } = useContext(serverContext);
-    const { setUserId, setUserPin, setUserData } = useContext(currentUserContext);
+    const { setUserId, setUserPin } = useContext(currentUserContext);
 
     const [ userList, setUserList ] = useState([]);
 
@@ -56,7 +56,6 @@ const SelectUser = () => {
         if(auth) {
             setUserId(data.USER_ID);
             setUserPin(pin || null);
-            setUserData({userName: data.USER_NAME, userImage: data.USER_IMAGE});
             window.location.href = '/';
         }
         else {
@@ -124,22 +123,19 @@ const SelectUser = () => {
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <h3 className={styles.modalTitle}>Enter Pin</h3>
                         <div className={styles.pinSpan}>
-                        <input className={styles.pinInput} id='pin1' type="numeric" onChange={(e) => handlePinChange(e, 1)}/>
-                            <input className={styles.pinInput} id='pin2' type="numeric" onChange={(e) => handlePinChange(e, 2)}/>
-                            <input className={styles.pinInput} id='pin3' type="numeric" onChange={(e) => handlePinChange(e, 3)}/>
-                            <input className={styles.pinInput} id='pin4' type="numeric" onChange={(e) => handlePinChange(e, 4)}/>
+                            <input className={styles.pinInput} id='pin1' type="password" autoComplete="off" onChange={(e) => handlePinChange(e, 1)}/>
+                            <input className={styles.pinInput} id='pin2' type="password" autoComplete="off" onChange={(e) => handlePinChange(e, 2)}/>
+                            <input className={styles.pinInput} id='pin3' type="password" autoComplete="off" onChange={(e) => handlePinChange(e, 3)}/>
+                            <input className={styles.pinInput} id='pin4' type="password" autoComplete="off" onChange={(e) => handlePinChange(e, 4)}/>
                         </div>
-                        <button 
-                            className={styles.modalButton} 
-                            onClick={() => handleSelect(targetData, parseInt(`${pin1}${pin2}${pin3}${pin4}`))}
-                        >
+                        <button className={styles.modalButton} onClick={() => handleSelect(targetData, parseInt(`${pin1}${pin2}${pin3}${pin4}`))}>
                             Authenticate
                         </button>
                     </div>
                 </div> 
                 : <></> 
             }
-            <h1 className={styles.title}>Who's Watching</h1>
+            <h1 className={styles.title}>Who's You?</h1>
             <div className={styles.users}>
                 {userList.map(i => <User key={i.USER_ID} data={i}/>)}
                 <AddUser/>

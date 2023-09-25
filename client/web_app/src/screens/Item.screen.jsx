@@ -6,7 +6,6 @@ import Select from 'react-select';
 import { SiThemoviedatabase } from "react-icons/si";
 import { IoPlay, IoCheckmarkSharp, IoAddSharp, IoPencilSharp } from 'react-icons/io5';
 
-
 // Contexts
 import serverContext from '../contexts/server.context';
 import MediaSection from '../components/MediaSection.component';
@@ -23,7 +22,7 @@ import EpisodesSection from '../components/EpisodesSection.component';
 const Item = () => {
     const { serverAddress } = useContext(serverContext);
     const { mediaId } = useParams();
-    const { userId, userPin } = useContext(currentUserContext);
+    const { userId, userPin, isAdmin } = useContext(currentUserContext);
 
     const [ data, setData ] = useState(null);
     const [ added, setAdded ] = useState(false);
@@ -301,9 +300,9 @@ const Item = () => {
                             <IoPlay className={styles.playButtonIcon}/>
                             <PlayButtonText/>
                         </Link>
-                        <button className={styles.barButton} onClick={() => setShowImagesModal(true)}>
+                        { isAdmin ? <button className={styles.barButton} onClick={() => setShowImagesModal(true)}>
                             <IoPencilSharp size={'2.3rem'}/>
-                        </button>
+                        </button> : <></> }
                         <button className={styles.barButton} onClick={() => added ? handleRemove() : handleAdd() }>
                             { added ? <IoCheckmarkSharp/> : <IoAddSharp/> }
                         </button>

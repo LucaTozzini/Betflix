@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateUser } from '../helpers/users.helpers.js';
+import { authenticateAdmin } from '../helpers/users.helpers.js';
 import { 
     manager,
     setPoster,
@@ -21,9 +21,10 @@ router.get('/status', (req, res) => {
     }
 });
 
-router.get('/run', (req, res) => {
+router.post('/run', async (req, res) => {
     try{
-        const action = parseInt(req.query.action);
+        const { userId, userPin, action } = req.body;
+        const auth = await authenticateAdmin(userId, userPin);
         manager.run(action);
         res.sendStatus(200);
     }
@@ -36,7 +37,7 @@ router.get('/run', (req, res) => {
 router.post('/poster', async (req, res) => {
     try {
         const { userId, userPin, mediaId, large, small } = req.body;
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateAdmin(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await setPoster(mediaId, large, small);
         res.sendStatus(200);
@@ -50,7 +51,7 @@ router.post('/poster', async (req, res) => {
 router.post('/poster-nt', async (req, res) => {
     try {
         const { userId, userPin, mediaId, large, small } = req.body;
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateAdmin(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await setPosterNt(mediaId, large, small);
         res.sendStatus(200);
@@ -64,7 +65,7 @@ router.post('/poster-nt', async (req, res) => {
 router.post('/poster-w', async (req, res) => {
     try {
         const { userId, userPin, mediaId, large, small } = req.body;
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateAdmin(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await setPosterWide(mediaId, large, small);
         res.sendStatus(200);
@@ -78,7 +79,7 @@ router.post('/poster-w', async (req, res) => {
 router.post('/backdrop', async (req, res) => {
     try {
         const { userId, userPin, mediaId, large, small } = req.body;
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateAdmin(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await setBackdrop(mediaId, large, small);
         res.sendStatus(200);
@@ -92,7 +93,7 @@ router.post('/backdrop', async (req, res) => {
 router.post('/logo', async (req, res) => {
     try {
         const { userId, userPin, mediaId, large, small } = req.body;
-        const auth = await authenticateUser(userId, userPin);
+        const auth = await authenticateAdmin(userId, userPin);
         if(!auth) return res.sendStatus(401);
         await setLogo(mediaId, large, small);
         res.sendStatus(200);

@@ -56,7 +56,7 @@ router.post('/current-episode', async (req, res) => {
     try{
         const { userId, userPin, mediaId } = req.body;
     
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
     
         const data = await currentEpisode(userId, mediaId);
@@ -72,7 +72,7 @@ router.post('/resume', async(req, res) => {
     try {
         const { userId, userPin, mediaId, episodeId } = req.body;
         
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
 
         const data = episodeId ? await episodeResumeTime(userId, episodeId) : await movieResumeTime(userId, mediaId);

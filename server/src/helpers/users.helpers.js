@@ -34,8 +34,8 @@ const userList = () => new Promise((res, rej) => db.all(
 const authenticateUser = (userId, userPin) => new Promise((res, rej) => db.get(
     `SELECT * 
     FROM users_main 
-    WHERE USER_ID = ? AND USER_PIN ${userPin ? '=' : 'IS'} ?`, 
-    [userId, userPin || null], 
+    WHERE USER_ID = ? AND USER_PIN ${userPin == null || isNaN(userPin) ? 'IS' : '='} ?`, 
+    [userId, userPin == null || isNaN(userPin) ? null : userPin], 
     (err, row) => err ? rej(err) : res(row != undefined)
 ));
 
@@ -48,7 +48,8 @@ const authenticateAdmin = (userId, userPin) => new Promise((res, rej) => db.get(
 ));
 
 const userData = (userId) => new Promise((res, rej) => db.get(
-    `SELECT USER_NAME, USER_IMAGE FROM users_main WHERE USER_ID = ?`, 
+    `SELECT USER_NAME, USER_IMAGE, ADMIN, CHILD 
+    FROM users_main WHERE USER_ID = ?`, 
     [userId], 
     (err, row) => err ? rej(err) : res(row)
 ));

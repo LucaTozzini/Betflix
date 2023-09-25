@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 
 const PlayerReroute = () => {
     const { mediaId, episodeId } = useParams();

@@ -26,7 +26,7 @@ router.post('/item', async (req, res) => {
     try{
         const { mediaId, userId, userPin } = req.body;
     
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
 
         const data = await mediaInfo(mediaId, userId);
@@ -87,7 +87,7 @@ router.post('/season', async (req, res) => {
 
         if(!seasonNum) return res.sendStatus(400);
 
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
         if(!mediaId) return res.sendStatus(400);
         
@@ -193,7 +193,7 @@ router.get('/filmography', async (req, res) => {
 router.post('/watch-again', async (req, res) => {
     try {
         const { userId, userPin, limit } = req.body;
-        const auth = await authenticateUser(userId, isNaN(userPin) ? null : userPin);
+        const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
         const data = await watchAgain(userId, limit);
         res.json(data);

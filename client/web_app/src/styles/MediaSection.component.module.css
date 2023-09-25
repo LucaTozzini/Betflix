@@ -26,8 +26,11 @@
 .items 
 {
     --itemsOnPage: 5;
-    --itemHeight: 10.5vw;
+    --itemHeight: calc(((100vw - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage)) * 0.5);
     --itemsGap: .5rem;
+
+    --start: 2;
+    --inc: 1;
 
     display: flex;
     overflow: auto;
@@ -97,12 +100,59 @@
     opacity: 0.5;
 }
 
-@media (width < 1300px)
+@media (width >= 4000px)
 {
     .items
     {
-        --itemsOnPage: 4;
-        --itemHeight: 12vw;
+        --itemsOnPage: calc(var(--start) + (8 * var(--inc)));;
+    }
+}
+
+@media (width < 4000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (7 * var(--inc)));;
+    }
+}
+
+@media (width < 3500px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (6 * var(--inc)));;
+    }
+}
+
+@media (width < 3000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (5 * var(--inc)));;
+    }
+}
+
+@media (width < 2500px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (4 * var(--inc)));;
+    }
+}
+
+@media (width < 2000px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (3 * var(--inc)));;
+    }
+}
+
+@media (width < 1500px)
+{
+    .items
+    {
+        --itemsOnPage: calc(var(--start) + (2 * var(--inc)));;
     }
 }
 
@@ -110,8 +160,7 @@
 {
     .items
     {
-        --itemsOnPage: 3;
-        --itemHeight: 17.5vw;
+        --itemsOnPage: calc(var(--start) + (1 * var(--inc)));;
     }
 }
 
@@ -119,7 +168,14 @@
 {
     .items
     {
-        --itemsOnPage: 2;
-        --itemHeight: 25vw;
+        --itemsOnPage: var(--start);
+    }
+}
+
+@media (width < 300px)
+{
+    .items
+    {
+        --itemsOnPage: 1;
     }
 }
