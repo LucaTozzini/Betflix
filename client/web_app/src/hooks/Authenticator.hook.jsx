@@ -29,7 +29,7 @@ const Authenticator = () => {
     };
 
     useEffect(() => {
-        if(!['/users', '/users/'].includes(location.pathname))
+        if(!['/users', '/users/', '/users/new', 'users/new/'].includes(location.pathname))
         authenticateUser();
     }, [location]);
 };
