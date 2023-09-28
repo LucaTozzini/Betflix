@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from '../styles/Hero.component.module.css';
 
 
-const Hero = ({ items, autoPlay, heroTitle }) => {
+const Hero = ({ items, autoPlay }) => {
     const [ dimLeft, setDimLeft ] = useState(true);
     const [ dimRight, setDimRight ] = useState(true);
     const ref = useRef(null);
