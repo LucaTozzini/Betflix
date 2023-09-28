@@ -272,9 +272,7 @@ const createTables = () => new Promise(async res => {
             PROGRESS_TIME REAL NOT NULL,
             END_TIME REAL NOT NULL,
             TIME_STAMP TEXT NOT NULL,
-            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE,
-            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
-            FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
+            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE
         )`, err => err ? console.error('User Continue', err.message) : res())
     );
     
