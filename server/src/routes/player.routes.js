@@ -98,4 +98,14 @@ router.post('/next', async(req, res) => {
     }
 });
 
+router.post('/subtitles', async(req, res) => {
+    try {
+        
+    }
+    catch (err) {
+        console.log(err.message);
+        res.sendStatus(500);
+    }
+});
+
 export default router;

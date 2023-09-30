@@ -2,7 +2,7 @@ import sqlite3 from 'sqlite3';
 sqlite3.verbose()
 import env from '../../env.js';
 import { scanMovies, scanShows } from './filesUtil.helpers.js';
-import { fetchMovies, fetchPeople, fetchShows } from './TMDb-api.helpers.js';
+import { fetchItem, fetchPerson, fetchShow } from './TMDb-api.helpers.js';
 import { orphans, haveMedia } from './queries.helpers.js';
 
 let mediaPrep, episodePrep, continuePrep;
@@ -46,7 +46,7 @@ const db = new sqlite3.Database(env.databasePath, sqlite3.OPEN_READWRITE, async 
         await foreignKeys();
         await createTables();
         mediaPrep = {
-            main: db.prepare(`INSERT INTO media_main (MEDIA_ID, ITEM_ID, TYPE, PATH) VALUES (?,?,?,?)`),
+            main: db.prepare(`INSERT INTO media_main (MEDIA_ID, TMDB_ID, IMDB_ID, TYPE, PATH) VALUES (?,?,?,?,?)`),
             images: db.prepare(`INSERT INTO media_images (MEDIA_ID, POSTER_S, POSTER_L, POSTER_NT_S, POSTER_NT_L, POSTER_W_S, POSTER_W_L, LOGO_S, LOGO_L, BACKDROP_S, BACKDROP_L) VALUES (?,?,?,?,?,?,?,?,?,?,?)`),
             dates: db.prepare(`INSERT INTO media_dates (MEDIA_ID, YEAR, START_DATE, END_DATE) VALUES (?,?,?,?)`),
             finances: db.prepare(`INSERT INTO media_finances (MEDIA_ID, BUDGET, REVENUE) VALUES (?,?,?)`),
@@ -86,7 +86,8 @@ const createTables = () => new Promise(async res => {
     await new Promise(res => 
         db.run(`CREATE TABLE IF NOT EXISTS media_main (
             MEDIA_ID TEXT PRIMARY KEY,
-            ITEM_ID INT NOT NULL,
+            TMDB_ID INT NOT NULL,
+            IMDB_ID TEXT NOT NULL,
             TYPE INT NOT NULL,
             PATH TEXT NOT NULL
         )`, err => err ? console.error('Media Main', err.message) : res())
@@ -293,28 +294,28 @@ const createTables = () => new Promise(async res => {
 const insertMedia = (m) => new Promise(async (res, rej) => {
     try{
         const 
-        main_data = [m.media_id, m.item_id, m.type, m.path],
+        main_data = [m.media_id, m.tmdb_id, m.imdb_id, m.type, m.path],
         images_data = [m.media_id, m.poster_s, m.poster_l, m.poster_nt_s, m.poster_nt_l, m.poster_w_s, m.poster_w_l,  m.logo_s, m.logo_l, m.backdrop_s, m.backdrop_l],
         dates_data = [m.media_id, m.year, m.start_date, m.end_date],
         finances_data = [m.media_id, m.budget, m.revenue],
         info_data = [m.media_id, m.title, m.overview, m.content_rating, m.duration, m.vote];
     
-        await new Promise(res => mediaPrep.main.run(main_data, err => {if(err) console.error(err.message); res()}));
-        await new Promise(res => mediaPrep.images.run(images_data, err => {if(err) console.error(err.message); res()}));
-        await new Promise(res => mediaPrep.dates.run(dates_data, err => {if(err) console.error(err.message); res()}));
-        await new Promise(res => mediaPrep.finances.run(finances_data, err => {if(err) console.error(err.message); res()}));
-        await new Promise(res => mediaPrep.info.run(info_data, err => {if(err) console.error(err.message); res()}));
+        await new Promise(res => mediaPrep.main.run(main_data, err => {if(err) console.error('media main', err.message); res()}));
+        await new Promise(res => mediaPrep.images.run(images_data, err => {if(err) console.error('media images',err.message); res()}));
+        await new Promise(res => mediaPrep.dates.run(dates_data, err => {if(err) console.error('media dates',err.message); res()}));
+        await new Promise(res => mediaPrep.finances.run(finances_data, err => {if(err) console.error('media finances',err.message); res()}));
+        await new Promise(res => mediaPrep.info.run(info_data, err => {if(err) console.error('media info',err.message); res()}));
     
         for(const genre of m.genres){
-            await new Promise(res => mediaPrep.genres.run([`KEY_${m.media_id}_${genre}`, m.media_id, genre], err => {if(err) console.error(1, err.message); res()}));
+            await new Promise(res => mediaPrep.genres.run([`KEY_${m.media_id}_${genre}`, m.media_id, genre], err => {res()}));
         };
     
         for(const company of m.companies){
-            await new Promise(res => mediaPrep.companies.run([`KEY_${m.media_id}_${company}`, m.media_id, company], err => {if(err) console.error(2, err.message); res()}));
+            await new Promise(res => mediaPrep.companies.run([`KEY_${m.media_id}_${company}`, m.media_id, company], err => {res()}));
         };
     
         for(const person of m.credits){
-            await new Promise(res => mediaPrep.cast.run([`KEY_${m.media_id}_${person.id}_${person.character}`, m.media_id, person.id, person.character, person.order], err => {if(err) console.error(3, err.message); res()}));
+            await new Promise(res => mediaPrep.cast.run([`KEY_${m.media_id}_${person.id}_${person.character}`, m.media_id, person.id, person.character, person.order], err => {res()}));
         };
         res();
     }
@@ -330,72 +331,35 @@ const insertEpisode = (media_id, e) => new Promise(async (res, rej) => {
     dates_data = [e.episode_id, e.year, e.air_date],
     info_data = [e.episode_id, e.title, e.overview, e.duration, e.vote];
 
-    await new Promise(res => episodePrep.main.run(main_data, err => {if(err) console.error(err.message); res()}));
-    await new Promise(res => episodePrep.images.run(images_data, err => {if(err) console.error(err.message); res()}));
-    await new Promise(res => episodePrep.dates.run(dates_data, err => {if(err) console.error(err.message); res()}));
-    await new Promise(res => episodePrep.info.run(info_data, err => {if(err) console.error(err.message); res()}));
+    await new Promise(res => episodePrep.main.run(main_data, err => {if(err) console.error('episode main', err.message); res()}));
+    await new Promise(res => episodePrep.images.run(images_data, err => {if(err) console.error('episode images', err.message); res()}));
+    await new Promise(res => episodePrep.dates.run(dates_data, err => {if(err) console.error('episode dates', err.message); res()}));
+    await new Promise(res => episodePrep.info.run(info_data, err => {if(err) console.error('episode info', err.message); res()}));
 
     res();
 });
 
-const insertMovies = (movies) => new Promise( async (res, rej) => {
-    try{
-        manager.status.ACTION = 'Insert Movies';
-        manager.status.PROGRESS = 0;
-        
+const insertShow = (show) => new Promise(async(res, rej) => {
+    try {
+        const have = await haveMedia(show.path);
+        if(!have) {
+            await insertMedia(show);
+        }
     
-        await transaction.begin();
-        let i = 0;
-        for(const m of movies){
-            i++
-            manager.status.PROGRESS = (100 / movies.length) * i;
-            await insertMedia(m);
-        };
-        await transaction.commit();
-        res()
-    }
-    catch(err){
-        rej(err)
-    }
-});
+        for(const episode of show.episodes) {
+            await insertEpisode(show.media_id, episode);
+        }
 
-const insertShows = (shows) => new Promise(async(res, rej) => {
-    try{
-        manager.status.ACTION = 'Insert Shows';
-        manager.status.PROGRESS = 0;
-
-        await transaction.begin();
-        let i = 0;
-        for(const show of shows){
-            i++;
-            manager.status.PROGRESS = (100/shows.length) * i;
-            if(!await haveMedia(show.path)) await insertMedia(show);
-
-            for(const episode of show.episodes) {
-                await insertEpisode(show.media_id, episode);
-            }
-        };
-        await transaction.commit();
         res();
     }
-    catch(err){
-        rej(err);
+    catch(err) {
+        rej(err.message);
     }
 });
 
-const updatePeople = (data) => new Promise( async (res, rej) => {
-    manager.status.ACTION = 'Updating people';
-    manager.status.PROGRESS = 0;
+const insertPerson = (data) => new Promise( async (res, rej) => {
     const prep = db.prepare(`INSERT INTO people (PERSON_ID, NAME, BIRTH_DATE, DEATH_DATE, BIOGRAPHY, PROFILE_IMAGE) VALUES (?,?,?,?,?,?)`);
-
-    let i = 0;
-    await transaction.begin();
-    for(const person of data){
-        i++;
-        manager.status.PROGRESS = (100 / data.length) * i;
-        await new Promise(res => prep.run([person.person_id, person.name, person.birth_date, person.death_date, person.biography, person.profile_image], err => {if(err) console.error(err.message); res()}));
-    };
-    await transaction.commit();
+    await new Promise(res => prep.run([data.person_id, data.name, data.birth_date, data.death_date, data.biography, data.profile_image], err => {if(err) console.error(err.message); res()}));
     res();
 });
 
@@ -454,27 +418,80 @@ const manager = {
             
             if(action == 1){
                 const movies = await scanMovies();
-                const data = await fetchMovies(movies);
-                await insertMovies(data);
+
+                manager.status.ACTION = 'Insert Movies';
+                manager.status.PROGRESS = 0;
+                let i = 0;
+
+                for(const movie of movies) {
+                    i++
+                    manager.status.PROGRESS = (100 / movies.length) * i;
+                    manager.status.ACTION = `Insert Movies - ${movie.title} [${movie.year}]`;
+
+                    try {
+                        const data = await fetchItem(1, movie);
+                        await insertMedia(data);
+                    }
+                    catch(err) {
+                        console.error(err.message);
+                    }
+
+                };
+
                 res();
             }
             else if(action == 2){
                 const shows = await scanShows();
-                const data = await fetchShows(shows);
-                await insertShows(data);
+
+                manager.status.ACTION = 'Insert Shows';
+                manager.status.PROGRESS = 0;
+                let i = 0;
+
+                
+                for(const show of shows) {
+                    
+                    i++
+                    manager.status.PROGRESS = (100 / shows.length) * i;
+                    manager.status.ACTION = `Insert Shows - ${show.title} [${show.year}]`;
+
+                    try {
+                        const data = await fetchShow(show);
+                        await insertShow(data);
+                    }
+                    catch(err) {
+                        console.error(err.message);
+                    }
+                }
                 res();
             }
             else if(action == 3){
-                manager.status.ACTIVE = 'Updating people';
+                manager.status.ACTION = 'Scanning people';
                 const ids = await orphans();
-                const data = await fetchPeople(ids);
-                await updatePeople(data);
+                
+                manager.status.ACTION = 'Updating people';
+                manager.status.PROGRESS = 0;
+                let i = 0;
+
+                for(const id of ids) {
+                    i++;
+                    manager.status.PROGRESS = (100 / ids.length) * i;
+                    
+                    try {
+                        const data = await fetchPerson(id);
+                        manager.status.ACTION = `Updating people - ${data.name}`;
+                        insertPerson(data);
+                    }
+                    catch(err) {
+                        console.error(err.message);
+                    }
+                }
+
                 res();
             }
             else throw new Error('Unknown Action');
         }
         catch(err){
-            console.error(err.message)
+            console.error(err.message);
         }
         manager.status.ACTIVE = false;
         manager.status.ACTION = null;

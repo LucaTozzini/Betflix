@@ -90,7 +90,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-weight: lighter;
+    font-weight: normal;
     color: white;
 }
 

@@ -9,6 +9,12 @@ import styles from '../styles/EpisodesSection.component.module.css';
 const EpisodesSection = ({ data, mediaId, Selector }) => {
     const ref = useRef(null);
 
+    useEffect(() => {
+        if(ref.current) {
+            ref.current.scrollTo(0, 0);
+        };
+    }, [data]);
+
     const Item = ({ episodeId, still, title, seasonNum, episodeNum, airDate, progress, overview }) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const dates = airDate.split('-');
