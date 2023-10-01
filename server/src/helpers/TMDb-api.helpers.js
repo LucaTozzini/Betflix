@@ -74,7 +74,14 @@ const fetchItem = (type, item) => new Promise( async (res, rej) => {
             // info
             title: type == 1 ? match.title : match.name,
             overview: match.overview,
-            content_rating: content_rating ? content_rating.certification : 'NR',
+            content_rating: 
+                content_rating ?
+                    type == 1 ? 
+                        content_rating.certification
+                        :
+                        content_rating.rating 
+                : 'NR'
+            ,
             companies: match_data.production_companies.map(i => i.name),
             duration: type == 1 ? item.duration : parseFloat(match_data.episode_run_time[0]) * 60,
             vote: match.vote_average,
@@ -113,23 +120,33 @@ const fetchShow = (show) => new Promise( async (res, rej) => {
 
         const episodeArray = [];
         for(const episode of show.episodes) {
-            const match = seasonsData.find(i => i.season_number == episode.season_num && i.episode_number == episode.episode_num);
-            if(!match) continue;
-            const data = {
-                episode_id: match.id,
-                season_num: match.season_number,
-                episode_num: match.episode_number,
-                path: episode.path,
-                still_s: `${Img_Base_500}/${match.still_path}`,
-                still_l: `${Img_Base}/${match.still_path}`,
-                year: match.air_date.split('-')[0],
-                air_date: match.air_date,
-                title: match.name,
-                overview: match.overview,
-                duration: episode.duration,
-                vote: match.vote_average
-            };
-            episodeArray.push(data);
+            try {
+                const match = seasonsData.find(i => i.season_number == episode.season_num && i.episode_number == episode.episode_num);
+                
+                if(!match) continue;
+
+                const external_ids = await axios.get(`${BASE}/tv/${showData.tmdb_id}/season/${match.season_number}/episode/${match.episode_number}/external_ids?api_key=${TMDb_Key}`);
+    
+                const data = {
+                    episode_id: match.id,
+                    imdb_id: external_ids.data.imdb_id,
+                    season_num: match.season_number,
+                    episode_num: match.episode_number,
+                    path: episode.path,
+                    still_s: `${Img_Base_500}/${match.still_path}`,
+                    still_l: `${Img_Base}/${match.still_path}`,
+                    year: match.air_date.split('-')[0],
+                    air_date: match.air_date,
+                    title: match.name,
+                    overview: match.overview,
+                    duration: episode.duration,
+                    vote: match.vote_average
+                };
+                episodeArray.push(data);
+            }
+            catch(err) {
+                console.error(err.message);
+            }
         };
         
         showData['episodes'] = episodeArray;

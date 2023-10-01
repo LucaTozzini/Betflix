@@ -245,6 +245,22 @@ const filmography = (personId, limit) => new Promise((res, rej) => db.all(
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
+const itemIMDB = (mediaId) => new Promise((res, rej) => db.get(
+    `SELECT IMDB_ID
+    FROM media_main
+    WHERE MEDIA_ID = ?`,
+    [mediaId],
+    (err, row) => err ? rej(err) : res(row ? row.IMDB_ID : null)
+));
+
+const episodeIMDB = (episodeId) => new Promise((res, rej) => db.get(
+    `SELECT IMDB_ID
+    FROM episodes_main
+    WHERE EPISODE_ID = ?`,
+    [episodeId],
+    (err, row) => err ? rej(err) : res(row ? row.IMDB_ID : null)
+));
+
 export { 
     browseGenres, 
     genre,
@@ -264,5 +280,7 @@ export {
     latestEpisodes, 
     topRated,
     dateRange,
-    filmography
+    filmography,
+    itemIMDB,
+    episodeIMDB,
 };

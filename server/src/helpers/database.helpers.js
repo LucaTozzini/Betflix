@@ -56,7 +56,7 @@ const db = new sqlite3.Database(env.databasePath, sqlite3.OPEN_READWRITE, async 
             cast: db.prepare(`INSERT INTO cast (KEY, MEDIA_ID, PERSON_ID, CHARACTER, CAST_ORDER) VALUES (?,?,?,?,?)`)
         };
         episodePrep = {
-            main: db.prepare(`INSERT INTO episodes_main (EPISODE_ID, MEDIA_ID, SEASON_NUM, EPISODE_NUM, PATH) VALUES (?,?,?,?,?)`),
+            main: db.prepare(`INSERT INTO episodes_main (EPISODE_ID, IMDB_ID, MEDIA_ID, SEASON_NUM, EPISODE_NUM, PATH) VALUES (?,?,?,?,?,?)`),
             images: db.prepare(`INSERT INTO episodes_images(EPISODE_ID, STILL_S, STILL_L) VALUES (?,?,?)`),
             dates: db.prepare(`INSERT INTO episodes_dates (EPISODE_ID, YEAR, AIR_DATE) VALUES (?,?,?)`),
             info: db.prepare(`INSERT INTO episodes_info (EPISODE_ID, TITLE, OVERVIEW, DURATION, VOTE) VALUES (?,?,?,?,?)`)
@@ -79,7 +79,7 @@ const foreignKeys = () => new Promise(async res => db.run(
         if(err) console.error(err.message);
         res();
     }
-))
+));
 
 const createTables = () => new Promise(async res => {
     // Media Main
@@ -159,6 +159,7 @@ const createTables = () => new Promise(async res => {
     await new Promise(res => 
         db.run(`CREATE TABLE IF NOT EXISTS episodes_main (
             EPISODE_ID INT PRIMARY KEY,
+            IMDB_ID TEXT NOT NULL,
             MEDIA_ID TEXT NOT NULL,
             SEASON_NUM INT NOT NULL,
             EPISODE_NUM INT NOT NULL,
@@ -326,7 +327,7 @@ const insertMedia = (m) => new Promise(async (res, rej) => {
 
 const insertEpisode = (media_id, e) => new Promise(async (res, rej) => {
     const 
-    main_data = [e.episode_id, media_id, e.season_num, e.episode_num, e.path],
+    main_data = [e.episode_id, e.imdb_id, media_id, e.season_num, e.episode_num, e.path],
     images_data = [e.episode_id, e.still_s, e.still_l],
     dates_data = [e.episode_id, e.year, e.air_date],
     info_data = [e.episode_id, e.title, e.overview, e.duration, e.vote];
@@ -339,9 +340,11 @@ const insertEpisode = (media_id, e) => new Promise(async (res, rej) => {
     res();
 });
 
-const insertShow = (show) => new Promise(async(res, rej) => {
+const insertShow = (show) => new Promise(async (res, rej) => {
     try {
         const have = await haveMedia(show.path);
+
+        await transaction.begin();
         if(!have) {
             await insertMedia(show);
         }
@@ -350,6 +353,8 @@ const insertShow = (show) => new Promise(async(res, rej) => {
             await insertEpisode(show.media_id, episode);
         }
 
+        await transaction.commit();
+
         res();
     }
     catch(err) {
@@ -357,13 +362,13 @@ const insertShow = (show) => new Promise(async(res, rej) => {
     }
 });
 
-const insertPerson = (data) => new Promise( async (res, rej) => {
+const insertPerson = (data) => new Promise(async (res, rej) => {
     const prep = db.prepare(`INSERT INTO people (PERSON_ID, NAME, BIRTH_DATE, DEATH_DATE, BIOGRAPHY, PROFILE_IMAGE) VALUES (?,?,?,?,?,?)`);
     await new Promise(res => prep.run([data.person_id, data.name, data.birth_date, data.death_date, data.biography, data.profile_image], err => {if(err) console.error(err.message); res()}));
     res();
 });
 
-const setPoster = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+const setPoster = (mediaId, large, small) => new Promise(async (res, rej) => db.run(
     `UPDATE media_images
     SET POSTER_L = ?, POSTER_S = ?
     WHERE MEDIA_ID = ?`,
@@ -371,7 +376,7 @@ const setPoster = (mediaId, large, small) => new Promise( async (res, rej) => db
     (err) => err ? rej() : res()
 ));
 
-const setPosterNt = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+const setPosterNt = (mediaId, large, small) => new Promise(async (res, rej) => db.run(
     `UPDATE media_images
     SET POSTER_NT_L = ?, POSTER_NT_S = ?
     WHERE MEDIA_ID = ?`,
@@ -379,7 +384,7 @@ const setPosterNt = (mediaId, large, small) => new Promise( async (res, rej) => 
     (err) => err ? rej() : res()
 ));
 
-const setPosterWide = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+const setPosterWide = (mediaId, large, small) => new Promise(async (res, rej) => db.run(
     `UPDATE media_images
     SET POSTER_W_L = ?, POSTER_W_S = ?
     WHERE MEDIA_ID = ?`,
@@ -387,7 +392,7 @@ const setPosterWide = (mediaId, large, small) => new Promise( async (res, rej) =
     (err) => err ? rej() : res()
 ));
 
-const setBackdrop = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+const setBackdrop = (mediaId, large, small) => new Promise(async (res, rej) => db.run(
     `UPDATE media_images
     SET BACKDROP_L = ?, BACKDROP_S = ?
     WHERE MEDIA_ID = ?`,
@@ -395,7 +400,7 @@ const setBackdrop = (mediaId, large, small) => new Promise( async (res, rej) => 
     (err) => err ? rej() : res()
 ));
 
-const setLogo = (mediaId, large, small) => new Promise( async (res, rej) => db.run(
+const setLogo = (mediaId, large, small) => new Promise(async (res, rej) => db.run(
     `UPDATE media_images
     SET LOGO_L = ?, LOGO_S = ?
     WHERE MEDIA_ID = ?`,

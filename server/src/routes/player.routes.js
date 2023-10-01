@@ -4,6 +4,7 @@ import send from 'send';
 import { authenticateUser, currentEpisode, movieResumeTime, episodeResumeTime } from '../helpers/users.helpers.js'
 import { mediaEpisodeInfo, nextEpisode } from '../helpers/queries.helpers.js';
 import { getMoviePath, getEpisodePath } from '../helpers/filesUtil.helpers.js';
+import { fetchSubtitle } from '../helpers/OpenSubtitles-api.js';
 
 const router = express.Router();
 
@@ -98,9 +99,11 @@ router.post('/next', async(req, res) => {
     }
 });
 
-router.post('/subtitles', async(req, res) => {
+router.get('/subtitles', async(req, res) => {
     try {
-        
+        const { mediaId, episodeId, language } = req.query;
+        const data = await fetchSubtitle(episodeId || mediaId, episodeId != undefined, 'en');
+        res.json(data);
     }
     catch (err) {
         console.log(err.message);
