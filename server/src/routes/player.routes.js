@@ -120,10 +120,8 @@ router.get('/subtitles', async(req, res) => {
             path = extension == 'vtt' ? files.vtt : files.srt;
         }
 
-        // const stream = send(req, path);
-        // stream.pipe(res);
-
-        res.json({path, isEpisode, mediaId, episodeId, language, extension});
+        // res.sendFile(path);
+        res.send(path);
     }
     catch (err) {
         console.log(err.message);

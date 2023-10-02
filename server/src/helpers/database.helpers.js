@@ -294,7 +294,7 @@ const createTables = () => new Promise(async res => {
     await new Promise(res => 
         db.run(
             `CREATE TABLE IF NOT EXISTS subtitles (
-                PATH TEXT PRIMARY KEY,
+                PATH TEXT PRIMARY KEY NOT NULL,
                 MEDIA_ID TEXT,
                 EPISODE_ID INT,
                 LANG TEXT NOT NULL,
@@ -303,6 +303,7 @@ const createTables = () => new Promise(async res => {
             err => err ? console.error('User Watchlist', err.message) : res()
         )
     );
+
     res();
 });
 
