@@ -289,6 +289,20 @@ const createTables = () => new Promise(async res => {
             FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`, err => err ? console.error('User Watchlist', err.message) : res())
     );
+
+    // Subtitles
+    await new Promise(res => 
+        db.run(
+            `CREATE TABLE IF NOT EXISTS subtitles (
+                PATH TEXT PRIMARY KEY,
+                MEDIA_ID TEXT,
+                EPISODE_ID INT,
+                LANG TEXT NOT NULL,
+                EXT TEXT NOT NULL
+            )`,
+            err => err ? console.error('User Watchlist', err.message) : res()
+        )
+    );
     res();
 });
 

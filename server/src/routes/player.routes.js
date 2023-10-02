@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import send from 'send';
 import { authenticateUser, currentEpisode, movieResumeTime, episodeResumeTime } from '../helpers/users.helpers.js'
-import { mediaEpisodeInfo, nextEpisode } from '../helpers/queries.helpers.js';
+import { mediaEpisodeInfo, nextEpisode, movieSubtitlePath, episodeSubtitlePath, mediaInfo } from '../helpers/queries.helpers.js';
 import { getMoviePath, getEpisodePath } from '../helpers/filesUtil.helpers.js';
 import { fetchSubtitle } from '../helpers/OpenSubtitles-api.js';
 
@@ -101,9 +101,29 @@ router.post('/next', async(req, res) => {
 
 router.get('/subtitles', async(req, res) => {
     try {
-        const { mediaId, episodeId, language } = req.query;
-        const data = await fetchSubtitle(episodeId || mediaId, episodeId != undefined, 'en');
-        res.json(data);
+        const { mediaId, episodeId, language, extension } = req.query;
+        const isEpisode = episodeId != undefined;
+        let path;
+        if(isEpisode) {
+            path = await episodeSubtitlePath(episodeId, language || 'en', extension || 'srt');
+        }
+        else {
+            const info = await mediaInfo(mediaId);
+            if(info == undefined || info.type == 2) {
+                return res.sendStatus(400);
+            }
+            path = await movieSubtitlePath(mediaId, language || 'en', extension || 'srt');
+        }
+
+        if(!path) {
+            const files = await fetchSubtitle(episodeId || mediaId, episodeId != undefined, language || 'en');
+            path = extension == 'vtt' ? files.vtt : files.srt;
+        }
+
+        // const stream = send(req, path);
+        // stream.pipe(res);
+
+        res.json({path, isEpisode, mediaId, episodeId, language, extension});
     }
     catch (err) {
         console.log(err.message);

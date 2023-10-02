@@ -261,6 +261,22 @@ const episodeIMDB = (episodeId) => new Promise((res, rej) => db.get(
     (err, row) => err ? rej(err) : res(row ? row.IMDB_ID : null)
 ));
 
+const movieSubtitlePath = (mediaId, language, extension) => new Promise((res, rej) => db.get(
+    `SELECT PATH
+    FROM subtitles
+    WHERE MEDIA_ID = ? AND LANG = ? AND EXT = ?`,
+    [mediaId, language, extension],
+    (err, row) => err ? rej(err) : res(row ? row.PATH : null)
+));
+
+const episodeSubtitlePath = (episodeId, language, extension) => new Promise((res, rej) => db.get(
+    `SELECT PATH
+    FROM subtitles
+    WHERE EPISODE_ID = ? AND LANG = ? AND EXT = ?`,
+    [episodeId, language, extension],
+    (err, row) => err ? rej(err) : res(row ? row.PATH : null)
+));
+
 export { 
     browseGenres, 
     genre,
@@ -283,4 +299,6 @@ export {
     filmography,
     itemIMDB,
     episodeIMDB,
+    movieSubtitlePath, 
+    episodeSubtitlePath
 };
