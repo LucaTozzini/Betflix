@@ -102,7 +102,7 @@ router.post('/next', async(req, res) => {
 router.get('/subtitles', async(req, res) => {
     try {
         const { mediaId, episodeId, language, extension } = req.query;
-        const isEpisode = episodeId != undefined;
+        const isEpisode = !isNaN(episodeId);
         let path;
         if(isEpisode) {
             path = await episodeSubtitlePath(episodeId, language || 'en', extension || 'srt');
@@ -116,12 +116,11 @@ router.get('/subtitles', async(req, res) => {
         }
 
         if(!path) {
-            const files = await fetchSubtitle(episodeId || mediaId, episodeId != undefined, language || 'en');
+            const files = await fetchSubtitle(isEpisode ? episodeId : mediaId, isEpisode, language || 'en');
             path = extension == 'vtt' ? files.vtt : files.srt;
         }
 
-        // res.sendFile(path);
-        res.send(path);
+        res.sendFile(path);
     }
     catch (err) {
         console.log(err.message);

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import styles from '../styles/Player.screen.module.css';
-import { FaArrowLeft, FaPlay, FaPause, FaVolumeLow, FaVolumeOff } from "react-icons/fa6";
+import { FaArrowLeft, FaPlay, FaPause, FaVolumeLow, FaVolumeOff, FaRegClosedCaptioning, FaClosedCaptioning } from "react-icons/fa6";
 import { RiFullscreenLine } from "react-icons/ri";
 import { useContext, useEffect } from 'react';
 
@@ -41,6 +41,11 @@ const Player = () => {
     const volumeSliderRef = useRef(null);
     const volumeFillRef = useRef(null);
     const setVolumeRef = useRef(false);
+
+    // subtitles
+    const trackRef = useRef(null);
+    const [ showSubtitles, setShowSubtitles ] = useState(() => window.localStorage.getItem('showSubtitles') === "true");
+    const [ subtitlesLanguage, setSubtitlesLanguage ] = useState(null);
 
     useEffect(() => window.localStorage.setItem('playerMuted', mute), [mute]);
     useEffect(() => window.localStorage.setItem('playerVolume', volume), [volume]);
@@ -167,6 +172,29 @@ const Player = () => {
         setTimeout(() => { updateRef.current = true }, 3000);
     };
 
+    const fetchSubtitle = async () => {
+        try {
+            const response = await fetch(`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeId > 0 ? episodeId : null}&extension=vtt`);
+            const text = await response.text();
+            console.log(text);
+        }
+        catch(err) {
+            console.error(err.message);
+        }
+    };
+
+    const turnOnSubtitles = () => {
+        if(trackRef.current) {
+            trackRef.current.kind = 'captions';
+        }
+    };
+
+    const turnOffSubtitles = () => {
+        if(trackRef.current) {
+            trackRef.current.kind = 'metadata';
+        }
+    };
+
     useEffect(()=>{
         FetchMedia();
         const mouseUp = () => {seekRef.current = false; setVolumeRef.current = false};
@@ -186,7 +214,10 @@ const Player = () => {
         if(!mediaData) return;
         mediaRef.current = mediaData;
         FetchSource()
-        if(mediaData.TYPE == 1) FetchResume();
+        if(mediaData.TYPE == 1) {
+            FetchResume();
+            fetchSubtitle();
+        }
     }, [mediaData]);
 
     useEffect(() => {
@@ -196,6 +227,7 @@ const Player = () => {
             FetchResume();
             FetchNext();
         }
+        fetchSubtitle();
     }, [episodeData])
     
     useEffect(() => {
@@ -224,11 +256,31 @@ const Player = () => {
     useEffect(() => {
         if(!videoRef.current) return;
         videoRef.current.muted = mute;
-    }, [mute])
+    }, [mute]);
+
+    useEffect(() => {
+        window.localStorage.setItem('showSubtitles', showSubtitles);
+        if(showSubtitles) {
+            turnOnSubtitles();
+        }
+        else {
+            turnOffSubtitles();
+        }
+    }, [showSubtitles]);
 
     return (
         <>
-        <video ref={videoRef} src={videoSource} className={styles.video}/>
+        <video ref={videoRef} src={videoSource} className={styles.video} crossOrigin='anonymous'>
+            {/* Add your <track> element here */}
+            <track
+            ref={trackRef}
+            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeId > 0 ? episodeId : null}&extension=vtt`}
+            kind="subtitles"
+            srcLang="en"
+            label="English"
+            default
+            />
+        </video>
 
         <div className={styles.overlay} style={{opacity: overlay ? 1 : 0, cursor: overlay ? 'default' : 'none'}}>
             <div className={styles.top}>
@@ -268,6 +320,9 @@ const Player = () => {
                         <h3 className={styles.time}>{timeString || '--:--'} / {durationString || '--:--'}</h3>
                     </div>
                     <div className={styles.buttonSection}>
+                        <button className={styles.b} onClick={() => setShowSubtitles(!showSubtitles)}>
+                            { showSubtitles ? <FaClosedCaptioning/> : <FaRegClosedCaptioning/>}
+                        </button>
                         <button className={styles.b} onClick={() => setFullScreen(!fullScreen)}>
                             <RiFullscreenLine/>
                         </button>
