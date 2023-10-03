@@ -183,18 +183,6 @@ const Player = () => {
         }
     };
 
-    const turnOnSubtitles = () => {
-        if(trackRef.current) {
-            trackRef.current.kind = 'captions';
-        }
-    };
-
-    const turnOffSubtitles = () => {
-        if(trackRef.current) {
-            trackRef.current.kind = 'metadata';
-        }
-    };
-
     useEffect(()=>{
         FetchMedia();
         const mouseUp = () => {seekRef.current = false; setVolumeRef.current = false};
@@ -260,26 +248,20 @@ const Player = () => {
 
     useEffect(() => {
         window.localStorage.setItem('showSubtitles', showSubtitles);
-        if(showSubtitles) {
-            turnOnSubtitles();
-        }
-        else {
-            turnOffSubtitles();
-        }
     }, [showSubtitles]);
 
     return (
         <>
         <video ref={videoRef} src={videoSource} className={styles.video} crossOrigin='anonymous'>
             {/* Add your <track> element here */}
-            <track
+            { showSubtitles ? <track
             ref={trackRef}
             src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeId > 0 ? episodeId : null}&extension=vtt`}
             kind="subtitles"
             srcLang="en"
             label="English"
             default
-            />
+            /> : <></>}
         </video>
 
         <div className={styles.overlay} style={{opacity: overlay ? 1 : 0, cursor: overlay ? 'default' : 'none'}}>
