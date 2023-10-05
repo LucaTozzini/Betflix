@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import styles from '../styles/Player.screen.module.css';
-import { FaArrowLeft, FaPlay, FaPause, FaVolumeLow, FaVolumeOff, FaRegClosedCaptioning, FaClosedCaptioning } from "react-icons/fa6";
+import { FaArrowLeft, FaPlay, FaPause, FaVolumeLow, FaVolumeOff, FaRegClosedCaptioning, FaClosedCaptioning, FaX } from "react-icons/fa6";
 import { RiFullscreenLine } from "react-icons/ri";
 import { useContext, useEffect } from 'react';
 
@@ -43,9 +43,312 @@ const Player = () => {
     const setVolumeRef = useRef(false);
 
     // subtitles
+    const [ showSubtitlesModal, setShowSubtitlesModal ] = useState(false);
     const trackRef = useRef(null);
+    const [ availableSubtitles, setAvailableSubtitles ] = useState(null);
     const [ showSubtitles, setShowSubtitles ] = useState(() => window.localStorage.getItem('showSubtitles') === "true");
-    const [ subtitlesLanguage, setSubtitlesLanguage ] = useState(null);
+    const [ subtitlesLanguage, setSubtitlesLanguage ] = useState(() => window.localStorage.getItem('subtitlesLanguage') || 'en');
+    const [ subtitlesResults, setSubtitlesResults ] = useState(null);
+    const [ resultsLanguage, setResultsLanguage ] = useState(null);
+    const [ manualSearch, setManualSearch ] = useState('');
+    const langDict =  [
+        {
+          "language_code": "af",
+          "language_name": "Afrikaans"
+        },
+        {
+          "language_code": "sq",
+          "language_name": "Albanian"
+        },
+        {
+          "language_code": "ar",
+          "language_name": "Arabic"
+        },
+        {
+          "language_code": "an",
+          "language_name": "Aragonese"
+        },
+        {
+          "language_code": "hy",
+          "language_name": "Armenian"
+        },
+        {
+          "language_code": "at",
+          "language_name": "Asturian"
+        },
+        {
+          "language_code": "eu",
+          "language_name": "Basque"
+        },
+        {
+          "language_code": "be",
+          "language_name": "Belarusian"
+        },
+        {
+          "language_code": "bn",
+          "language_name": "Bengali"
+        },
+        {
+          "language_code": "bs",
+          "language_name": "Bosnian"
+        },
+        {
+          "language_code": "br",
+          "language_name": "Breton"
+        },
+        {
+          "language_code": "bg",
+          "language_name": "Bulgarian"
+        },
+        {
+          "language_code": "my",
+          "language_name": "Burmese"
+        },
+        {
+          "language_code": "ca",
+          "language_name": "Catalan"
+        },
+        {
+          "language_code": "zh-cn",
+          "language_name": "Chinese (simplified)"
+        },
+        {
+          "language_code": "cs",
+          "language_name": "Czech"
+        },
+        {
+          "language_code": "da",
+          "language_name": "Danish"
+        },
+        {
+          "language_code": "nl",
+          "language_name": "Dutch"
+        },
+        {
+          "language_code": "en",
+          "language_name": "English"
+        },
+        {
+          "language_code": "eo",
+          "language_name": "Esperanto"
+        },
+        {
+          "language_code": "et",
+          "language_name": "Estonian"
+        },
+        {
+          "language_code": "fi",
+          "language_name": "Finnish"
+        },
+        {
+          "language_code": "fr",
+          "language_name": "French"
+        },
+        {
+          "language_code": "ka",
+          "language_name": "Georgian"
+        },
+        {
+          "language_code": "de",
+          "language_name": "German"
+        },
+        {
+          "language_code": "gl",
+          "language_name": "Galician"
+        },
+        {
+          "language_code": "el",
+          "language_name": "Greek"
+        },
+        {
+          "language_code": "he",
+          "language_name": "Hebrew"
+        },
+        {
+          "language_code": "hi",
+          "language_name": "Hindi"
+        },
+        {
+          "language_code": "hr",
+          "language_name": "Croatian"
+        },
+        {
+          "language_code": "hu",
+          "language_name": "Hungarian"
+        },
+        {
+          "language_code": "is",
+          "language_name": "Icelandic"
+        },
+        {
+          "language_code": "id",
+          "language_name": "Indonesian"
+        },
+        {
+          "language_code": "it",
+          "language_name": "Italian"
+        },
+        {
+          "language_code": "ja",
+          "language_name": "Japanese"
+        },
+        {
+          "language_code": "kk",
+          "language_name": "Kazakh"
+        },
+        {
+          "language_code": "km",
+          "language_name": "Khmer"
+        },
+        {
+          "language_code": "ko",
+          "language_name": "Korean"
+        },
+        {
+          "language_code": "lv",
+          "language_name": "Latvian"
+        },
+        {
+          "language_code": "lt",
+          "language_name": "Lithuanian"
+        },
+        {
+          "language_code": "lb",
+          "language_name": "Luxembourgish"
+        },
+        {
+          "language_code": "mk",
+          "language_name": "Macedonian"
+        },
+        {
+          "language_code": "ml",
+          "language_name": "Malayalam"
+        },
+        {
+          "language_code": "ms",
+          "language_name": "Malay"
+        },
+        {
+          "language_code": "ma",
+          "language_name": "Manipuri"
+        },
+        {
+          "language_code": "mn",
+          "language_name": "Mongolian"
+        },
+        {
+          "language_code": "no",
+          "language_name": "Norwegian"
+        },
+        {
+          "language_code": "oc",
+          "language_name": "Occitan"
+        },
+        {
+          "language_code": "fa",
+          "language_name": "Persian"
+        },
+        {
+          "language_code": "pl",
+          "language_name": "Polish"
+        },
+        {
+          "language_code": "pt-pt",
+          "language_name": "Portuguese"
+        },
+        {
+          "language_code": "ru",
+          "language_name": "Russian"
+        },
+        {
+          "language_code": "sr",
+          "language_name": "Serbian"
+        },
+        {
+          "language_code": "si",
+          "language_name": "Sinhalese"
+        },
+        {
+          "language_code": "sk",
+          "language_name": "Slovak"
+        },
+        {
+          "language_code": "sl",
+          "language_name": "Slovenian"
+        },
+        {
+          "language_code": "es",
+          "language_name": "Spanish"
+        },
+        {
+          "language_code": "sw",
+          "language_name": "Swahili"
+        },
+        {
+          "language_code": "sv",
+          "language_name": "Swedish"
+        },
+        {
+          "language_code": "sy",
+          "language_name": "Syriac"
+        },
+        {
+          "language_code": "ta",
+          "language_name": "Tamil"
+        },
+        {
+          "language_code": "te",
+          "language_name": "Telugu"
+        },
+        {
+          "language_code": "tl",
+          "language_name": "Tagalog"
+        },
+        {
+          "language_code": "th",
+          "language_name": "Thai"
+        },
+        {
+          "language_code": "tr",
+          "language_name": "Turkish"
+        },
+        {
+          "language_code": "uk",
+          "language_name": "Ukrainian"
+        },
+        {
+          "language_code": "ur",
+          "language_name": "Urdu"
+        },
+        {
+          "language_code": "uz",
+          "language_name": "Uzbek"
+        },
+        {
+          "language_code": "vi",
+          "language_name": "Vietnamese"
+        },
+        {
+          "language_code": "ro",
+          "language_name": "Romanian"
+        },
+        {
+          "language_code": "pt-br",
+          "language_name": "Portuguese (Brazilian)"
+        },
+        {
+          "language_code": "me",
+          "language_name": "Montenegrin"
+        },
+        {
+          "language_code": "zh-tw",
+          "language_name": "Chinese (traditional)"
+        },
+        {
+          "language_code": "ze",
+          "language_name": "Chinese bilingual"
+        }
+    ]
 
     useEffect(() => window.localStorage.setItem('playerMuted', mute), [mute]);
     useEffect(() => window.localStorage.setItem('playerVolume', volume), [volume]);
@@ -64,6 +367,7 @@ const Player = () => {
         const json = await response.json();
         setMediaData(json);
     };
+
     const FetchSource = async () => {
         if(!mediaData) return;
         if(mediaData.TYPE == 1) setVideoSource(`${serverAddress}/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`);
@@ -97,7 +401,7 @@ const Player = () => {
     };
 
     const FetchNext = async () => {
-        const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({episodeId: Number(episodeId)}) };
+        const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({episodeId: episodeData.EPISODE_ID}) };
         const response = await fetch(`${serverAddress}/player/next`, options);
         const json = await response.json();  
         console.log(json);
@@ -172,14 +476,55 @@ const Player = () => {
         setTimeout(() => { updateRef.current = true }, 3000);
     };
 
-    const fetchSubtitle = async () => {
+    const fetchSubtitles = async () => {
         try {
-            const response = await fetch(`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeId > 0 ? episodeId : null}&extension=vtt`);
-            const text = await response.text();
-            console.log(text);
+            const response = await fetch(`${serverAddress}/player/subtitles/available?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&extension=vtt`);
+            const json = await response.json();
+            setAvailableSubtitles(json);
         }
         catch(err) {
             console.error(err.message);
+        }
+    };
+
+    const quickDownloadSubtitle = async (language) => {
+        try {
+            const response = await fetch(`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeId : null}&language=${language}`);
+            if(response.status == 200) {
+                setSubtitlesLanguage(language);
+                fetchSubtitles();
+            }
+        }
+        catch(err) {
+            console.error(err.message);
+        }
+    };
+
+    const searchSubtitles = async (language) => {
+        try {
+            setSubtitlesResults(null);
+            setResultsLanguage(language);
+            const response = await fetch(`${serverAddress}/player/subtitles/search?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&language=${language}`);
+            const json = await response.json();
+            setSubtitlesResults(json);
+            console.log(json);
+        }
+        catch(err) {
+
+        }
+    };
+
+    const downloadSubtitles = async (fileId, language) => {
+        try {
+            const response = await fetch(`${serverAddress}/player/subtitles/download?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&language=${language}&fileId=${fileId}&extension=vtt`);
+            if(response.status == 200) {
+                setSubtitlesLanguage(language);
+                setSubtitlesResults(null);
+                fetchSubtitles();
+            }
+        }
+        catch(err) {
+
         }
     };
 
@@ -204,18 +549,16 @@ const Player = () => {
         FetchSource()
         if(mediaData.TYPE == 1) {
             FetchResume();
-            fetchSubtitle();
+            fetchSubtitles();
         }
     }, [mediaData]);
 
     useEffect(() => {
         if(!episodeData) return;
         episodeRef.current = episodeData;        
-        if(mediaData.TYPE == 2) {
-            FetchResume();
-            FetchNext();
-        }
-        fetchSubtitle();
+        FetchResume();
+        FetchNext();
+        fetchSubtitles();
     }, [episodeData])
     
     useEffect(() => {
@@ -256,7 +599,7 @@ const Player = () => {
             {/* Add your <track> element here */}
             { showSubtitles ? <track
             ref={trackRef}
-            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeId > 0 ? episodeId : null}&extension=vtt`}
+            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeId : null}&language=${subtitlesLanguage}&extension=vtt`}
             kind="subtitles"
             srcLang="en"
             label="English"
@@ -276,7 +619,9 @@ const Player = () => {
             </div>
 
             <div className={styles.middle} onClick={() => setPaused(!paused)}>
-                { paused ? <FaPlay className={styles.middlePlay}/> : <FaPause className={styles.middlePlay} size={'4.7rem'}/> }
+                <div className={styles.middlePlay}>
+                    { paused ? <FaPlay/> : <FaPause/> }
+                </div>
             </div>
 
             <div className={styles.controls} onMouseEnter={() => controlsHover.current = true} onMouseLeave={() => controlsHover.current = false}>
@@ -302,6 +647,9 @@ const Player = () => {
                         <h3 className={styles.time}>{timeString || '--:--'} / {durationString || '--:--'}</h3>
                     </div>
                     <div className={styles.buttonSection}>
+                        { showSubtitles ? <button onClick={() => setShowSubtitlesModal(true)}>
+                            { langDict.filter(i => i.language_code == subtitlesLanguage)[0].language_name }
+                        </button> : <></>}
                         <button className={styles.b} onClick={() => setShowSubtitles(!showSubtitles)}>
                             { showSubtitles ? <FaClosedCaptioning/> : <FaRegClosedCaptioning/>}
                         </button>
@@ -321,6 +669,59 @@ const Player = () => {
             :<></>
         }
 
+        {
+            showSubtitlesModal && availableSubtitles ? 
+            <div className={styles.subtitlesModal}>
+                <div className={styles.subtitlesContainer}>
+                    <div className={styles.subtitlesSection} style={{alignItems: 'flex-end'}}> 
+                        <button className={styles.closeSubtitles} onClick={() => setShowSubtitlesModal(false)}> <FaX/> </button>
+                    </div>
+                    
+                    <div className={styles.subtitlesSection}>
+                        <h1>Available</h1>
+                        <div className={styles.subtitlesList}>
+                            { 
+                                availableSubtitles
+                                .filter(i => i.EXT == 'vtt')
+                                .map(
+                                    i => <button key={i.LANG} onClick={() => setSubtitlesLanguage(i.LANG)} className={i.LANG == subtitlesLanguage ? styles.selectedSubtitle : '' }>{langDict.filter(x => x.language_code == i.LANG)[0].language_name}</button>
+                                ) 
+                            }
+                        </div>
+                    </div>
+
+                    { availableSubtitles.filter(i => !['en', 'it', 'es', 'fr'].includes(i.LANG))[0] ? 
+                    <div className={styles.subtitlesSection}>
+                        <h1>Quick Download</h1>
+                        <div className={styles.subtitlesList}>
+                            { availableSubtitles.find(i => i.LANG == 'en') ? <></> : <button onClick={() => quickDownloadSubtitle('en')}>English</button>}
+                            { availableSubtitles.find(i => i.LANG == 'it') ? <></> : <button onClick={() => quickDownloadSubtitle('it')}>Italian</button>}
+                            { availableSubtitles.find(i => i.LANG == 'es') ? <></> : <button onClick={() => quickDownloadSubtitle('es')}>Spanish</button>}
+                            { availableSubtitles.find(i => i.LANG == 'fr') ? <></> : <button onClick={() => quickDownloadSubtitle('fr')}>French</button>}
+                        </div>
+                    </div> 
+                    : <></>}
+
+                    <div className={styles.subtitlesSection}>
+                        <h1>Manual Download</h1>
+                        <input type='text' placeholder='Search Language' className={styles.subtitlesLanguageInput} onChange={(e) => setManualSearch(e.target.value)}/>
+                        <div className={styles.subtitlesList}>
+                            {
+                                langDict.filter(i => i.language_name.toLowerCase().includes(manualSearch.toLowerCase())).map(i => <button key={i.language_code} onClick={() => searchSubtitles(i.language_code)}>{i.language_name}</button>)
+                            }
+                        </div>
+                    </div>
+
+                    { subtitlesResults ? <div className={styles.subtitlesSection}>
+                        <h1>Results - { langDict.find(i => i.language_code == resultsLanguage).language_name }</h1>
+                        <div className={styles.subtitlesList}>
+                            { subtitlesResults.map(i => <button key={i.attributes.files[0].file_id} onClick={() => downloadSubtitles(i.attributes.files[0].file_id, i.attributes.language)}>{i.attributes.release}</button>) }
+                        </div>
+                    </div> : <></> }
+                </div>
+            </div>
+            :<></>
+        }
         </>
     );
 }

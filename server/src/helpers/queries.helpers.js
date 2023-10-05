@@ -277,6 +277,38 @@ const episodeSubtitlePath = (episodeId, language, extension) => new Promise((res
     (err, row) => err ? rej(err) : res(row ? row.PATH : null)
 ));
 
+const itemPath = (mediaId) => new Promise((res, rej) => db.get(
+    `SELECT PATH
+    FROM media_main
+    WHERE MEDIA_ID = ?`,
+    [mediaId],
+    (err, row) => err ? rej(err) : res(row ? row.PATH : null)
+));
+
+const episodePath = (episodeId) => new Promise((res, rej) => db.get(
+    `SELECT PATH
+    FROM episodes_main
+    WHERE EPISODE_ID = ?`,
+    [episodeId],
+    (err, row) => err ? rej(err) : res(row ? row.PATH : null)
+));
+
+const availableMovieSubtitles = (mediaId) => new Promise((res, rej) => db.all(
+    `SELECT EXT, LANG
+    FROM subtitles
+    WHERE MEDIA_ID = ?`,
+    [mediaId],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
+const availableEpisodeSubtitles = (episodeId) => new Promise((res, rej) => db.all(
+    `SELECT EXT, LANG
+    FROM subtitles
+    WHERE EPISODE_ID = ?`,
+    [episodeId],
+    (err, rows) => err ? rej(err) : res(rows)
+));
+
 export { 
     browseGenres, 
     genre,
@@ -300,5 +332,9 @@ export {
     itemIMDB,
     episodeIMDB,
     movieSubtitlePath, 
-    episodeSubtitlePath
+    episodeSubtitlePath,
+    itemPath,
+    episodePath,
+    availableEpisodeSubtitles,
+    availableMovieSubtitles
 };

@@ -2,9 +2,9 @@ import express from 'express';
 import fs from 'fs';
 import send from 'send';
 import { authenticateUser, currentEpisode, movieResumeTime, episodeResumeTime } from '../helpers/users.helpers.js'
-import { mediaEpisodeInfo, nextEpisode, movieSubtitlePath, episodeSubtitlePath, mediaInfo } from '../helpers/queries.helpers.js';
+import { mediaEpisodeInfo, nextEpisode, movieSubtitlePath, episodeSubtitlePath, mediaInfo, availableEpisodeSubtitles, availableMovieSubtitles } from '../helpers/queries.helpers.js';
 import { getMoviePath, getEpisodePath } from '../helpers/filesUtil.helpers.js';
-import { fetchSubtitle } from '../helpers/OpenSubtitles-api.js';
+import { searchSubtitles, downloadSubtitle, quickDowload } from '../helpers/OpenSubtitles-api.js';
 
 const router = express.Router();
 
@@ -103,6 +103,9 @@ router.get('/subtitles', async(req, res) => {
     try {
         const { mediaId, episodeId, language, extension } = req.query;
         const isEpisode = !isNaN(episodeId);
+        if(!mediaId && !isEpisode) {
+            return res.sendStatus(400);
+        }
         let path;
         if(isEpisode) {
             path = await episodeSubtitlePath(episodeId, language || 'en', extension || 'srt');
@@ -116,7 +119,7 @@ router.get('/subtitles', async(req, res) => {
         }
 
         if(!path) {
-            const files = await fetchSubtitle(isEpisode ? episodeId : mediaId, isEpisode, language || 'en');
+            const files = await quickDowload(isEpisode ? episodeId : mediaId, isEpisode, language || 'en');
             path = extension == 'vtt' ? files.vtt : files.srt;
         }
 
@@ -124,6 +127,54 @@ router.get('/subtitles', async(req, res) => {
     }
     catch (err) {
         console.log(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/subtitles/available', async(req, res) => {
+    try {
+        const { mediaId, episodeId } = req.query;
+        const isEpisode = !isNaN(episodeId);
+        if(!mediaId && !isEpisode) {
+            return res.sendStatus(400);
+        }
+        const data = isEpisode ? await availableEpisodeSubtitles(episodeId) : await availableMovieSubtitles(mediaId);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/subtitles/search', async(req, res) => {
+    try {
+        const { mediaId, episodeId, language } = req.query;
+        const isEpisode = !isNaN(episodeId);
+        if(!language || !mediaId && !isEpisode) {
+            return res.sendStatus(400);
+        }
+        const data = await searchSubtitles(isEpisode ? episodeId : mediaId, isEpisode, language);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/subtitles/download', async(req, res) => {
+    try {
+        const { mediaId, episodeId, language, fileId, extension } = req.query;
+        const isEpisode = !isNaN(episodeId);
+        if(!fileId || (!mediaId && !isEpisode) || !language || !extension ) {
+            return res.sendStatus(400);
+        }
+        const data = await downloadSubtitle(isEpisode ? episodeId : mediaId, isEpisode, language, fileId);
+        res.sendFile(extension == 'vtt' ? data.vtt : data.srt);
+    }
+    catch(err) {
+        console.error(err.message);
         res.sendStatus(500);
     }
 });

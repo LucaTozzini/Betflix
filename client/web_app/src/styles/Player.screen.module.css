@@ -225,3 +225,63 @@
     scale: 1.05;
 }
 
+.subtitlesModal {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(128, 128, 128, 0.4);
+    z-index: 2;
+}
+
+.subtitlesContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background-color: black;
+    color: white;
+    gap: 1.6rem;
+}
+
+.subtitlesSection {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+}
+
+.subtitlesList {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.subtitlesList > button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    text-align: left;
+    font-size: 1.4rem;
+}
+
+.closeSubtitles {
+    color: white;
+    font-size: 1.5rem;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: none;
+}
+
+button.selectedSubtitle {
+    color: red;
+}
+
+.subtitlesLanguageInput {
+    font-size: 1.5rem;
+    color: white;
+    background-color: rgb(73, 73, 73);
+    border: none;
+    padding: .5rem;
+    outline: none;
+}
