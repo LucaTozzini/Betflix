@@ -60,12 +60,16 @@
 
 .imageSmall, .imageLarge
 {
-    width: 80%;
+    width: 70%;
     height: 100%;
     background-size: cover;
     background-position: center;
     display: flex;
     transition: width 1200ms;
+}
+
+.item:hover .imageSmall, .item:hover .imageLarge {
+    width: 80%;
 }
 
 .imageSmall

@@ -43,8 +43,10 @@ const Player = () => {
     const setVolumeRef = useRef(false);
 
     // subtitles
-    const [ showSubtitlesModal, setShowSubtitlesModal ] = useState(false);
     const trackRef = useRef(null);
+    const [ arbNumber, setArbNumber ] = useState(0);
+    const [ loadingSubtitles, setLoadingSubtitles ] = useState(false);
+    const [ showSubtitlesModal, setShowSubtitlesModal ] = useState(false);
     const [ availableSubtitles, setAvailableSubtitles ] = useState(null);
     const [ showSubtitles, setShowSubtitles ] = useState(() => window.localStorage.getItem('showSubtitles') === "true");
     const [ subtitlesLanguage, setSubtitlesLanguage ] = useState(() => window.localStorage.getItem('subtitlesLanguage') || 'en');
@@ -477,17 +479,21 @@ const Player = () => {
     };
 
     const fetchSubtitles = async () => {
+        setLoadingSubtitles(true)
         try {
             const response = await fetch(`${serverAddress}/player/subtitles/available?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&extension=vtt`);
             const json = await response.json();
             setAvailableSubtitles(json);
+            console.log(json)
         }
         catch(err) {
             console.error(err.message);
         }
+        setLoadingSubtitles(false)
     };
 
     const quickDownloadSubtitle = async (language) => {
+        setLoadingSubtitles(true)
         try {
             const response = await fetch(`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeId : null}&language=${language}`);
             if(response.status == 200) {
@@ -498,34 +504,39 @@ const Player = () => {
         catch(err) {
             console.error(err.message);
         }
+        setLoadingSubtitles(false)
     };
 
     const searchSubtitles = async (language) => {
+        setLoadingSubtitles(true)
         try {
             setSubtitlesResults(null);
-            setResultsLanguage(language);
             const response = await fetch(`${serverAddress}/player/subtitles/search?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&language=${language}`);
             const json = await response.json();
             setSubtitlesResults(json);
             console.log(json);
         }
         catch(err) {
-
+            
         }
+        setLoadingSubtitles(false)
     };
 
     const downloadSubtitles = async (fileId, language) => {
+        setLoadingSubtitles(true);
         try {
             const response = await fetch(`${serverAddress}/player/subtitles/download?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&language=${language}&fileId=${fileId}&extension=vtt`);
             if(response.status == 200) {
                 setSubtitlesLanguage(language);
                 setSubtitlesResults(null);
                 fetchSubtitles();
+                setArbNumber(arbNumber + 1);
             }
         }
         catch(err) {
 
         }
+        setLoadingSubtitles(false);
     };
 
     useEffect(()=>{
@@ -599,7 +610,7 @@ const Player = () => {
             {/* Add your <track> element here */}
             { showSubtitles ? <track
             ref={trackRef}
-            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeId : null}&language=${subtitlesLanguage}&extension=vtt`}
+            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeId : null}&language=${subtitlesLanguage}&extension=vtt&arbNumber=${arbNumber}`}
             kind="subtitles"
             srcLang="en"
             label="English"
@@ -647,8 +658,8 @@ const Player = () => {
                         <h3 className={styles.time}>{timeString || '--:--'} / {durationString || '--:--'}</h3>
                     </div>
                     <div className={styles.buttonSection}>
-                        { showSubtitles ? <button onClick={() => setShowSubtitlesModal(true)}>
-                            { langDict.filter(i => i.language_code == subtitlesLanguage)[0].language_name }
+                        { showSubtitles ? <button className={styles.languageButton} onClick={() => setShowSubtitlesModal(true)} >
+                            { langDict.filter(i => i.language_code == subtitlesLanguage.toLowerCase())[0].language_name }
                         </button> : <></>}
                         <button className={styles.b} onClick={() => setShowSubtitles(!showSubtitles)}>
                             { showSubtitles ? <FaClosedCaptioning/> : <FaRegClosedCaptioning/>}
@@ -673,8 +684,14 @@ const Player = () => {
             showSubtitlesModal && availableSubtitles ? 
             <div className={styles.subtitlesModal}>
                 <div className={styles.subtitlesContainer}>
-                    <div className={styles.subtitlesSection} style={{alignItems: 'flex-end'}}> 
-                        <button className={styles.closeSubtitles} onClick={() => setShowSubtitlesModal(false)}> <FaX/> </button>
+
+                    <div className={styles.subtitlesTop}>
+                        <div className={styles.subtitlesSection} style={{alignItems: 'flex-end'}}> 
+                            <button className={styles.closeSubtitles} onClick={() => setShowSubtitlesModal(false)}> <FaX/> </button>
+                        </div>
+                        { loadingSubtitles ? <div>
+                            Loading
+                        </div> : <></>}
                     </div>
                     
                     <div className={styles.subtitlesSection}>
@@ -684,13 +701,18 @@ const Player = () => {
                                 availableSubtitles
                                 .filter(i => i.EXT == 'vtt')
                                 .map(
-                                    i => <button key={i.LANG} onClick={() => setSubtitlesLanguage(i.LANG)} className={i.LANG == subtitlesLanguage ? styles.selectedSubtitle : '' }>{langDict.filter(x => x.language_code == i.LANG)[0].language_name}</button>
+                                    i => <button key={i.LANG} onClick={() => setSubtitlesLanguage(i.LANG)} className={i.LANG == subtitlesLanguage ? styles.selectedSubtitle : '' }>{langDict.filter(x => x.language_code == i.LANG.toLowerCase())[0].language_name}</button>
                                 ) 
                             }
                         </div>
                     </div>
 
-                    { availableSubtitles.filter(i => !['en', 'it', 'es', 'fr'].includes(i.LANG))[0] ? 
+                    { 
+                    availableSubtitles.find(i => i.LANG == 'en') && 
+                    availableSubtitles.find(i => i.LANG == 'it') && 
+                    availableSubtitles.find(i => i.LANG == 'es') && 
+                    availableSubtitles.find(i => i.LANG == 'fr')
+                    ? <></> : 
                     <div className={styles.subtitlesSection}>
                         <h1>Quick Download</h1>
                         <div className={styles.subtitlesList}>
@@ -700,20 +722,20 @@ const Player = () => {
                             { availableSubtitles.find(i => i.LANG == 'fr') ? <></> : <button onClick={() => quickDownloadSubtitle('fr')}>French</button>}
                         </div>
                     </div> 
-                    : <></>}
+                    }
 
                     <div className={styles.subtitlesSection}>
                         <h1>Manual Download</h1>
                         <input type='text' placeholder='Search Language' className={styles.subtitlesLanguageInput} onChange={(e) => setManualSearch(e.target.value)}/>
                         <div className={styles.subtitlesList}>
                             {
-                                langDict.filter(i => i.language_name.toLowerCase().includes(manualSearch.toLowerCase())).map(i => <button key={i.language_code} onClick={() => searchSubtitles(i.language_code)}>{i.language_name}</button>)
+                                langDict.filter(i => manualSearch.length > 0 ? manualSearch == "*" ? true : i.language_name.toLowerCase().includes(manualSearch.toLowerCase()) : false).map(i => <button key={i.language_code} onClick={() => searchSubtitles(i.language_code)}>{i.language_name}</button>)
                             }
                         </div>
                     </div>
 
                     { subtitlesResults ? <div className={styles.subtitlesSection}>
-                        <h1>Results - { langDict.find(i => i.language_code == resultsLanguage).language_name }</h1>
+                        <h1>Results - { langDict.find(i => i.language_code == subtitlesResults[0].attributes.language.toLowerCase()).language_name }</h1>
                         <div className={styles.subtitlesList}>
                             { subtitlesResults.map(i => <button key={i.attributes.files[0].file_id} onClick={() => downloadSubtitles(i.attributes.files[0].file_id, i.attributes.language)}>{i.attributes.release}</button>) }
                         </div>

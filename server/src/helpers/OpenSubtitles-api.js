@@ -131,7 +131,7 @@ const searchSubtitles = (id, isEpisode, language) => new Promise(async (res, rej
         
         const response = await axios.get(`${BASE}/subtitles?imdb_id=${imdb_id}&languages=${language}&foreign_parts_only=exclude&hearing_impaired=exclude&trusted_sources=only`, options);
         if(!response.data.data || response.data.data.length == 0) {
-            throw new Error("No Results")
+            throw new Error("No Results", {cause: "no results"});
         };
         const results = response.data.data;
         res(results);

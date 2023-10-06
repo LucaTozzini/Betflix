@@ -127,6 +127,9 @@ router.get('/subtitles', async(req, res) => {
     }
     catch (err) {
         console.log(err.message);
+        if(err.cause == "no results") {
+            return res.sendStatus(404);
+        }
         res.sendStatus(500);
     }
 });
@@ -159,6 +162,9 @@ router.get('/subtitles/search', async(req, res) => {
     }
     catch(err) {
         console.error(err.message);
+        if(err.cause == "no results") {
+            return res.sendStatus(404);
+        }
         res.sendStatus(500);
     }
 });

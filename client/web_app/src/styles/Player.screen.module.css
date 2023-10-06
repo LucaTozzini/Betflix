@@ -187,6 +187,14 @@
     font-family: sans-serif, monospace;
 }
 
+.languageButton {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: min(1.5rem, 3vw);
+}
+
 .buttonSection .b {
     --size: 2.2rem;
     height: var(--size);
@@ -236,7 +244,7 @@
 .subtitlesContainer {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 0 1rem 1rem 1rem;
     background-color: black;
     color: white;
     gap: 1.6rem;
@@ -260,6 +268,16 @@
     color: white;
     text-align: left;
     font-size: 1.4rem;
+}
+
+.subtitlesTop {
+    position: sticky;
+    left: 0;
+    top: 0;
+    padding: 1rem 0;
+    background-color: black;
+    z-index: 3;
+    border-bottom: solid 1px rgb(122, 122, 122);
 }
 
 .closeSubtitles {
