@@ -25,23 +25,27 @@ const validExt = (filename) => {
 const scanMovies = () => new Promise( async (res, rej) => {
     manager.status.ACTION = 'Scan Movies';
     manager.status.PROGRESS = 0;
-    const files = fs.readdirSync(env.moviesPath).filter( filename => validExt(filename))
-    const returnArray = [];
-
-    let i = 0;
-    for(const file of files){
-        i++;
-        manager.status.PROGRESS = (100 / files.length) * i;
-        if(!await haveMedia(`${env.moviesPath}/${file}`)){
-            returnArray.push({
-                path: `${env.moviesPath}/${file}`,
-                title: parseString(file).title,
-                year: parseString(file).year,
-                duration: await getVideoDurationInSeconds(`${env.moviesPath}/${file}`)
-            });
+    try {
+        const files = fs.readdirSync(env.moviesPath).filter( filename => validExt(filename))
+        const returnArray = [];
+        let i = 0;
+        for(const file of files){
+            i++;
+            manager.status.PROGRESS = (100 / files.length) * i;
+            if(!await haveMedia(`${env.moviesPath}/${file}`)){
+                returnArray.push({
+                    path: `${env.moviesPath}/${file}`,
+                    title: parseString(file).title,
+                    year: parseString(file).year,
+                    duration: await getVideoDurationInSeconds(`${env.moviesPath}/${file}`)
+                });
+            };
         };
-    };
-    res(returnArray);
+        res(returnArray);
+    }
+    catch(err) {
+        rej(err);
+    }
 });
 
 const scanShows = () => new Promise( async (res, rej) => {
