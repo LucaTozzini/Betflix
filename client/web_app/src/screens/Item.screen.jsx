@@ -170,7 +170,7 @@ const Item = () => {
     }, [data]);
 
     useEffect(() => {
-        if(currentSeason) FetchSeasonData(currentSeason)
+        if(!isNaN(currentSeason)) FetchSeasonData(currentSeason)
     }, [currentSeason]);
 
     const InfoBar = () => {

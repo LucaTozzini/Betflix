@@ -85,7 +85,9 @@ router.post('/season', async (req, res) => {
     try{
         const { userId, userPin, mediaId, seasonNum} = req.body;
 
-        if(!seasonNum) return res.sendStatus(400);
+        if(isNaN(seasonNum)){
+            return res.sendStatus(400);
+        }
 
         const auth = await authenticateUser(userId, userPin);
         if(!auth) return res.sendStatus(401);
