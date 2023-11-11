@@ -6,12 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 import themeContext from '../contexts/theme.context';
 
 const EpisodeRow = ({ title, data }) => {
-    const { textColor, sideMargin } = useContext(themeContext);
+    const { sideMargin } = useContext(themeContext);
     const navigation = useNavigation();
 
     const Item = ({mediaId, episodeId, title, still, seasonNum, episodeNum}) => <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('player', {mediaId, episodeId})}>
         <Image style={styles.still} source={{uri:still}}/>
-        <Text numberOfLines={1} style={[{ color: textColor }, styles.title]}>{`S${seasonNum}:E${episodeNum} - ${title}`}</Text>
+        <Text numberOfLines={1} style={styles.title}>{`S${seasonNum}:E${episodeNum} - ${title}`}</Text>
     </TouchableOpacity>
 
     return (
@@ -33,13 +33,14 @@ const styles = StyleSheet.create({
         gap: 2
     },
     still: {
-        height: 120,
         width: 200,
-        backgroundColor: 'gray',
+        height: 120,
         borderRadius: 4,
+        backgroundColor: "gray",
     },
     title: {
         width: 180,
+        color: "white",
     }
 });
 

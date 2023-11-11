@@ -1,70 +1,68 @@
 import { useEffect, useState, useContext } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
-
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 
-import { useCastState } from 'react-native-google-cast'
+// Icons
+import IonIcons from 'react-native-vector-icons/Ionicons';
 
 // Contexts
 import themeContext from '../contexts/theme.context';
 
-// Components
-import GoogleCastDevicesModal from './GoogleCastDevicesModal.component';
+// 
+const bgCol = "#1e1e1e";
 
-const BottomTabs = () => {
-  const [ show, setShow ] = useState(true);
-  const [ route, setRoute ] = useState(null);
-  const castState = useCastState();
-
-  const [ modal, setModal ] = useState(false);
-  const { bottomTabsColor, bottomTabsIconColor, backgroundColor } = useContext(themeContext);
-
+const BottomTabs = ({routeName}) => {
+  const { backgroundColor } = useContext(themeContext);
   const iconSize = 26;
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const handleChange = () => {
-      const name = navigation.getCurrentRoute().name;
-      setRoute(name);
-    };
-    navigation.addListener('state', handleChange);
-  }, []);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setShow(!['player', 'selectUser'].includes(route));
-  }, [route]);
+    setShow(["home", "item"].includes(routeName));
+  }, [routeName]);
 
   useEffect(() => {
-    if(show) changeNavigationBarColor(bottomTabsColor);
-    else changeNavigationBarColor(backgroundColor);
+    if(show) {
+      changeNavigationBarColor(bgCol);
+    }
+    else {
+      changeNavigationBarColor(backgroundColor);
+    } 
   }, [show]);
-
   
   if(show) return (
-    <View style={[styles.container, {backgroundColor: bottomTabsColor}]}>
-      <GoogleCastDevicesModal show={modal} setShow={setModal} initBackground={true}/>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('browse')}
-      >
+    <View style={styles.container}>
+      
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
         <>
-          <Icon name="th-large" size={iconSize} color={bottomTabsIconColor} />
-          <Text style={[styles.text, {color: bottomTabsIconColor}]}>Browse</Text>
+          <IonIcons name={`home-${routeName == "home" ? "sharp" : "outline"}`} size={iconSize} color="white" />
+          <Text style={styles.text}>Home</Text>
         </>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => setModal(true)}
-      >
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('search')}>
         <>
-          {castState == 'connecting' ? <Image style={{height: iconSize, width: iconSize, objectFit: 'contain'}} source={{uri: 'https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif'}}/>  : <MaterialIcons name={castState == 'connected' ? "cast-connected" : "cast"} size={iconSize} color={bottomTabsIconColor} />}
-          <Text style={[styles.text, {color: bottomTabsIconColor}]}>Cast</Text>
+          <IonIcons name="search-outline" size={iconSize} color="white" />
+          <Text style={styles.text}>Search</Text>
         </>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
+        <>
+          <IonIcons name="checkmark-outline" size={iconSize} color="white" />
+          <Text style={styles.text}>My List</Text>
+        </>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
+        <>
+          <IonIcons name="person-outline" size={iconSize} color="white" />
+          <Text style={styles.text}>Change</Text>
+        </>
+      </TouchableOpacity>
+
     </View>
   );
 };
@@ -72,6 +70,7 @@ const BottomTabs = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    backgroundColor: bgCol
   },
   button: {
     flex: 1,
@@ -81,6 +80,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 12,
     fontWeight: '200',
+    color: 'white'
   },
 });
 

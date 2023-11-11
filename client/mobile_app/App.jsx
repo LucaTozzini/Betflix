@@ -1,15 +1,15 @@
 import { StatusBar, View } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native';
 
 // Helpers
-import { storeData } from './helpers/asyncStorage.helper';
+import { storeData, getData } from './helpers/asyncStorage.helper';
 
 // Screens
 import Item from './screens/Item.screen';
 import Player from './screens/Player.screen';
-import Browse from './screens/Browse.screen';
+import Home from './screens/Home.screen';
 import Search from './screens/Search.screen';
 import SelectUser from './screens/SelectUser.screen';
 import SearchAddress from './screens/SearchAddress.screen';
@@ -20,11 +20,10 @@ import serverContext from './contexts/server.context';
 import currentUserContext from "./contexts/currentUser.context";
 
 // Components
-import Header from './components/Header.component';
 import BottomTabs from './components/BottomTabs.component';
 
 // Hooks
-import GetStorage from './hooks/GetStorage.hook';
+import Authenticator from './hooks/Authenticator.hook';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,26 +38,16 @@ const App = () => {
   // Current-User states
   const [ userId, setUserId ] = useState(null);
   const [ userPin, setUserPin ] = useState(null);
-  const [ userData, setUserData ] = useState(null);
+  const [ userImage, setUserImage ] = useState(null);
+  const [ userName, setUserName ] = useState(null);
   const [ authenticated, setAuthenticated ] = useState(false);
   useEffect(() => {
     if(userId) storeData("userId", userId);
-  }, [userId])
-
-  useEffect(() => {
-    if(userPin) storeData("userPin", userPin);
-  }, [userPin]);
-
-  useEffect(() => {
-    if(userData) storeData("userData", userData);
-  }, [userData]);
-
+    if(userPin) storeData("userPin", userPin)
+  }, [userId, userPin]);
 
   // Theme states
   const sideMargin = 20;
-  const [textColor, setTextColor] = useState('white');
-  const [bottomTabsColor, setBottomTabsColor] = useState('#1e1e1e');
-  const [bottomTabsIconColor, setBottomTabsIconColor] = useState('white');
   const [backgroundColor, setBackgroundColor] = useState('black');
   const navTheme = {
     ...DefaultTheme,
@@ -68,31 +57,68 @@ const App = () => {
     },
   };
 
-  // Google cast states
-  const [castVideoUrl, setCastVideoUrl] = useState(null);
+  // Router
+  const navigationRef = useNavigationContainerRef();
+  const [ routeName, setRouteName ] = useState(null);
 
-  if(!serverAddress || !userId || !userPin || !userData) return <GetStorage setServerAddress={setServerAddress} setUserId={setUserId} setUserPin={setUserPin} setUserData={setUserData}/>
-  else if(!addressValid) return <SearchAddress set={setServerAddress} address={serverAddress} valid={setAddressValid}/>
+  const onRouteChange = () => {
+    const curr = navigationRef.getCurrentRoute().name;
+    setRouteName(curr)
+  };
+
+  // 
+  const fetchStorage = async () => {
+    const id = await getData("userId");
+    const pin = await getData("userPin");
+    setUserId(id || -1);
+    setUserPin(pin || -1);
+  };
+  useEffect(() => {fetchStorage()}, []);
+
+  if(!userId || !userPin) {
+    return
+  }
+  else if(!addressValid) return <SearchAddress setServerAddress={setServerAddress} setAddressValid={setAddressValid}/>
   else return (
     <View style={{flex: 1, backgroundColor}}>
-      <themeContext.Provider value={{backgroundColor, setBackgroundColor, textColor, setTextColor, bottomTabsColor, setBottomTabsColor, bottomTabsIconColor, setBottomTabsIconColor, sideMargin}}>
+      <StatusBar translucent backgroundColor={'transparent'}/>
+      <themeContext.Provider value={{
+        sideMargin, 
+        backgroundColor, 
+        setBackgroundColor
+      }}>
       <serverContext.Provider value={{serverAddress}}>
-      <currentUserContext.Provider value={{userId, setUserId, userPin, setUserPin, userData, setUserData, authenticated, setAuthenticated}}>
-    
-        <StatusBar translucent backgroundColor={'transparent'}/>
-        <NavigationContainer theme={navTheme}>
-          
-          <Header/>
-          <Stack.Navigator screenOptions={{headerShown: false, animation: 'none'}}>
+      <currentUserContext.Provider value={{
+        userId, 
+        setUserId, 
+        userPin, 
+        setUserPin, 
+        userImage, 
+        setUserImage, 
+        userName, 
+        setUserName, 
+        authenticated, 
+        setAuthenticated,
+      }}>
+        <NavigationContainer 
+          theme={navTheme}
+          ref={navigationRef}
+          onReady={onRouteChange}
+          onStateChange={onRouteChange}
+        >
+
+          <Authenticator routeName={routeName}/>
+
+          <Stack.Navigator screenOptions={{headerShown: false, animation: 'none'}} initialRouteName='home'>
 
             <Stack.Screen name="item" component={Item}/>
             <Stack.Screen name="search" component={Search}/>
             <Stack.Screen name="player" component={Player}/>
-            <Stack.Screen name="browse" component={Browse} />
+            <Stack.Screen name="home" component={Home} />
             <Stack.Screen name="selectUser" component={SelectUser} />
 
           </Stack.Navigator>
-          <BottomTabs/>
+          <BottomTabs routeName={routeName}/>
 
         </NavigationContainer>
 

@@ -19,7 +19,6 @@ import {
     filmography,
 } from '../helpers/queries.helpers.js';
 
-
 const router = express.Router();
 
 router.post('/item', async (req, res) => {
@@ -35,7 +34,7 @@ router.post('/item', async (req, res) => {
         data['IN_WATCHLIST'] = await inWatchlist(userId, mediaId) ? 1 : 0;
         if(data.TYPE == 2) {
             data['AVAILABLE_SEASONS'] = await availableSeasons(mediaId);
-        } 
+        }
         res.json(data);
     }
     catch(err){

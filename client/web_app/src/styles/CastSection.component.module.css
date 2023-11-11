@@ -75,6 +75,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     color: white;
+    font-size: 1rem;
 }
 
 .character {

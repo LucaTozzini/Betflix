@@ -6,7 +6,6 @@ import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { hideNavigationBar, showNavigationBar } from 'react-native-navigation-bar-color';
-
 import { useRemoteMediaClient, useMediaStatus, useCastState, useStreamPosition } from 'react-native-google-cast';
 
 // Icons
@@ -21,7 +20,10 @@ import currentUserContext from '../contexts/currentUser.context';
 // Hooks
 import Authenticator from '../hooks/Authenticator.hook';
 
+
 // Components
+import Header from '../components/Header.component';
+import Loading from '../components/Loading.component';
 import GoogleCastDevicesModal from '../components/GoogleCastDevicesModal.component';
 
 const Player = ({ route }) => {
@@ -33,7 +35,7 @@ const Player = ({ route }) => {
     const { mediaId, episodeId } = route.params;
     const { serverAddress } = useContext(serverContext);
     const { userId, userPin } = useContext(currentUserContext);
-
+    
     const [canUpdate, setCanUpdate] = useState(true);
     const [ mediaData, setMediaData] = useState(null);
     const [ episodeData, setEpisodeData ] = useState(null);
@@ -45,6 +47,8 @@ const Player = ({ route }) => {
     const [ resumeTime, setResumeTime ] = useState(null);
     const [ currentTime, setCurrentTime ] = useState(null);
     const [ durationTime, setDurationTime ] = useState(null);
+    const [ showSubtitles, setShowSubtitles ] = useState(false);
+    const [ subtitlesLanguage, setSubtitlesLanguage ] = useState('en');
     
     // UI states
     const hideTime = 5000;
@@ -53,7 +57,6 @@ const Player = ({ route }) => {
     const [ totalTimeString, setTotalTimeString ] = useState(null);
     const [ currentTimeString, setCurrentTimeString ] = useState(null);
     const [ controlsTimeout, setControlsTimeout ] = useState(() => setTimeout(() => setShowControls(false), hideTime));
-
 
     const FetchItem = async () => {
         try{
@@ -298,7 +301,7 @@ const Player = ({ route }) => {
     if(resumeTime >= 0 && mediaData && mediaData.TYPE && (mediaData.TYPE == 1 || episodeData)) {
         const videoUrl = `${serverAddress}/player/video?type=${mediaData.TYPE}&mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : -1}`;
 
-        if(castState == 'notConnected') return (
+        if(["noDevicesAvailable", "notConnected"].includes(castState)) return (
             <>
             <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
             <Authenticator/>
@@ -310,6 +313,14 @@ const Player = ({ route }) => {
             onLoad={handleLoad}
             onProgress={handleProgress}
             paused={paused}
+            selectedTextTrack={{type: 'language', value: subtitlesLanguage}}
+            textTracks={ !showSubtitles ? null :
+                [{
+                    language: subtitlesLanguage,
+                    type: 'text/vtt',
+                    uri: `${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&extension=vtt`,
+                }]
+            }
             />
             <TouchableOpacity activeOpacity={.8} style={styles.overlay} onPress={() => setShowControls(!showControls)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
                 { showControls ? <>
@@ -322,6 +333,9 @@ const Player = ({ route }) => {
                         { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
                     </TouchableOpacity>
                     <View style={styles.buttonsTop}>
+                        <TouchableOpacity onPress={() => {setShowSubtitles(!showSubtitles)}}>
+                            <MaterialCommunityIcons name={showSubtitles ? "subtitles" : "subtitles-outline"} color="white" size={28}/>
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => {setCastModal(true); setPaused(true)}}>
                             <MaterialIcons name="cast" color="white" size={25}/>
                         </TouchableOpacity>
@@ -340,11 +354,7 @@ const Player = ({ route }) => {
                     </TouchableOpacity>
                 </View>
 
-                <LinearGradient colors={['transparent', 'black']} style={[styles.overlaySection, { justifyContent: 'flex-end', paddingBottom: 25 }]}>
-                    <View style={styles.timeContainer}>
-                        <Text style={styles.time}>{currentTimeString}</Text>
-                        <Text style={[styles.time, {color: 'rgb(150, 150, 150)'}]}>/{totalTimeString}</Text>
-                    </View>
+                <LinearGradient colors={['transparent', 'black']} style={[styles.overlaySection, { justifyContent: 'flex-end', paddingBottom: 30, gap: 6 }]}>
                     <Slider 
                     style={styles.slider} 
                     thumbTintColor='orange'
@@ -360,6 +370,11 @@ const Player = ({ route }) => {
                     onPressIn={handlePressIn} 
                     onPressOut={handlePressOut}
                     />
+
+                    <View style={styles.timeContainer}>
+                        <Text style={styles.time}>{currentTimeString}</Text>
+                        <Text style={[styles.time, {color: 'rgb(150, 150, 150)'}]}>/{totalTimeString}</Text>
+                    </View>
                 </LinearGradient>
                 </> : <></>}
             </TouchableOpacity>
@@ -369,6 +384,7 @@ const Player = ({ route }) => {
         else {
             return (
                 <>
+                <Header showHeader expandHeader={false}/>
                 <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
                 <StatusBar translucent={false} backgroundColor={'black'}/>
                 <ImageBackground source={{uri:mediaData.POSTER_NT_L || mediaData.BACKDROP_L}} style={castStyles.container}>
@@ -411,6 +427,9 @@ const Player = ({ route }) => {
             )
         } 
     }
+    else {
+        return <Loading/>
+    }
 };
 
 const styles = StyleSheet.create({
@@ -439,6 +458,8 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'flex-end',
+        gap: 15,
+        alignItems: 'center'
     },
     button: {
         backgroundColor: 'rgba(0,0,0,0.6)',
@@ -459,12 +480,12 @@ const styles = StyleSheet.create({
     timeContainer: {
         flexDirection: 'row',
         width: '100%',
-        marginLeft: 30
+        marginLeft: 30,
     },
     time: {
         fontSize: 13,
         color: 'white',
-        fontFamily: 'monospace'
+        fontFamily: 'monospace',
     },
     slider: {
         width: '100%'

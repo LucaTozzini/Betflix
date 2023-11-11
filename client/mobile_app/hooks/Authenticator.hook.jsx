@@ -1,32 +1,46 @@
 import { useContext, useState, useEffect } from "react";
 import { useNavigation } from '@react-navigation/native';
+import { getData } from "../helpers/asyncStorage.helper";
 
 // Contexts
 import currentUserContext from "../contexts/currentUser.context";
 import serverContext from "../contexts/server.context";
 
-const Authenticator = () => {
+const Authenticator = ({routeName}) => {
+    const { userId, userPin, setUserName, setUserImage } = useContext(currentUserContext);
     const { serverAddress } = useContext(serverContext);
-    const { userId, authenticated, setAuthenticated, userData } = useContext(currentUserContext);
-    const [ requested, setRequested ] = useState(false);
-    const navigation = useNavigation();
+    const navigate = useNavigation();
 
-    const authenticateUser = async () => {
-        const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({userId})}
+    const auth = async () => {
+        const options = {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({userId, userPin: isNaN(userPin) ? null : userPin}) 
+        };
+
         const response = await fetch(`${serverAddress}/users/data`, options);
-        const auth = response.status == 200;
-        if(auth) setAuthenticated(auth);
-        setRequested(true);
-    };
+        if(response.status != 200) {
+            try {
+                navigate.replace('selectUser')
+            }
+            catch(err) {
+
+            }
+        }
+        else {
+            const json = await response.json();
+            setUserImage(json.USER_IMAGE);
+            setUserName(json.USER_NAME);
+        }
+    }
 
     useEffect(() => {
-        authenticateUser();
-    }, []);
-
-    useEffect(() => {
-        if((requested && !authenticated) || (!userData || userData == -1)) navigation.replace("selectUser");
-    }, [requested, authenticated, userData]);
-
-};
+        if(!['selectUser'].includes(routeName)) {
+            auth();
+        }
+    }, [routeName]);
+};  
 
 export default Authenticator;

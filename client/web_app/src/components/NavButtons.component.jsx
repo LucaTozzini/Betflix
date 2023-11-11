@@ -52,7 +52,7 @@ const NavButtons = ({scrollRef, items}) => {
         if(scrollRef && scrollRef.current) {
             scrollRef.current.addEventListener('scrollend', handleScroll);
         }
-    }, [scrollRef && scrollRef.current]);
+    }, [scrollRef]);
 
     useEffect(() => {
         handleResize();

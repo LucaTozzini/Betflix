@@ -3,9 +3,20 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: var(--marginHorizontal);
-    gap: var(--marginHorizontal);
+    padding: 0 var(--marginHorizontal);
+    gap: 2rem;
     user-select: none;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    padding: .7rem 0;
+}
+
+.logo {
+    height: 2.5rem;
+    object-fit: contain;
 }
 
 .title {
@@ -14,33 +25,42 @@
 }
 
 .users {
-    display: grid;
-    flex: 1;
-    grid-template-columns: repeat(auto-fit, 10rem);
-    grid-template-rows: repeat(auto-fit, 12rem);
-    gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    height: fit-content;
+    gap: 1.5rem;
     justify-content: center;
     overflow: auto;
 }
 
 .user {
-    padding: 1rem;
     border-radius: 1rem;
     height: 10rem;
-    background-color: rgb(30, 30, 30);
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
+    gap: .5rem;
 }
 
 .userImage {
     height: 8rem;
     width: 8rem;
     border-radius: 50%;
-    /* background: radial-gradient(transparent 50%, white 50%, white ); */
     color: white;
     object-fit: cover;
+}
+
+.userAddImage {
+    background-color: rgb(57, 61, 73);
+    height: 8rem;
+    width: 8rem;
+    border-radius: 50%;
+    font-size: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
 }
 
 .userName {

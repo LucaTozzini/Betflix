@@ -5,25 +5,27 @@ import { useNavigation } from '@react-navigation/native';
 // Contexts
 import themeContext from '../contexts/theme.context';
 
-const z = 'https://static.vecteezy.com/system/resources/previews/004/141/669/non_2x/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg'
-
-const MediaRow = ({ title, data}) => {
-    const { textColor, sideMargin } = useContext(themeContext);
+const MediaRow = ({ title, data }) => {
+    const { sideMargin } = useContext(themeContext);
     const navigation = useNavigation();
     
-    const Item = ({poster, title, mediaId}) => <TouchableOpacity onPress={() => navigation.navigate('item', { mediaId })}>
-        <>
-        <Image style={styles.poster} source={{uri:poster || z}}/>
-        <Text 
-        numberOfLines={1} 
-        ellipsizeMode="tail" 
-        style={[styles.itemTitle, { color: textColor }]}>{title}</Text>
-        </>
-    </TouchableOpacity>
+    const Item = ({poster, title, mediaId}) => {
+        return (
+            <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('item', { mediaId })}>
+                <>
+                <Image style={styles.poster} source={{uri:poster || null}}/>
+                <Text 
+                numberOfLines={1} 
+                ellipsizeMode="tail" 
+                style={[styles.itemTitle]}>{title}</Text>
+                </>
+            </TouchableOpacity>
+        );
+    }
 
     if(data && data.length > 0) return (
         <View style={styles.container}>
-            <Text style={[styles.title, {color: textColor, paddingHorizontal: sideMargin}]}>{title}</Text>
+            <Text style={[styles.title, {paddingHorizontal: sideMargin}]}>{title}</Text>
             
             <FlatList 
             showsHorizontalScrollIndicator={false}
@@ -33,6 +35,7 @@ const MediaRow = ({ title, data}) => {
             data={data}
             renderItem={({item}) => <Item id={item.MEDIA_ID} poster={item.POSTER_S || item.POSTER_NT_S } title={item.TITLE} mediaId={item.MEDIA_ID}/>}
             keyExtractor={item => item.MEDIA_ID}
+            bounces={false}
             />
 
         </View>
@@ -46,26 +49,27 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 25,
-        fontWeight: 'bold',
-        textTransform: 'capitalize',
+        fontWeight: "bold",
+        textTransform: "capitalize",
+        color: "white"
     },
     items: {
-        // backgroundColor: 'blue',
         gap: 8,
     },
     item: {
-
+        alignItems: "center",
     },
     poster: {
         height: size * 1.5,
         width: size,
-        resizeMode: 'cover',
+        resizeMode: "cover",
         borderRadius: size / 40,
-        backgroundColor: 'grey'
+        backgroundColor: "grey",
     },
     itemTitle: {
-        width: size * 0.9,
-        fontWeight: '300'
+        maxWidth: size * 0.9,
+        fontWeight: "300",
+        color: "white",
     }
 });
 

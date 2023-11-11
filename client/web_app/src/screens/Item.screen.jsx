@@ -268,7 +268,7 @@ const Item = () => {
                 const sc = Math.trunc(left - (hr * 3600) - (mn * 60));
                 const string = `${hr > 0 ? `${hr}h`:''}${hr > 0 && (mn > 0 || sc > 0) ? ', ' : ''}${mn > 0 ? `${mn}m`:''}${mn > 0 && sc > 0 && mn == 0 && hr == 0 ? ', ' : ''}${sc > 0 && mn == 0 && hr == 0  ? `${sc}s`:''} Left`
                 
-                return <>Resume <span style={{color: 'gray'}}>{string}</span></>
+                return <>{string}</>
             }
             else {
                 return <>Watch Now</>

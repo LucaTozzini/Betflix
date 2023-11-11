@@ -2,86 +2,79 @@
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 
 // Contexts
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 // CSS
 import styles from '../styles/Hero.component.module.css';
 
 
 const Hero = ({ items, autoPlay }) => {
-    const [ dimLeft, setDimLeft ] = useState(true);
-    const [ dimRight, setDimRight ] = useState(true);
-    const ref = useRef(null);
+    const scrollRef = useRef(null);
+    const navLeft = useRef(null);
+    const navRight = useRef(null);
 
-    const itemDimVal = "0.5";
+    const handleScroll = () => {
+        handleShowLeft();
+        handleShowRight();
+        const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length));
+        for(let i = 0; i < scrollRef.current.children.length; i++) {
+            if(i != index && scrollRef.current.children[i].classList.contains(styles.spotLight)) {
+                scrollRef.current.children[i].classList.remove(styles.spotLight);
+            }
+        }
+        scrollRef.current.children[index].classList.add(styles.spotLight);
+    };
 
-    const dimAll = () => {
-        const items = document.getElementsByClassName(styles.item);
-        for(const item of items) {
-            item.style.opacity = itemDimVal; 
+    const scrollLeft = () => {
+        if(scrollRef.current) {
+            const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length)) - 1;
+            if(index >= 0) {
+                scrollRef.current.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
+            }
         }
     };
 
-    const handleScrollRight = () => {
-        if(ref.current) {
-            dimAll();
-            const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
-            const left = ref.current.scrollLeft + ref.current.offsetWidth - pad;
-            ref.current.scrollTo({left})
+    const scrollRight = () => {
+        if(scrollRef.current) {
+            const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length)) + 1;
+            if(scrollRef.current.children.length > index) {
+                scrollRef.current.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
+            }
         }
     };
 
-    const handleScrollLeft = () => {
-        if(ref.current) {
-            dimAll();
-            const pad = 2 * parseFloat(getComputedStyle(ref.current).getPropertyValue('padding').split('px')[1]);
-            const left = ref.current.scrollLeft - ref.current.offsetWidth - pad;
-            ref.current.scrollTo({left})
+    const handleShowLeft = () => {
+        if(scrollRef.current.scrollLeft > 0) {
+            navLeft.current.classList.add(styles.show);
+        }
+        else {
+            navLeft.current.classList.remove(styles.show);
         }
     };
 
-    const handleShowNav = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft;
-            const offset = ref.current.offsetWidth;
-            const scroll = ref.current.scrollWidth;
-
-            setDimLeft(left == 0);
-            setDimRight(Math.abs((left + offset) - scroll) < 10);
+    const handleShowRight = () => {
+        if(items.length > 1 && scrollRef.current.scrollWidth > scrollRef.current.scrollLeft + (2 * scrollRef.current.children[0].clientWidth) && navRight.current) {
+            navRight.current.classList.add(styles.show);
         }
-    };
-
-    const handleItemDims = () => {
-        if(ref.current) {
-            const left = ref.current.scrollLeft;
-            const items = document.getElementsByClassName(styles.item) 
-            const itemWidth = parseFloat(getComputedStyle(items[0]).getPropertyValue('width').replace('px', ''));
-            const itemsGap = parseFloat(getComputedStyle(ref.current).getPropertyValue('gap').replace('px', ''));
-            
-            const curr = Math.round(left / (itemWidth + itemsGap));
-
-            let i = 0;
-            for(const item of items) {
-                item.style.opacity = i == curr ? "1" : itemDimVal;
-                i++;
-            };
+        else {
+            navRight.current.classList.remove(styles.show);
         }
     };
 
     useEffect(() => {
-        if(ref.current) {
-            ref.current.addEventListener('scrollend', handleShowNav);
-            ref.current.addEventListener('scrollend', handleItemDims);
-            handleShowNav();
-            handleItemDims();
+        if(scrollRef.current) {
+            scrollRef.current.addEventListener("scroll", handleScroll);
         }
-    }, [ ref.current ]);
+    }, [scrollRef.current]);
+
+    useEffect(() => {
+        if(scrollRef.current) {
+            handleScroll();
+        }
+    }, [items, scrollRef.current, navRight.current, navLeft.current]);
+    
 
     const Item = ({data}) => {
-        useEffect(() => {
-            handleItemDims();
-        }, []);
-
         const Completion = () => {
             const dur = data.DURATION || data.EPISODE_DURATION;
             const prog = data.PROGRESS_TIME || 0;
@@ -89,7 +82,7 @@ const Hero = ({ items, autoPlay }) => {
             const hr = Math.trunc(left / 3600);
             const mn = Math.trunc((left - (hr * 3600)) / 60);
             const sc = Math.trunc(left - (hr * 3600) - (mn * 60));
-            const string = `${hr > 0 ? `${hr}h`:''}${hr > 0 && (mn > 0 || sc > 0) ? ', ' : ''}${mn > 0 ? `${mn}m`:''}${mn > 0 && sc > 0 && mn == 0 && hr == 0 ? ', ' : ''}${sc > 0 && mn == 0 && hr == 0  ? `${sc}s`:''} Left`
+            const string = `${hr > 0 ? `${hr}h`:''}${hr > 0 && (mn > 0 || sc > 0) ? ', ' : ''}${mn > 0 ? `${mn}m`:''}${mn > 0 && sc > 0 && mn === 0 && hr === 0 ? ', ' : ''}${sc > 0 && mn === 0 && hr === 0  ? `${sc}s`:''} Left`
             return (
                 <span style={{color:'rgb(180, 180, 180)'}}>{string}</span>
             );
@@ -112,7 +105,7 @@ const Hero = ({ items, autoPlay }) => {
                 <div className={styles.infoContainer}>
                     
                     { data.LOGO_S ? 
-                        <img className={styles.logo} src={data.LOGO_S}/> 
+                        <img className={styles.logo} src={data.LOGO_S} alt=''/> 
                         : 
                         <div className={styles.title}>{data.TITLE}</div> 
                     }
@@ -125,14 +118,14 @@ const Hero = ({ items, autoPlay }) => {
 
     if(items && items.length > 0) return (
         <div className={styles.container}>
-            <div className={styles.scroll} ref={ref}>
+            <div className={styles.scroll} ref={scrollRef}>
                 { items.map(i => <Item key={i.MEDIA_ID + i.EPISODE_ID} data={i}/>) }
             </div>
             <div className={styles.overlayContainer}>
-                <button onClick={handleScrollLeft} className={styles.navButton} style={ !dimLeft ? { opacity: 1, pointerEvents: 'all' } : {} }>
+                <button className={styles.navButton} ref={navLeft} onClick={scrollLeft}>
                     <IoChevronBack/>
                 </button>
-                <button onClick={handleScrollRight} className={styles.navButton} style={ !dimRight ? { opacity: 1, pointerEvents: 'all' } : {} }>
+                <button className={styles.navButton} ref={navRight} onClick={scrollRight}>
                     <IoChevronForward/>
                 </button>
             </div>

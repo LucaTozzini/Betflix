@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
-import { IoAddCircle } from "react-icons/io5";
+import { IoAdd } from "react-icons/io5";
 
 // CSS
 import styles from '../styles/SelectUser.screen.module.css';
@@ -100,7 +100,9 @@ const SelectUser = () => {
         return (
             <Link to="new">
                 <div className={styles.user}>
-                    <IoAddCircle className={styles.userImage}/>
+                    <div className={styles.userAddImage}>
+                        <IoAdd/>
+                    </div>
                     <h3 className={styles.userName}>Add User</h3>
                 </div>
             </Link>
@@ -135,6 +137,9 @@ const SelectUser = () => {
                 </div> 
                 : <></> 
             }
+            <div className={styles.top}>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Disney_Plus_logo.svg/1280px-Disney_Plus_logo.svg.png" className={styles.logo}/>
+            </div>
             <h1 className={styles.title}>Who's You?</h1>
             <div className={styles.users}>
                 {userList.map(i => <User key={i.USER_ID} data={i}/>)}

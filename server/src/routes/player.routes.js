@@ -56,10 +56,11 @@ router.get('/video', async (req, res) => {
 router.post('/current-episode', async (req, res) => {
     try{
         const { userId, userPin, mediaId } = req.body;
-    
         const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
-    
+        if(!auth) {
+            res.sendStatus(401);
+            return;
+        }
         const data = await currentEpisode(userId, mediaId);
         res.json(data);
     }

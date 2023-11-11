@@ -1,3 +1,21 @@
+@font-face {
+  font-family: "Barlow";
+  src: url("../fonts/Barlow/Barlow-Regular.ttf") format("truetype");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Barlow";
+  src: url("../fonts/Barlow/Barlow-Bold.ttf") format("truetype");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "Barlow";
+  src: url("../fonts/Barlow/Barlow-Light.ttf") format("truetype");
+  font-weight: lighter;
+}
+
 :root {
   --marginHorizontal: clamp(2rem, 5vw, 10rem);
   --menuHeight: 5rem;
@@ -11,6 +29,7 @@ button {
   margin: 0;
   padding: 0;
   text-decoration: none;
+  font-family: Barlow;
 }
 
 html, body, #root {
@@ -23,6 +42,8 @@ html, body, #root {
   flex-direction: column;
   overflow: auto;
   background: black;
+  background-image: radial-gradient(rgb(36, 36, 52), rgb(29, 29, 29));
+  background-attachment: fixed;
 }
 
 body {
