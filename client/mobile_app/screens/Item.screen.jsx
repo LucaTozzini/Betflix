@@ -6,7 +6,6 @@ import { useNavigation } from "@react-navigation/native";
 import { useRemoteMediaClient, useMediaStatus } from "react-native-google-cast";
 
 // Icons
-import Icon from 'react-native-vector-icons/dist/FontAwesome5';
 import IonIcons from "react-native-vector-icons/dist/Ionicons";
 
 // Contexts
@@ -19,6 +18,7 @@ import Header from "../components/Header.component";
 import Loading from "../components/Loading.component";
 import CastRow from "../components/CastRow.component";
 import EpisodeRow from "../components/EpisodeRow.component";
+import MediaWide from "../components/MediaWide.component";
 
 // Hooks
 import Authenticator from "../hooks/Authenticator.hook";
@@ -35,7 +35,7 @@ const Item = ({ route }) => {
   
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
-  const { sideMargin } = useContext(themeContext);
+  const { sideMargin, NAVIGATION_HEIGHT } = useContext(themeContext);
 
   const [ mediaData, setMediaData ] = useState(null);
   const [ seasonData, setSeasonData ] = useState(null);
@@ -147,7 +147,7 @@ const Item = ({ route }) => {
   if(mediaData) return (
     <>
     <Authenticator/>
-    <ScrollView contentContainerStyle={styles.container} stickyHeaderIndices={[0]} onScroll={handleScroll}>
+    <ScrollView contentContainerStyle={[styles.container, {paddingBottom: NAVIGATION_HEIGHT + 120}]} stickyHeaderIndices={[0]} onScroll={handleScroll}>
       <Header showHeader transparent={transparentHeader} backButton/>
       <ImageBackground style={[styles.backdrop, {marginTop: -40-15-StatusBar.currentHeight}]} source={{uri: mediaData.POSTER_NT_L || mediaData.BACKDROP_L}}>
         <LinearGradient colors={['transparent', 'black']} style={[styles.linearGradient, { paddingHorizontal: sideMargin }]}/>
@@ -155,15 +155,15 @@ const Item = ({ route }) => {
       <View style={[styles.mainButtonsContainer, {marginHorizontal: sideMargin}]}>
 
         <TouchableOpacity onPress={handleWatchlistPress}>
-          <IonIcons name={inWatchlist ? "checkmark-circle-outline" : "add-circle-outline"} size={40} color="white"/>
+          <IonIcons name={inWatchlist ? "checkmark-circle-outline" : "add-circle-outline"} size={50} color="white"/>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('player', { mediaId })}>
-          <IonIcons name="play-circle" color="white" size={70}/>
+          <IonIcons name="play-circle" color="white" size={100}/>
         </TouchableOpacity>
 
         <TouchableOpacity>
-          <IonIcons name="ellipsis-horizontal-circle" size={40} color="white"/>
+          <IonIcons name="ellipsis-horizontal-circle" size={50} color="white"/>
         </TouchableOpacity>
 
       </View>
@@ -192,9 +192,8 @@ const Item = ({ route }) => {
       </View>
       : <></>
       }
-      { seasonData ? <EpisodeRow data={seasonData}/> : <></> }
+      { seasonData ? <MediaWide data={seasonData}/> : <></> }
       <CastRow title={'Cast'} data={mediaData.CAST}/>
-      <View style={{width:1, height: 60}}/>
     </ScrollView>
     </>
   )
@@ -221,8 +220,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'center', 
     alignItems: 'center',
-    gap: 30, 
-    marginTop: -150
+    gap: 20, 
+    marginTop: -180
   },
   infoContainer: {
     alignItems: 'center',

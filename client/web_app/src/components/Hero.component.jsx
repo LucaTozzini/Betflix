@@ -2,76 +2,82 @@
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 
 // Contexts
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // CSS
 import styles from '../styles/Hero.component.module.css';
 
 
 const Hero = ({ items, autoPlay }) => {
-    const scrollRef = useRef(null);
-    const navLeft = useRef(null);
-    const navRight = useRef(null);
+    const [ scrollRef, setScrollRef ] = useState(null);
+    const [ navLeft, setNavLeft ] = useState(null);
+    const [ navRight, setNavRight ] = useState(null);
 
     const handleScroll = () => {
-        handleShowLeft();
-        handleShowRight();
-        const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length));
-        for(let i = 0; i < scrollRef.current.children.length; i++) {
-            if(i != index && scrollRef.current.children[i].classList.contains(styles.spotLight)) {
-                scrollRef.current.children[i].classList.remove(styles.spotLight);
+        if(scrollRef) {
+            handleShowLeft();
+            handleShowRight();
+            const index = Math.round(scrollRef.scrollLeft / (scrollRef.scrollWidth / items.length));
+            for(let i = 0; i < scrollRef.children.length; i++) {
+                if(i != index && scrollRef.children[i].classList.contains(styles.spotLight)) {
+                    scrollRef.children[i].classList.remove(styles.spotLight);
+                }
             }
+            scrollRef.children[index].classList.add(styles.spotLight);
         }
-        scrollRef.current.children[index].classList.add(styles.spotLight);
     };
 
     const scrollLeft = () => {
-        if(scrollRef.current) {
-            const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length)) - 1;
+        if(scrollRef) {
+            const index = Math.round(scrollRef.scrollLeft / (scrollRef.scrollWidth / items.length)) - 1;
             if(index >= 0) {
-                scrollRef.current.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
+                scrollRef.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
             }
         }
     };
 
     const scrollRight = () => {
-        if(scrollRef.current) {
-            const index = Math.round(scrollRef.current.scrollLeft / (scrollRef.current.scrollWidth / items.length)) + 1;
-            if(scrollRef.current.children.length > index) {
-                scrollRef.current.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
+        if(scrollRef) {
+            const index = Math.round(scrollRef.scrollLeft / (scrollRef.scrollWidth / items.length)) + 1;
+            if(scrollRef.children.length > index) {
+                scrollRef.children[index].scrollIntoView({behavior: "smooth", block: 'end', inline: "start"});
             }
         }
     };
 
     const handleShowLeft = () => {
-        if(scrollRef.current.scrollLeft > 0) {
-            navLeft.current.classList.add(styles.show);
-        }
-        else {
-            navLeft.current.classList.remove(styles.show);
+        if(navLeft) {
+            if(scrollRef && scrollRef.scrollLeft > 0) {
+                navLeft.classList.add(styles.show);
+            }
+            else {
+                navLeft.classList.remove(styles.show);
+            }
         }
     };
 
     const handleShowRight = () => {
-        if(items.length > 1 && scrollRef.current.scrollWidth > scrollRef.current.scrollLeft + (2 * scrollRef.current.children[0].clientWidth) && navRight.current) {
-            navRight.current.classList.add(styles.show);
-        }
-        else {
-            navRight.current.classList.remove(styles.show);
+        if(navRight) {
+            if(items.length > 1 && scrollRef && scrollRef.scrollWidth > scrollRef.scrollLeft + (2 * scrollRef.children[0].clientWidth)) {
+                navRight.classList.add(styles.show);
+            }
+            else {
+                navRight.classList.remove(styles.show);
+            }
         }
     };
 
     useEffect(() => {
-        if(scrollRef.current) {
-            scrollRef.current.addEventListener("scroll", handleScroll);
+        if(scrollRef) {
+            scrollRef.addEventListener("scroll", handleScroll);
         }
-    }, [scrollRef.current]);
+    }, [scrollRef]);
 
     useEffect(() => {
-        if(scrollRef.current) {
+        if(scrollRef) {
             handleScroll();
         }
-    }, [items, scrollRef.current, navRight.current, navLeft.current]);
+    }, [items, scrollRef, navRight, navLeft]);
     
 
     const Item = ({data}) => {
@@ -87,6 +93,10 @@ const Hero = ({ items, autoPlay }) => {
                 <span style={{color:'rgb(180, 180, 180)'}}>{string}</span>
             );
         };
+
+        useEffect(() => {
+            handleScroll();
+        }, []);
 
         const handleClick = () => {
             window.location.href = autoPlay ? `/player/${data.MEDIA_ID}/${data.EPISODE_ID || 'a'}` : `/browse/item/${data.MEDIA_ID}`;
@@ -118,14 +128,14 @@ const Hero = ({ items, autoPlay }) => {
 
     if(items && items.length > 0) return (
         <div className={styles.container}>
-            <div className={styles.scroll} ref={scrollRef}>
+            <div className={styles.scroll} ref={setScrollRef}>
                 { items.map(i => <Item key={i.MEDIA_ID + i.EPISODE_ID} data={i}/>) }
             </div>
             <div className={styles.overlayContainer}>
-                <button className={styles.navButton} ref={navLeft} onClick={scrollLeft}>
+                <button className={styles.navButton} ref={setNavLeft} onClick={scrollLeft}>
                     <IoChevronBack/>
                 </button>
-                <button className={styles.navButton} ref={navRight} onClick={scrollRight}>
+                <button className={styles.navButton} ref={setNavRight} onClick={scrollRight}>
                     <IoChevronForward/>
                 </button>
             </div>

@@ -1,19 +1,30 @@
-import { useContext } from 'react';
-import { View, FlatList, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useContext, useEffect, useState } from 'react';
+import { View, FlatList, Text, StyleSheet, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Contexts
 import themeContext from '../contexts/theme.context';
 
+const gap = 7;
+
 const MediaRow = ({ title, data }) => {
     const { sideMargin } = useContext(themeContext);
+    const { width } = useWindowDimensions();
     const navigation = useNavigation();
+    const [ itemWidth, setItemWidth ] = useState(null);
+    const [ itemsPerWidth, setItemsPerWidth ] = useState(3);
+    
+
+    useEffect(() => {
+        const w = (width - ((itemsPerWidth-1) * gap) - (2 * sideMargin)) / itemsPerWidth;
+        setItemWidth(w);
+    }, [width])
     
     const Item = ({poster, title, mediaId}) => {
         return (
             <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('item', { mediaId })}>
                 <>
-                <Image style={styles.poster} source={{uri:poster || null}}/>
+                <Image style={[styles.poster, { width: itemWidth, height: itemWidth * 1.5, borderRadius: itemWidth * 0.03 }]} source={{uri:poster || null}}/>
                 <Text 
                 numberOfLines={1} 
                 ellipsizeMode="tail" 
@@ -45,7 +56,7 @@ const MediaRow = ({ title, data }) => {
 const size = 100;
 const styles = StyleSheet.create({
     container: {
-        gap: 7,
+        gap,
     },
     title: {
         fontSize: 25,
@@ -54,16 +65,13 @@ const styles = StyleSheet.create({
         color: "white"
     },
     items: {
-        gap: 8,
+        gap: 10,
     },
     item: {
         alignItems: "center",
     },
     poster: {
-        height: size * 1.5,
-        width: size,
         resizeMode: "cover",
-        borderRadius: size / 40,
         backgroundColor: "grey",
     },
     itemTitle: {

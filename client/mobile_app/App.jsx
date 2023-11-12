@@ -1,5 +1,5 @@
-import { StatusBar, View } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
+import { StatusBar, View, Dimensions } from 'react-native';
+import { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native';
 
@@ -24,6 +24,12 @@ import BottomTabs from './components/BottomTabs.component';
 
 // Hooks
 import Authenticator from './hooks/Authenticator.hook';
+
+// 
+const SCREEN_HEIGHT = Dimensions.get('screen').height; // device height
+const STATUS_BAR_HEIGHT = StatusBar.currentHeight || 24; 
+const WINDOW_HEIGHT = Dimensions.get('window').height;
+const NAVIGATION_HEIGHT = SCREEN_HEIGHT - WINDOW_HEIGHT - STATUS_BAR_HEIGHT;
 
 const Stack = createNativeStackNavigator();
 
@@ -85,7 +91,8 @@ const App = () => {
       <themeContext.Provider value={{
         sideMargin, 
         backgroundColor, 
-        setBackgroundColor
+        setBackgroundColor,
+        NAVIGATION_HEIGHT
       }}>
       <serverContext.Provider value={{serverAddress}}>
       <currentUserContext.Provider value={{
