@@ -7,9 +7,9 @@ import currentUserContext from '../contexts/currentUser.context';
 import themeContext from '../contexts/theme.context';
 
 // Components
-import MediaWide from '../components/MediaWide.component';
 import Header from '../components/Header.component';
 import MediaRow from '../components/MediaRow.component';
+import MediaWide from '../components/MediaWide.component';
 
 const Home = () => {
   const { serverAddress } = useContext(serverContext);
@@ -34,7 +34,9 @@ const Home = () => {
       const options = {method:'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin, limit: 30})};
       const response = await fetch(`${serverAddress}/users/continue`, options);
       const json = await response.json();
-      setContinueMedia(json);
+      if(json.length > 0) {
+        setContinueMedia(json);
+      }
     }
     catch(err) {
 
@@ -49,13 +51,7 @@ const Home = () => {
   return (
     <ScrollView contentContainerStyle={[styles.container, {paddingBottom: NAVIGATION_HEIGHT + 120}]} stickyHeaderIndices={[0]}>
       <Header showHeader={true}/>
-      <MediaWide title={"Continue Watching"} data={continueMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
-      <MediaRow title={"Latest Releases"} data={latestMedia}/>
+      {continueMedia ? <MediaWide title={"Continue Watching"} data={continueMedia} autoPlay/> : <></> }
       <MediaRow title={"Latest Releases"} data={latestMedia}/>
     </ScrollView>
   )

@@ -16,7 +16,7 @@ import serverContext from '../contexts/server.context';
 import GoogleCastDevicesModal from './GoogleCastDevicesModal.component';
 
 const Header = ({showHeader, transparent, backButton}) => {
-    const { sideMargin } = useContext(themeContext);
+    const { sideMargin, backgroundColor } = useContext(themeContext);
     const { userImage } = useContext(currentUserContext);
     const { serverAddress } = useContext(serverContext);
     const navigation = useNavigation();
@@ -24,10 +24,10 @@ const Header = ({showHeader, transparent, backButton}) => {
     const [ modal, setModal ] = useState(false);
     const castState = useCastState();
 
-    if(!showHeader) return null;
+    if(!showHeader) return <View style={{height: StatusBar.currentHeight}}/>;
     
     return (
-        <LinearGradient colors={['black', transparent ? 'rgba(0,0,0,0.7)' : 'black', transparent ? 'transparent' : 'black']} style={[styles.container, { paddingTop: StatusBar.currentHeight + 10, paddingHorizontal: sideMargin, paddingBottom: 6 }]}>
+        <LinearGradient colors={[backgroundColor, transparent ? 'transparent' : backgroundColor]} style={[styles.container, { paddingTop: StatusBar.currentHeight + 10, paddingHorizontal: sideMargin, paddingBottom: 6 }]}>
             <GoogleCastDevicesModal show={modal} setShow={setModal} initBackground={true}/>
 
             {backButton ?

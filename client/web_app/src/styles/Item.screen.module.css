@@ -5,7 +5,8 @@
     gap: 1rem;
     padding-bottom: 3rem;
     user-select: none;
-    background-color: black;
+    --bkgrndClr: rgb(25, 25, 38);
+    background-color: var(--bkgrndClr);
 }
 
 .heroSection
@@ -25,9 +26,9 @@
     flex-direction: column;
     gap: .5rem;
     background: 
-    linear-gradient(rgba(0, 0, 0, 0.5), transparent 20% 60%, black), 
-    linear-gradient(20deg, black, transparent 60%),
-    linear-gradient(90deg, black, transparent 20%);
+    linear-gradient(rgba(0, 0, 0, 0.5), transparent 20% 60%, var(--bkgrndClr)), 
+    linear-gradient(20deg, var(--bkgrndClr), transparent 60%),
+    linear-gradient(90deg, var(--bkgrndClr), transparent 20%);
 }
 
 .logo {

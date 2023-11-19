@@ -15,6 +15,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // Contexts
 import serverContext from '../contexts/server.context';
+import themeContext from '../contexts/theme.context';
 import currentUserContext from '../contexts/currentUser.context';
 
 // Hooks
@@ -35,6 +36,7 @@ const Player = ({ route }) => {
     const { mediaId, episodeId } = route.params;
     const { serverAddress } = useContext(serverContext);
     const { userId, userPin } = useContext(currentUserContext);
+    const { NAVIGATION_HEIGHT } = useContext(themeContext);
     
     const [canUpdate, setCanUpdate] = useState(true);
     const [ mediaData, setMediaData] = useState(null);
@@ -239,7 +241,7 @@ const Player = ({ route }) => {
         return () => {
             showNavigationBar();
         }
-    }, []);
+    }, [mediaId, episodeId]);
 
     useEffect(() => {
         if(castState != 'connected') hideNavigationBar();
@@ -325,12 +327,12 @@ const Player = ({ route }) => {
             <TouchableOpacity activeOpacity={.8} style={styles.overlay} onPress={() => setShowControls(!showControls)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
                 { showControls ? <>
                 <LinearGradient colors={['black', 'transparent']} style={[styles.overlaySection, { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', paddingHorizontal: 15, paddingTop: 10,  }]}>
-                    <TouchableOpacity onPress={navigation.goBack}>
+                    <TouchableOpacity onPress={navigation.goBack} style={{flexDirection: "row"}}>
                         <FontAwesome5 name="arrow-left" color="white" size={20}/>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{paddingHorizontal: 20, maxWidth: 300}} onPress={() => navigation.navigate('item', { mediaId })}>
-                        <Text numberOfLines={1} style={styles.title}>{mediaData.TITLE}</Text>
-                        { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
+                        <View style={{paddingHorizontal: 20, maxWidth: 300}}>
+                            <Text numberOfLines={1} style={styles.title}>{mediaData.TITLE}</Text>
+                            { episodeData ? <Text numberOfLines={1} style={styles.episodeTitle}>S{episodeData.SEASON_NUM}:E{episodeData.EPISODE_NUM} - {episodeData.TITLE}</Text> : <></>}
+                        </View>
                     </TouchableOpacity>
                     <View style={styles.buttonsTop}>
                         <TouchableOpacity onPress={() => {setShowSubtitles(!showSubtitles)}}>
@@ -384,7 +386,7 @@ const Player = ({ route }) => {
         else {
             return (
                 <>
-                <Header showHeader expandHeader={false}/>
+                <Header showHeader={false}/>
                 <GoogleCastDevicesModal show={castModal} setShow={setCastModal} initBackground={false}/>
                 <StatusBar translucent={false} backgroundColor={'black'}/>
                 <ImageBackground source={{uri:mediaData.POSTER_NT_L || mediaData.BACKDROP_L}} style={castStyles.container}>
@@ -409,7 +411,7 @@ const Player = ({ route }) => {
                             </TouchableOpacity>
                         </View>
                         <Slider
-                        style={{width: '100%'}}
+                        style={{width: '100%', marginBottom: NAVIGATION_HEIGHT}}
                         thumbTintColor='orange'
                         minimumTrackTintColor='orange'
                         maximumTrackTintColor='rgba(255, 255, 255, 0.7)'

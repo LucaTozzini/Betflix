@@ -1,16 +1,22 @@
-import {  } from 'react';
-import GoogleCast, { useDevices, useRemoteMediaClient, useCastDevice } from 'react-native-google-cast';
-import { StyleSheet, ScrollView, Modal, Image, View, Text, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { useEffect, useContext } from 'react';
+import { StyleSheet, ScrollView, Modal, Image, View, Text , TouchableOpacity, TouchableHighlight } from 'react-native';
+
+import GoogleCast, { useDevices, useRemoteMediaClient, useCastDevice, useMediaStatus } from 'react-native-google-cast';
+
+// Contexts
+import themeContext from '../contexts/theme.context';
 
 const GoogleCastDevicesModal = ({show, setShow, initBackground}) => {
   const castDevice = useCastDevice();
   const devices = useDevices();
   const uniqueDevices = [];
+  const { routeName } = useContext(themeContext);
   for(const device of devices) {
     if(!uniqueDevices.map(i => i.deviceId).includes(device.deviceId)) uniqueDevices.push(device);
   };
   const sessionManager = GoogleCast.getSessionManager();
   const client = useRemoteMediaClient();
+  const mediaStatus = useMediaStatus();
 
   const startCasting = async (device) => {
     try {
@@ -33,12 +39,14 @@ const GoogleCastDevicesModal = ({show, setShow, initBackground}) => {
   };
 
   const SetCastImage = async () => {
+    const contentUrl = 'https://chromeunboxed.com/wp-content/uploads/2020/02/netflixOldUI-1200x900.jpg';
     if(client && initBackground) {
+      if(mediaStatus && mediaStatus.mediaInfo.contentUrl == contentUrl) return;
       try {
         await client.loadMedia({
           autoplay: true,
           mediaInfo: {
-            contentUrl: 'https://chromeunboxed.com/wp-content/uploads/2020/02/netflixOldUI-1200x900.jpg',
+            contentUrl,
           }
         });
       }
@@ -48,7 +56,12 @@ const GoogleCastDevicesModal = ({show, setShow, initBackground}) => {
     };
   }
 
-  SetCastImage();
+  useEffect(() => {
+    if(!["item", "player"].includes(routeName)) {
+      SetCastImage();
+    }
+  }, [client, routeName]);
+
 
   const Item = ({ data }) => {
     let image = '';

@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect } from "react";
-import { ScrollView,  View, Text, StyleSheet, ImageBackground, TouchableOpacity, StatusBar } from "react-native";
+import { ScrollView,  View, Text, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Modal } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import SelectDropdown from 'react-native-select-dropdown';
 import { useNavigation } from "@react-navigation/native";
 import { useRemoteMediaClient, useMediaStatus } from "react-native-google-cast";
 
@@ -17,7 +16,6 @@ import themeContext from "../contexts/theme.context";
 import Header from "../components/Header.component";
 import Loading from "../components/Loading.component";
 import CastRow from "../components/CastRow.component";
-import EpisodeRow from "../components/EpisodeRow.component";
 import MediaWide from "../components/MediaWide.component";
 
 // Hooks
@@ -35,13 +33,14 @@ const Item = ({ route }) => {
   
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
-  const { sideMargin, NAVIGATION_HEIGHT } = useContext(themeContext);
+  const { sideMargin, backgroundColor, NAVIGATION_HEIGHT } = useContext(themeContext);
 
   const [ mediaData, setMediaData ] = useState(null);
   const [ seasonData, setSeasonData ] = useState(null);
   const [ currentSeason, setCurrentSeason ] = useState(null);
   const [ inWatchlist, setInWatchlist ] = useState(false);
   const [ transparentHeader, setTransparentHeader ] = useState(true);
+  const [ showSeasons, setShowSeasons ] = useState(false);
 
   const FetchItem = async () => {
     try{
@@ -97,7 +96,7 @@ const Item = ({ route }) => {
         });
       }
       catch(err) {
-        
+        console.error(err.message);
       }
     };
   };
@@ -126,7 +125,7 @@ const Item = ({ route }) => {
 
   useEffect(() => {
     FetchItem();
-  }, []);
+  }, [mediaId]);
 
   useEffect(() => {
     if(mediaData && mediaData.TYPE == 2) {
@@ -138,35 +137,56 @@ const Item = ({ route }) => {
     if(currentSeason) {
       FetchSeason(currentSeason);
     }
-  }, [currentSeason]);
+  }, [currentSeason, mediaId]);
 
   useEffect(() => {
     SetCastImage();
   }, [client, mediaData]);
 
-  if(mediaData) return (
-    <>
-    <Authenticator/>
-    <ScrollView contentContainerStyle={[styles.container, {paddingBottom: NAVIGATION_HEIGHT + 120}]} stickyHeaderIndices={[0]} onScroll={handleScroll}>
-      <Header showHeader transparent={transparentHeader} backButton/>
+  const Poster = () => {
+    return (
       <ImageBackground style={[styles.backdrop, {marginTop: -40-15-StatusBar.currentHeight}]} source={{uri: mediaData.POSTER_NT_L || mediaData.BACKDROP_L}}>
-        <LinearGradient colors={['transparent', 'black']} style={[styles.linearGradient, { paddingHorizontal: sideMargin }]}/>
+        <LinearGradient colors={['transparent', backgroundColor]} style={[styles.linearGradient, { paddingHorizontal: sideMargin }]}/>
       </ImageBackground>
+    )
+  }
+
+  const PlayButton = () => {
+    return (
+      <TouchableOpacity onPress={() => navigation.navigate('player', { mediaId })}>
+        <IonIcons name="play-circle" color="white" size={100}/>
+      </TouchableOpacity>
+    )
+  }
+
+  const WatchlistButton = () => {
+    return (
+      <TouchableOpacity onPress={handleWatchlistPress}>
+        <IonIcons name={inWatchlist ? "checkmark-circle-outline" : "add-circle-outline"} size={50} color="white"/>
+      </TouchableOpacity>
+    )
+  }
+
+  const InfoButton = () => {
+    return (
+      <TouchableOpacity>
+        <IonIcons name="ellipsis-horizontal-circle" size={50} color="white"/>
+      </TouchableOpacity>
+    )
+  }
+
+  const MainButtons = () => {
+    return (
       <View style={[styles.mainButtonsContainer, {marginHorizontal: sideMargin}]}>
-
-        <TouchableOpacity onPress={handleWatchlistPress}>
-          <IonIcons name={inWatchlist ? "checkmark-circle-outline" : "add-circle-outline"} size={50} color="white"/>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('player', { mediaId })}>
-          <IonIcons name="play-circle" color="white" size={100}/>
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-          <IonIcons name="ellipsis-horizontal-circle" size={50} color="white"/>
-        </TouchableOpacity>
-
+        <WatchlistButton/>
+        <PlayButton/>
+        <InfoButton/>
       </View>
+    )
+  }
+
+  const InfoContainer = () => {
+    return (
       <View style={[styles.infoContainer, {marginHorizontal: sideMargin}]}>
         <Text style={styles.title} numberOfLines={2} adjustsFontSizeToFit={true}>{mediaData.TITLE}</Text>
         <View style={styles.infoBar}>
@@ -179,22 +199,61 @@ const Item = ({ route }) => {
           <Text style={styles.infoCard}>{mediaData.CONTENT_RATING}</Text>
         </View>
       </View>
-      {
-      mediaData.TYPE == 2 && mediaData.AVAILABLE_SEASONS.length > 1 && currentSeason ? 
-      <View style={{marginHorizontal: sideMargin}}>
-        <SelectDropdown
-          buttonStyle={styles.seasons}
-          defaultValue={currentSeason}
-          data={mediaData.AVAILABLE_SEASONS.map(i => i.SEASON_NUM)}
-          buttonTextAfterSelection={(selectedItem, index) => `Season ${selectedItem}`}
-          onSelect={(selectedItem, index) => setCurrentSeason(selectedItem)}
-        />
+    )
+  }
+
+  const SeasonSelect = ({seasonNum}) => {
+    const handlePress = () => {
+      setShowSeasons(false);
+      setCurrentSeason(seasonNum);
+    }
+
+    return (
+      <TouchableOpacity onPress={handlePress}>
+        <Text style={{fontSize: 40, color: currentSeason == seasonNum ? "orange": "white"}}>Season {seasonNum}</Text>
+      </TouchableOpacity>
+    )
+  }
+
+  if(mediaData) return (
+    <>
+    <Authenticator/>
+    <ScrollView contentContainerStyle={[styles.container, {paddingBottom: NAVIGATION_HEIGHT + 100}]} stickyHeaderIndices={[0]} onScroll={handleScroll}>
+      
+      <Header showHeader transparent={transparentHeader} backButton/>
+      <Poster/>
+      <MainButtons/>
+      <InfoContainer/>     
+
+      <View style={{gap: 25}}>
+        {mediaData.TYPE == 2 ? <View style={{gap: 10}}>
+          { mediaData.AVAILABLE_SEASONS && mediaData.AVAILABLE_SEASONS.length > 1 ?  
+          <TouchableOpacity style={{marginHorizontal: sideMargin}} onPress={() => setShowSeasons(true)}>
+            <View style={{flexDirection: "row", alignItems: "flex-end", gap: 7}}>
+              <Text style={{color: "white", fontSize: 25}}>Season {currentSeason}</Text>
+              <IonIcons name="caret-down-outline" color="white" size={25} style={{marginBottom: 1}} />
+            </View>
+          </TouchableOpacity> :
+          <Text style={{color: "white", fontSize: 25, marginHorizontal: sideMargin}}>Episodes</Text>
+          }
+          { seasonData ? <MediaWide data={seasonData} autoPlay/> : <></> }
+        </View> : <></>}
+        <CastRow title={'Cast'} data={mediaData.CAST}/>
       </View>
-      : <></>
-      }
-      { seasonData ? <MediaWide data={seasonData}/> : <></> }
-      <CastRow title={'Cast'} data={mediaData.CAST}/>
     </ScrollView>
+
+    { mediaData.AVAILABLE_SEASONS ? 
+    <Modal 
+      visible={showSeasons}
+      onRequestClose={() => setShowSeasons(false)}
+      transparent
+    >
+      <View style={{flex: 1, backgroundColor: "rgba(0,0,0,0.9)", flexDirection: "row", alignItems: "center"}}>
+        <ScrollView contentContainerStyle={{alignItems: "center", paddingVertical: 100, gap: 20}}>
+          {mediaData.AVAILABLE_SEASONS.map(i => <SeasonSelect key={i.SEASON_NUM + "_S"} seasonNum={i.SEASON_NUM}/>)}
+        </ScrollView>
+      </View>
+    </Modal> : <></>}
     </>
   )
   else return (
@@ -204,7 +263,7 @@ const Item = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 15,
+    
   },
   backdrop: {
     height: 500,
@@ -225,7 +284,10 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     alignItems: 'center',
-    gap: 5
+    alignSelf: "center",
+    gap: 5,
+    marginBottom: 40,
+    width: "80%",
   },
   infoCard: {
     backgroundColor: "rgb(200,200,200)", 
@@ -243,7 +305,7 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   title: {
-    fontSize: 30,
+    fontSize: 20,
     color: "white",
     fontWeight: "bold",
     textAlign: "center",

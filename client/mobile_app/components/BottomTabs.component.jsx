@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import LinearGradient from 'react-native-linear-gradient';
 
 // Icons
 import IonIcons from 'react-native-vector-icons/Ionicons';
@@ -26,42 +27,33 @@ const BottomTabs = ({routeName}) => {
       changeNavigationBarColor("transparent");
     }
     else {
-      changeNavigationBarColor(backgroundColor);
+      // changeNavigationBarColor(backgroundColor);
     } 
   }, [show]);
   
   if(show) return (
+    <>
     <View style={[styles.container, {bottom: NAVIGATION_HEIGHT}]}>
       
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
-        <>
-          <IonIcons name={`home-${routeName == "home" ? "sharp" : "outline"}`} size={iconSize} color="white" />
-          {/* <Text style={styles.text}>Home</Text> */}
-        </>
+        <IonIcons name={"home-outline"} size={iconSize} color={routeName == "home" ? "orange" : "white"} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('search')}>
-        <>
-          <IonIcons name="search-outline" size={iconSize} color="white" />
-          {/* <Text style={styles.text}>Search</Text> */}
-        </>
+        <IonIcons name={"search-outline"} size={iconSize} color={routeName == "search" ? "orange" : "white"} />
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('myList')}>
+        <IonIcons name="apps-outline" size={iconSize} color={routeName == "myList" ? "orange" : "white"} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
-        <>
-          <IonIcons name="checkmark-outline" size={iconSize} color="white" />
-          {/* <Text style={styles.text}>My List</Text> */}
-        </>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
-        <>
-          <IonIcons name="person-outline" size={iconSize} color="white" />
-          {/* <Text style={styles.text}>Change</Text> */}
-        </>
+        <IonIcons name="person-outline" size={iconSize} color="white" />
       </TouchableOpacity>
 
     </View>
+    <LinearGradient colors={["transparent", backgroundColor]} style={{position: "absolute", bottom: 0, left: 0, height: NAVIGATION_HEIGHT, width: "100%"}}/>
+    </>
   );
 };
 

@@ -8,19 +8,27 @@ import currentUserContext from "../contexts/currentUser.context";
 
 // Components
 import Header from "../components/Header.component";
+import Loading from "../components/Loading.component";
 
 const SelectUser = () => {
   const { serverAddress } = useContext(serverContext);
   const { setUserId, setUserPin } = useContext(currentUserContext);
-
+  const [ loading, setLoading ] = useState(false);
   const [ users, setUsers ] = useState(null);
 
   const navigation = useNavigation();
 
   const FetchUsers = async () => {
-    const response = await fetch(`${serverAddress}/users/list`);
-    const json = await response.json();
-    setUsers(json);
+    try {
+      setLoading(true);
+      const response = await fetch(`${serverAddress}/users/list`);
+      const json = await response.json();
+      setUsers(json);
+    }
+    catch(err) {
+
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -52,9 +60,10 @@ const SelectUser = () => {
     ) 
   }
 
-  return (
+  if(loading) return <Loading/>
+  else return (
     <>
-    <Header showHeader={true} expandHeader={false}/>
+    <Header showHeader={false}/>
     <View style={styles.container}>
       <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit={true}>Who's You?</Text>
       <ScrollView>

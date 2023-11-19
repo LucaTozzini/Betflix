@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 // Contexts
 import themeContext from '../contexts/theme.context';
 
-const MediaWide = ({title, data}) => {
+const MediaWide = ({title, data, autoPlay}) => {
     const { sideMargin } = useContext(themeContext);
     const { width } = useWindowDimensions();
     const navigation = useNavigation();
@@ -23,14 +23,14 @@ const MediaWide = ({title, data}) => {
 
     const Item = ({title, mediaId, episodeId, progress, image, seasonNum, episodeNum}) => {
         return (
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate(autoPlay ? "player" : "item", {mediaId, episodeId})}>
                 <View style={{gap: 7}}>
                     <View style={{borderRadius: 7, overflow: "hidden", backgroundColor: "grey"}}>
-                        <ImageBackground style={{width: itemWidth, height: itemWidth*0.6}} source={{uri:image}}>
+                        <ImageBackground style={{width: itemWidth, height: itemWidth*0.55}} source={{uri:image}}>
                             <LinearGradient colors={["transparent", "rgba(0,0,0,0.6)"]} style={styles.linearGradient}>
                                 {episodeId ? <Text style={styles.itemEpisodeTitle}>S{seasonNum}:E{episodeNum}</Text> : <></>}
                                 <View style={{width: "100%", alignItems: "flex-start"}}>
-                                    <View style={{width: `${progress}%`, backgroundColor: "red", height: 5}}/>
+                                    <View style={{width: `${progress}%`, backgroundColor: "orange", height: 5}}/>
                                 </View>
                             </LinearGradient>
                         </ImageBackground>
@@ -50,15 +50,17 @@ const MediaWide = ({title, data}) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={[styles.scroll, {paddingHorizontal: sideMargin}]}
             renderItem={({item}) => 
-            <Item 
-                title={item.TITLE} 
-                image={(item.TYPE == 2 || item.EPISODE_ID != null) ? item.STILL_S || item.POSTER_W_S || item.BACKDROP_S : item.POSTER_W_S || item.BACKDROP_S} 
-                episodeNum={item.EPISODE_NUM}
-                seasonNum={item.SEASON_NUM}
-                episodeId={item.EPISODE_ID}
-                progress={item.PROGRESS_TIME / (item.TYPE == 2 ? item.EPISODE_DURATION : item.DURATION) * 100}
+                <Item 
+                    title={item.TITLE} 
+                    image={(item.TYPE == 2 || item.EPISODE_ID != null) ? item.STILL_S || item.POSTER_W_S || item.BACKDROP_S : item.POSTER_W_S || item.BACKDROP_S} 
+                    mediaId={item.MEDIA_ID}
+                    episodeId={item.EPISODE_ID}
+                    seasonNum={item.SEASON_NUM}
+                    episodeNum={item.EPISODE_NUM}
+                    progress={item.PROGRESS_TIME / (item.TYPE == 2 ? item.EPISODE_DURATION : item.DURATION) * 100}
                 />
             }
+            keyExtractor={item => `${item.MEDIA_ID}_${item.EPISODE_ID || 0}`}
             bounces={false}
             />
         </View>

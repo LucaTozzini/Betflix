@@ -8,8 +8,9 @@ import { storeData, getData } from './helpers/asyncStorage.helper';
 
 // Screens
 import Item from './screens/Item.screen';
-import Player from './screens/Player.screen';
 import Home from './screens/Home.screen';
+import Player from './screens/Player.screen';
+import MyList from './screens/MyList.screen';
 import Search from './screens/Search.screen';
 import SelectUser from './screens/SelectUser.screen';
 import SearchAddress from './screens/SearchAddress.screen';
@@ -54,7 +55,7 @@ const App = () => {
 
   // Theme states
   const sideMargin = 20;
-  const [backgroundColor, setBackgroundColor] = useState('black');
+  const [backgroundColor, setBackgroundColor] = useState("#040a14");
   const navTheme = {
     ...DefaultTheme,
     colors: {
@@ -90,6 +91,7 @@ const App = () => {
       <StatusBar translucent backgroundColor={'transparent'}/>
       <themeContext.Provider value={{
         sideMargin, 
+        routeName,
         backgroundColor, 
         setBackgroundColor,
         NAVIGATION_HEIGHT
@@ -123,6 +125,7 @@ const App = () => {
             <Stack.Screen name="player" component={Player}/>
             <Stack.Screen name="home" component={Home} />
             <Stack.Screen name="selectUser" component={SelectUser} />
+            <Stack.Screen name="myList" component={MyList}/>
 
           </Stack.Navigator>
           <BottomTabs routeName={routeName}/>
