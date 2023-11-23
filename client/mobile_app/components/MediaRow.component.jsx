@@ -1,24 +1,42 @@
 import { useContext, useEffect, useState } from 'react';
 import { View, FlatList, Text, StyleSheet, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { isTablet } from 'react-native-device-info';
 
 // Contexts
 import themeContext from '../contexts/theme.context';
 
-const gap = 7;
+const gap = 10;
 
 const MediaRow = ({ title, data }) => {
     const { sideMargin } = useContext(themeContext);
     const { width } = useWindowDimensions();
+
     const navigation = useNavigation();
     const [ itemWidth, setItemWidth ] = useState(null);
     const [ itemsPerWidth, setItemsPerWidth ] = useState(3);
-    
 
-    useEffect(() => {
+    const calcItemWidth = () => {
         const w = (width - ((itemsPerWidth-1) * gap) - (2 * sideMargin)) / itemsPerWidth;
         setItemWidth(w);
-    }, [width])
+    };
+
+    const calcItemsPerWidth = () => {
+        if(isTablet()) {
+            setItemsPerWidth(8);
+        }
+        else {
+            setItemsPerWidth(3);
+        }
+    };
+
+    useEffect(() => {
+        calcItemsPerWidth();
+    }, []);
+
+    useEffect(() => {
+        calcItemWidth();
+    }, [ itemsPerWidth, sideMargin, itemsPerWidth ]);
     
     const Item = ({poster, title, mediaId}) => {
         return (
@@ -28,7 +46,7 @@ const MediaRow = ({ title, data }) => {
                 <Text 
                 numberOfLines={1} 
                 ellipsizeMode="tail" 
-                style={[styles.itemTitle]}>{title}</Text>
+                style={[styles.itemTitle, {width: itemWidth * 0.85}]}>{title}</Text>
                 </>
             </TouchableOpacity>
         );
@@ -53,10 +71,9 @@ const MediaRow = ({ title, data }) => {
     )
 };
 
-const size = 100;
 const styles = StyleSheet.create({
     container: {
-        gap,
+        gap: 7,
     },
     title: {
         fontSize: 25,
@@ -65,7 +82,7 @@ const styles = StyleSheet.create({
         color: "white"
     },
     items: {
-        gap: 10,
+        gap,
     },
     item: {
         alignItems: "center",
@@ -75,7 +92,6 @@ const styles = StyleSheet.create({
         backgroundColor: "grey",
     },
     itemTitle: {
-        maxWidth: size * 0.9,
         fontWeight: "300",
         color: "white",
     }

@@ -2,24 +2,41 @@ import { useContext, useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ImageBackground, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { isTablet } from 'react-native-device-info';
 
 // Contexts
 import themeContext from '../contexts/theme.context';
+
+const gap = 10;
 
 const MediaWide = ({title, data, autoPlay}) => {
     const { sideMargin } = useContext(themeContext);
     const { width } = useWindowDimensions();
     const navigation = useNavigation();
-
+    const [ itemsPerWidth, setItemsPerWidth ] = useState(1);
     const [ itemWidth, setItemWidth ] = useState(null);
     
     const calcItemWidth = () => {
-        setItemWidth(width - (2 * sideMargin));
-    }
+        const w = (width - ((itemsPerWidth-1) * gap) - (2 * sideMargin)) / itemsPerWidth;
+        setItemWidth(w);
+    };
+
+    const calcItemsPerWidth = () => {
+        if(isTablet()) {
+            setItemsPerWidth(3);
+        }
+        else {
+            setItemsPerWidth(1);
+        }
+    };
+
+    useEffect(() => {
+        calcItemsPerWidth();
+    }, []);
 
     useEffect(() => {
         calcItemWidth();
-    }, [width]);
+    }, [ itemsPerWidth, sideMargin, itemsPerWidth ]);
 
     const Item = ({title, mediaId, episodeId, progress, image, seasonNum, episodeNum}) => {
         return (
@@ -69,7 +86,7 @@ const MediaWide = ({title, data, autoPlay}) => {
 
 const styles = StyleSheet.create({
     container: {
-        gap: 7
+        gap
     },
     title: {
         fontSize: 25,

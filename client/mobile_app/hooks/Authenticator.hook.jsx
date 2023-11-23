@@ -9,7 +9,7 @@ import serverContext from "../contexts/server.context";
 const Authenticator = ({routeName}) => {
     const { userId, userPin, setUserName, setUserImage } = useContext(currentUserContext);
     const { serverAddress } = useContext(serverContext);
-    const navigate = useNavigation();
+    const navigation = useNavigation();
 
     const auth = async () => {
         const options = {
@@ -23,10 +23,10 @@ const Authenticator = ({routeName}) => {
         const response = await fetch(`${serverAddress}/users/data`, options);
         if(response.status != 200) {
             try {
-                navigate.replace('selectUser')
+                navigation.navigate("selectUser", {replace: true});
             }
             catch(err) {
-
+                console.error(err.message);
             }
         }
         else {

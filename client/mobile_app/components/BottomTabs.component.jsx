@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import LinearGradient from 'react-native-linear-gradient';
+import { isTablet } from 'react-native-device-info';
 
 // Icons
 import IonIcons from 'react-native-vector-icons/Ionicons';
@@ -14,8 +15,6 @@ const BottomTabs = ({routeName}) => {
   const { backgroundColor, NAVIGATION_HEIGHT } = useContext(themeContext);
   const iconSize = 25;
   const navigation = useNavigation();
-
-
   const [ show, setShow ] = useState(false);
 
   useEffect(() => {
@@ -30,10 +29,10 @@ const BottomTabs = ({routeName}) => {
       // changeNavigationBarColor(backgroundColor);
     } 
   }, [show]);
-  
+
   if(show) return (
     <>
-    <View style={[styles.container, {bottom: NAVIGATION_HEIGHT}]}>
+    <View style={[styles.container, {bottom: NAVIGATION_HEIGHT < 20 ? 20 : NAVIGATION_HEIGHT}]}>
       
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('home')}>
         <IonIcons name={"home-outline"} size={iconSize} color={routeName == "home" ? "orange" : "white"} />
@@ -60,10 +59,10 @@ const BottomTabs = ({routeName}) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: "rgb(40,40,40)",
+    backgroundColor: "rgb(40,40,47)",
     position: "absolute",
     paddingHorizontal: "5%",
-    width: "75%",
+    width: isTablet() ? "50%" : "75%",
     alignSelf: "center",
     borderRadius: 30,
     justifyContent: "space-between",

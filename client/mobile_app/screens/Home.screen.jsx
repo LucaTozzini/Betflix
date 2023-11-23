@@ -25,7 +25,7 @@ const Home = () => {
       setLatestMedia(json);
     }
     catch(err) {
-      
+      console.error(err.message); 
     }
   };
 
@@ -39,14 +39,14 @@ const Home = () => {
       }
     }
     catch(err) {
-
+      console.error(err.message);
     }
   }
 
   useEffect(() => {
     FetchLatestReleases();
     FetchContinue();
-  }, []);
+  }, [userId]);
 
   return (
     <ScrollView contentContainerStyle={[styles.container, {paddingBottom: NAVIGATION_HEIGHT + 120}]} stickyHeaderIndices={[0]}>

@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { ScrollView,  View, Text, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Modal } from "react-native";
+import { ScrollView,  View, Text, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Modal, useWindowDimensions } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useRemoteMediaClient, useMediaStatus } from "react-native-google-cast";
@@ -28,6 +28,7 @@ const Item = ({ route }) => {
 
   // Then
   const { mediaId } = route.params;
+  const { width } = useWindowDimensions();
   const mediaStatus = useMediaStatus();
   const client = useRemoteMediaClient();
   
@@ -81,7 +82,7 @@ const Item = ({ route }) => {
       setSeasonData(json.EPISODES);
     }
     catch(err){
-
+      console.error(err.message);
     }
   };
 
@@ -145,7 +146,7 @@ const Item = ({ route }) => {
 
   const Poster = () => {
     return (
-      <ImageBackground style={[styles.backdrop, {marginTop: -40-15-StatusBar.currentHeight}]} source={{uri: mediaData.POSTER_NT_L || mediaData.BACKDROP_L}}>
+      <ImageBackground style={[styles.backdrop, {marginTop: -40-15-StatusBar.currentHeight}]} source={{uri: width > 400 ? mediaData.BACKDROP_L : (mediaData.POSTER_NT_L || mediaData.BACKDROP_L)}}>
         <LinearGradient colors={['transparent', backgroundColor]} style={[styles.linearGradient, { paddingHorizontal: sideMargin }]}/>
       </ImageBackground>
     )

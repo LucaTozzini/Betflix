@@ -16,7 +16,7 @@ const SearchAddress = ({ setServerAddress, setAddressValid }) => {
                 setServerAddress(addr)
                 setAddressValid(true);
             };
-        }).catch((err) => {});
+        }).catch((err) => {  });
     };
 
     const loop = async () => {
