@@ -86,7 +86,7 @@ const createTables = () => new Promise(async res => {
     await new Promise(res => 
         db.run(`CREATE TABLE IF NOT EXISTS media_main (
             MEDIA_ID TEXT PRIMARY KEY,
-            TMDB_ID INT NOT NULL,
+            TMDB_ID INT NOT NULL, 
             IMDB_ID TEXT NOT NULL,
             TYPE INT NOT NULL,
             PATH TEXT NOT NULL
