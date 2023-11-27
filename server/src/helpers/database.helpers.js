@@ -3,7 +3,7 @@ sqlite3.verbose()
 import env from '../../env.js';
 import { scanMovies, scanShows } from './filesUtil.helpers.js';
 import { fetchItem, fetchPerson, fetchShow } from './TMDb-api.helpers.js';
-import { orphans, haveMedia } from './queries.helpers.js';
+import { orphans, haveMedia, lastEpisodeDate } from './queries.helpers.js';
 
 let mediaPrep, episodePrep, continuePrep;
 
@@ -76,7 +76,9 @@ const transaction = {
 const foreignKeys = () => new Promise(async res => db.run(
     'PRAGMA foreign_keys = ON',
     (err) => {
-        if(err) console.error(err.message);
+        if(err) {
+            console.error(err.message);
+        }
         res();
     }
 ));
@@ -357,9 +359,8 @@ const insertEpisode = (media_id, e) => new Promise(async (res, rej) => {
 
 const insertShow = (show) => new Promise(async (res, rej) => {
     try {
-        const have = await haveMedia(show.path);
-
         await transaction.begin();
+        const have = await haveMedia(show.path);
         if(!have) {
             await insertMedia(show);
         }
@@ -367,6 +368,9 @@ const insertShow = (show) => new Promise(async (res, rej) => {
         for(const episode of show.episodes) {
             await insertEpisode(show.media_id, episode);
         }
+
+        const lastDate = await lastEpisodeDate(show.media_id);
+        await new Promise((res, rej) => db.run("UPDATE media_dates SET END_DATE = ? WHERE MEDIA_ID = ?", [lastDate.AIR_DATE, show.media_id], (err) => err ? rej(err) : res()));
 
         await transaction.commit();
 
@@ -432,7 +436,9 @@ const manager = {
 
     run: (action) => new Promise( async (res, rej) => {
         try{
-            if(manager.status.ACTIVE) throw new Error('Already Active');
+            if(manager.status.ACTIVE) {
+                throw new Error('Already Active');
+            }
             manager.status.ACTIVE = true;
             manager.status.PROGRESS = 0;
             

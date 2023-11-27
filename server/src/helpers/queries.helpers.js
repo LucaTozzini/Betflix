@@ -309,6 +309,20 @@ const availableEpisodeSubtitles = (episodeId) => new Promise((res, rej) => db.al
     (err, rows) => err ? rej(err) : res(rows)
 ));
 
+const lastEpisodeDate = (mediaId) => 
+    new Promise((res, rej) => db.get(
+        `SELECT AIR_DATE 
+        FROM episodes_dates 
+            AS d
+        JOIN episodes_main 
+            AS m 
+            ON d.EPISODE_ID = m.EPISODE_ID  
+        WHERE MEDIA_ID = ?
+        ORDER BY AIR_DATE DESC`,
+        [mediaId],
+        (err, row) => err ? rej(err) : res(row)
+    ));
+
 export { 
     browseGenres, 
     genre,
@@ -336,5 +350,6 @@ export {
     itemPath,
     episodePath,
     availableEpisodeSubtitles,
-    availableMovieSubtitles
+    availableMovieSubtitles,
+    lastEpisodeDate
 };

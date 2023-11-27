@@ -16,6 +16,7 @@ import Person from "./screens/Person.screen";
 import NewUser from "./screens/NewUser.screen";
 import Database from "./screens/Database.screen";
 import SelectUser from "./screens/SelectUser.screen";
+import FileNotFound from "./screens/FileNotFound.screen";
 import UserSettings from "./screens/UserSettings.screen";
 import SearchAddress from "./screens/SearchAddress.screen";
 import PlayerReroute from "./screens/PlayerReroute.screen";
@@ -96,6 +97,7 @@ function App() {
           <Route path="player">
             <Route path=":mediaId/:episodeId" element={<Player/>}/>
             <Route path="reroute/:mediaId/:episodeId" element={<PlayerReroute/>}/>
+            <Route path="notFound" element={<FileNotFound/>}/>
           </Route>
 
           <Route path="/users">

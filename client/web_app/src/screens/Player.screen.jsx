@@ -32,7 +32,7 @@ const Player = () => {
     const [ fullScreen, setFullScreen] = useState(document.fullscreenElement);
     const fillRef = useRef(null);
     const barRef = useRef(null);
-    const videoRef = useRef(null);
+    const [videoRef, setVideoRef] = useState(null);
     const seekRef = useRef(false);
     
     // volume
@@ -372,7 +372,16 @@ const Player = () => {
 
     const FetchSource = async () => {
         if(!mediaData) return;
-        if(mediaData.TYPE == 1) setVideoSource(`${serverAddress}/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`);
+        if(mediaData.TYPE == 1) {
+          const url = `${serverAddress}/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`;
+          const response = await fetch(url);
+          if(response.status == 404) {
+            window.location.replace("/player/notFound");
+          } else {
+            setVideoSource(url);
+          }
+
+        }
         else if(mediaData.TYPE == 2) {
             if(episodeId == 'a') {
                 const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, userPin, mediaId }) };
@@ -399,24 +408,23 @@ const Player = () => {
         const response = await fetch(`${serverAddress}/player/resume`, options);
         if(response.status != 200) return;
         const time = await response.json();
-        videoRef.current.currentTime = time;
+        videoRef.currentTime = time;
     };
 
     const FetchNext = async () => {
         const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({episodeId: episodeData.EPISODE_ID}) };
         const response = await fetch(`${serverAddress}/player/next`, options);
         const json = await response.json();  
-        console.log(json);
         setNextEpisode(json);
     };
 
     const handleSeek = (e) => {
-        if( !seekRef.current || !barRef.current || !videoRef.current ) return;
+        if( !seekRef.current || !barRef.current || !videoRef ) return;
         const { clientX } = e;
         let perc = (clientX - barRef.current.offsetLeft) / barRef.current.offsetWidth;
         perc = Math.min(1, perc);
         perc = Math.max(0, perc);
-        videoRef.current.currentTime = videoRef.current.duration * perc;
+        videoRef.currentTime = videoRef.duration * perc;
         fillRef.current.style.width = `${perc * 100}%`
     };
 
@@ -426,14 +434,14 @@ const Player = () => {
         let perc = (clientX - volumeSliderRef.current.offsetLeft) / volumeSliderRef.current.offsetWidth;
         perc = Math.min(1, perc);
         perc = Math.max(0, perc);
-        videoRef.current.volume = perc;
+        videoRef.volume = perc;
         setVolume(perc);
         volumeFillRef.current.style.width = `${perc * 100}%`;
     }
 
     const handleTimeString = () => {
-        if(videoRef.current){
-            const currentTime = videoRef.current.currentTime;
+        if(videoRef){
+            const currentTime = videoRef.currentTime;
             const hours =  Math.floor(currentTime / 3600);
             let minutes = Math.floor((currentTime - (hours * 3600)) / 60);
             if(minutes < 10) minutes = '0'+minutes;
@@ -443,7 +451,7 @@ const Player = () => {
             setTimeString(string);
 
             if(durationString == null) {
-                const currentTime = videoRef.current.duration;
+                const currentTime = videoRef.duration;
                 const hours =  Math.floor(currentTime / 3600);
                 let minutes = Math.floor((currentTime - (hours * 3600)) / 60);
                 if(minutes < 10) minutes = '0'+minutes;
@@ -470,8 +478,8 @@ const Player = () => {
             userPin,
             mediaId,
             episodeId: episodeRef.current ? episodeRef.current.EPISODE_ID : -1,
-            progressTime: videoRef.current.currentTime,
-            endTime: videoRef.current.duration - videoRef.current.currentTime
+            progressTime: videoRef.currentTime,
+            endTime: videoRef.duration - videoRef.currentTime
         });
         const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body };
         await fetch(`${serverAddress}/users/update-continue`, options);
@@ -484,7 +492,6 @@ const Player = () => {
             const response = await fetch(`${serverAddress}/player/subtitles/available?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&extension=vtt`);
             const json = await response.json();
             setAvailableSubtitles(json);
-            console.log(json)
         }
         catch(err) {
             console.error(err.message);
@@ -514,7 +521,6 @@ const Player = () => {
             const response = await fetch(`${serverAddress}/player/subtitles/search?mediaId=${mediaId}&episodeId=${episodeData ? episodeData.EPISODE_ID : null}&language=${language}`);
             const json = await response.json();
             setSubtitlesResults(json);
-            console.log(json);
         }
         catch(err) {
             
@@ -573,15 +579,25 @@ const Player = () => {
     }, [episodeData])
     
     useEffect(() => {
-        if(videoRef.current) paused ? videoRef.current.pause() : videoRef.current.play();
+        if(videoRef) {
+          paused ? videoRef.pause() : videoRef.play();
+        } 
     }, [paused]);
     
     useEffect(() => {
-        const updateProgress = () => {if(videoRef.current) setProgress(videoRef.current.currentTime / videoRef.current.duration)};
-        videoRef.current.addEventListener('timeupdate', updateProgress);
-        videoRef.current.addEventListener('timeupdate', updateContinue);
-        videoRef.current.addEventListener('timeupdate', handleTimeString);
-        videoRef.current.volume = volume;
+      if(videoRef) {
+          const updateProgress = () => {
+            setProgress(videoRef.currentTime / videoRef.duration)
+          }
+          videoRef.addEventListener('pause', () => setPaused(true));
+          videoRef.addEventListener('play', () => setPaused(false));
+          videoRef.addEventListener('timeupdate', () => {
+            updateProgress();
+            updateContinue();
+            handleTimeString();
+          });
+          videoRef.volume = volume;
+        }
     }, [videoRef])
 
     useEffect(() => {
@@ -596,8 +612,8 @@ const Player = () => {
     }, [fullScreen]);
 
     useEffect(() => {
-        if(!videoRef.current) return;
-        videoRef.current.muted = mute;
+        if(!videoRef) return;
+        videoRef.muted = mute;
     }, [mute]);
 
     useEffect(() => {
@@ -606,7 +622,7 @@ const Player = () => {
 
     return (
         <>
-        <video ref={videoRef} src={videoSource} className={styles.video} crossOrigin='anonymous'>
+        <video ref={setVideoRef} src={videoSource} className={styles.video} crossOrigin='anonymous'>
             {/* Add your <track> element here */}
             { showSubtitles ? <track
             ref={trackRef}
@@ -620,7 +636,7 @@ const Player = () => {
 
         <div className={styles.overlay} style={{opacity: overlay ? 1 : 0, cursor: overlay ? 'default' : 'none'}}>
             <div className={styles.top}>
-                <Link onClick={() => {videoRef.current.pause(); window.history.back()}}>
+                <Link onClick={() => {videoRef.pause(); window.history.back()}}>
                     <FaArrowLeft/>
                 </Link>
                 <Link to={`/browse/item/${mediaId}`}>
@@ -629,7 +645,7 @@ const Player = () => {
                 </Link>
             </div>
 
-            <div className={styles.middle} onClick={() => setPaused(!paused)}>
+            <div className={styles.middle} onClick={() => paused ? videoRef.play() : videoRef.pause()}>
                 <div className={styles.middlePlay}>
                     { paused ? <FaPlay/> : <FaPause/> }
                 </div>
@@ -672,7 +688,7 @@ const Player = () => {
             </div>
         </div>
 
-        { nextEpisode && videoRef.current && videoRef.current.duration - videoRef.current.currentTime < 60 ?
+        { nextEpisode && videoRef && videoRef.duration - videoRef.currentTime < 60 ?
             <Link className={styles.nextUp} to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`}>
                 <FaPlay/>
                 <div>S{ nextEpisode.SEASON_NUM }:E{nextEpisode.EPISODE_NUM} - {nextEpisode.TITLE}</div>
