@@ -23,7 +23,7 @@ const parseString = (string) => {
 
 const validExt = (filename) => {
   const ext = path.extname(filename).toLowerCase();
-  return ext == ".mp4" || ext == ".m4v";
+  return [".mp4", ".m4v", ".mkv"].includes(ext);
 };
 
 const scanMovies = () =>
@@ -56,47 +56,74 @@ const scanMovies = () =>
     }
   });
 
-const scanShows = () =>
+const scanEpisodes = (folderPath) =>
   new Promise(async (res, rej) => {
-    manager.status.ACTION = "Scan Shows";
-    manager.status.PROGRESS = 0;
     try {
-      const folders = fs.readdirSync(env.showsPath);
+      const items = fs.readdirSync(folderPath);
       const returnArray = [];
-
-      let i = 0;
-      for (const folder of folders) {
-        i++;
-        if (!fs.statSync(`${env.showsPath}/${folder}`).isDirectory()) continue;
-        manager.status.PROGRESS = (100 / folders.length) * i;
-
-        const path = `${env.showsPath}/${folder}`;
-        const string = parseString(folder);
-
-        const episodesFiles = fs
-          .readdirSync(path)
-          .filter((file) => validExt(file));
-        const episodesArray = [];
-
-        for (const file of episodesFiles) {
-          if (!(await haveEpisode(`${path}/${file}`))) {
-            episodesArray.push({
-              path: `${path}/${file}`,
-              season_num: episode(file).season,
-              episode_num: episode(file).episode,
-              duration: await getVideoDurationInSeconds(`${path}/${file}`),
-            });
+      for (const item of items) {
+        const itemPath = folderPath + "/" + item;
+        if (fs.statSync(itemPath).isDirectory()) {
+          returnArray.push(...(await scanEpisodes(itemPath)));
+        } else {
+          if (validExt(item)) {
+            if (!(await haveEpisode(itemPath))) {
+              returnArray.push(itemPath);
+            }
           }
         }
+      }
 
-        returnArray.push({
-          path,
-          title: string.title,
-          year: string.year,
-          episodes: episodesArray,
+      res(returnArray);
+    } catch (err) {
+      rej(err);
+    }
+  });
+
+const scanShow = (folderPath) =>
+  new Promise(async (res, rej) => {
+    try {
+      if (!fs.statSync(folderPath).isDirectory()) {
+        throw new Error("Invalid path");
+      }
+      const folderInfo = parseString(
+        folderPath.split("/")[folderPath.split("/").length - 1]
+      );
+      const episodesPaths = await scanEpisodes(folderPath);
+      if (episodesPaths.length == 0) {
+        throw new Error("No new episodes");
+      }
+      const episodesData = [];
+      for (const episodePath of episodesPaths) {
+        const fileName = episodePath.split("/")[episodePath.split("/").length - 1];
+        episodesData.push({
+          path: episodePath,
+          season_num: episode(fileName).season,
+          episode_num: episode(fileName).episode,
+          duration: await getVideoDurationInSeconds(episodePath),
         });
       }
-      res(returnArray.filter((i) => i.episodes.length > 0));
+
+      res({
+        path: folderPath,
+        title: folderInfo.title,
+        year: folderInfo.year,
+        episodes: episodesData,
+      });
+    } catch (err) {
+      rej(err);
+    }
+  });
+
+const getShowsFolders = () =>
+  new Promise(async (res, rej) => {
+    try {
+      const showFolders = fs
+        .readdirSync(env.showsPath)
+        .filter((folderName) =>
+          fs.statSync(env.showsPath + "/" + folderName).isDirectory()
+        );
+      res(showFolders);
     } catch (err) {
       rej(err);
     }
@@ -110,6 +137,7 @@ const getMoviePath = (mediaId) =>
       (err, row) => (err ? rej(err) : res(row ? row.PATH : undefined))
     )
   );
+
 const getEpisodePath = (episodeId) =>
   new Promise((res, rej) =>
     db.get(
@@ -119,4 +147,30 @@ const getEpisodePath = (episodeId) =>
     )
   );
 
-export { scanMovies, scanShows, getMoviePath, getEpisodePath };
+const missingMedia = () =>
+  new Promise((res, rej) =>
+    db.all("SELECT PATH FROM media_main", (err, rows) =>
+      err
+        ? rej(err)
+        : res(rows.filter((i) => !fs.existsSync(i.PATH)).map((i) => i.PATH))
+    )
+  );
+
+const missingEpisodes = () =>
+  new Promise((res, rej) =>
+    db.all("SELECT PATH FROM episodes_main", (err, rows) =>
+      err
+        ? rej(err)
+        : res(rows.filter((i) => !fs.existsSync(i.PATH)).map((i) => i.PATH))
+    )
+  );
+
+export {
+  scanMovies,
+  getShowsFolders,
+  scanShow,
+  getMoviePath,
+  getEpisodePath,
+  missingMedia,
+  missingEpisodes,
+};

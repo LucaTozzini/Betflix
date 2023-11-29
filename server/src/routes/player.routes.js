@@ -1,4 +1,5 @@
 import fs from "fs";
+import env from "../../env.js";
 import send from "send";
 import express from "express";
 import {
@@ -134,6 +135,9 @@ router.post("/next", async (req, res) => {
 
 router.get("/subtitles", async (req, res) => {
   try {
+    if(!fs.existsSync(env.subtitlesPath)) {
+      return res.status(503).json({error: "Subtitles path not found, make sure needed drive is mounted"});
+    }
     const { mediaId, episodeId, language, extension } = req.query;
     const isEpisode = !isNaN(episodeId);
     if (!mediaId && !isEpisode) {

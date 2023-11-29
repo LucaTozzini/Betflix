@@ -689,7 +689,7 @@ const Player = () => {
         </div>
 
         { nextEpisode && videoRef && videoRef.duration - videoRef.currentTime < 60 ?
-            <Link className={styles.nextUp} to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`}>
+            <Link className={styles.nextUp} to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`} replace>
                 <FaPlay/>
                 <div>S{ nextEpisode.SEASON_NUM }:E{nextEpisode.EPISODE_NUM} - {nextEpisode.TITLE}</div>
             </Link>

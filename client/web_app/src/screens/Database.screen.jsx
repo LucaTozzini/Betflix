@@ -42,6 +42,7 @@ const Database = () => {
                 <button onClick={() => Run(1)}>Scan Movies</button>
                 <button onClick={() => Run(2)}>Scan Shows</button>
                 <button onClick={() => Run(3)}>Update People</button>
+                <button onClick={() => Run(4)}>Clean</button>
             </div>
             <h2 id='action'>{status.ACTION || 'No Active Actions'}</h2>
             <div id="progress-bar">
