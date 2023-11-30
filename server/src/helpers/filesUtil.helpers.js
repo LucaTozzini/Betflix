@@ -115,7 +115,7 @@ const scanShow = (folderPath) =>
     }
   });
 
-const getShowsFolders = () =>
+const getShowFolders = () =>
   new Promise(async (res, rej) => {
     try {
       const showFolders = fs
@@ -128,24 +128,6 @@ const getShowsFolders = () =>
       rej(err);
     }
   });
-
-const getMoviePath = (mediaId) =>
-  new Promise((res, rej) =>
-    db.get(
-      "SELECT PATH FROM media_main WHERE MEDIA_ID = ?",
-      [mediaId],
-      (err, row) => (err ? rej(err) : res(row ? row.PATH : undefined))
-    )
-  );
-
-const getEpisodePath = (episodeId) =>
-  new Promise((res, rej) =>
-    db.get(
-      `SELECT PATH FROM episodes_main WHERE EPISODE_ID = ?`,
-      [episodeId],
-      (err, row) => (err ? rej(err) : res(row ? row.PATH : undefined))
-    )
-  );
 
 const missingMedia = () =>
   new Promise((res, rej) =>
@@ -167,10 +149,8 @@ const missingEpisodes = () =>
 
 export {
   scanMovies,
-  getShowsFolders,
+  getShowFolders,
   scanShow,
-  getMoviePath,
-  getEpisodePath,
   missingMedia,
   missingEpisodes,
 };

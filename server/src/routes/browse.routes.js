@@ -1,77 +1,94 @@
 import express from 'express';
 import { fetchImages } from '../helpers/TMDb-api.helpers.js';
-import { authenticateUser, inWatchlist, watchAgain } from '../helpers/users.helpers.js';
 import { 
-    browseGenres,
-    genre,
-    personInfo,
-    mediaInfo, 
-    mediaGenres, 
-    mediaCast, 
-    availableSeasons, 
-    mediaSeason, 
-    mediaEpisodeInfo, 
-    searchMedia, 
-    latestReleases, 
-    latestEpisodes, 
-    topRated, 
-    dateRange,
-    filmography,
+    authenticateUser, 
+    inWatchlist, 
+    watchAgain 
+} from '../helpers/users.helpers.js';
+import { 
+    availableGenres,
+    queryGenre,
+    queryMedia,
+    queryCast,
+    queryPerson,
+    querySeason,
+    queryEpisode,
+    queryFilmography,
+    queryVoteRange,
+    queryDateRange,
 } from '../helpers/queries.helpers.js';
 
 const router = express.Router();
 
+// Global Media
 router.post('/item', async (req, res) => {
     try{
         const { mediaId, userId, userPin } = req.body;
     
         const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
+        if(!auth) {
+            return res.sendStatus(401);
+        } 
 
-        const data = await mediaInfo(mediaId, userId);
-        data['GENRES'] = await mediaGenres(mediaId);
-        data['CAST'] = await mediaCast(mediaId);
+        const data = await queryMedia(mediaId, userId);
+        data['CAST'] = await queryCast(mediaId);
         data['IN_WATCHLIST'] = await inWatchlist(userId, mediaId) ? 1 : 0;
-        if(data.TYPE == 2) {
-            data['AVAILABLE_SEASONS'] = await availableSeasons(mediaId);
-        }
         res.json(data);
-    }
-    catch(err){
+    } catch(err){
         console.error(err.message);
         res.sendStatus(500);
     }
 });
 
-router.get('/person', async (req, res) => {
-    try {
-        const { personId } = req.query;
-        const data = await personInfo(personId);
+router.get('/range/vote', async (req, res) => {
+    try{
+        const { minVote, maxVote, orderBy, limit } = req.query;
+        if(isNaN(minVote) || !isNaN(maxVote)) {
+            return res.sendStatus(400);
+        }
+        const data = await queryVoteRange(minVote, maxVote, orderBy, limit);
         res.json(data);
     }
     catch(err) {
+        console.error(err.message)
+        res.sendStatus(500);
+    }
+});
+
+router.get('/range/date', async (req, res) => {
+    try {
+        const { startDate, endDate, orderBy, limit } = req.query;
+        
+        if(!startDate || !endDate) {
+            return res.sendStatus(400);
+        }
+        const data = await queryDateRange(startDate, endDate, orderBy, limit || 30);
+        res.json(data);
+    }
+    catch(err) {
+        console.log(err.message);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/genres/available', async (req, res) => {
+    try{
+        const data = await availableGenres();
+        res.json(data);
+    }
+    catch(err){
         console.error(err.message);
         res.sendStatus(500);
     }
 });
 
 router.get('/genres', async (req, res) => {
-    try{
-        const { type, limit } = req.query;
-        const data = await browseGenres(type || 1, limit || 30);
-        res.json(data);
-    }
-    catch(err){
-        console.error(err.message);
-        res.sendStatus(500);
-    }
-});
-
-router.get('/genre', async (req, res) => {
     try {
-        const { genreName, limit } = req.query;
-        if(!genreName) return res.sendStatus(400);
-        const data = await genre(genreName, limit || 30);
+        const { genreName, type, orderBy, limit } = req.query;
+        if(!genreName) {
+            return res.sendStatus(400);
+        }
+        const data = await queryGenre(genreName, type, orderBy, limit || 30);
         res.json(data);
     }
     catch(err) {
@@ -80,48 +97,13 @@ router.get('/genre', async (req, res) => {
     }
 });
 
-router.post('/season', async (req, res) => {
+router.get('/title', async(req, res) => {
     try{
-        const { userId, userPin, mediaId, seasonNum} = req.body;
-
-        if(isNaN(seasonNum)){
-            return res.sendStatus(400);
-        }
-
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
-        if(!mediaId) return res.sendStatus(400);
-        
-        
-        const EPISODES = await mediaSeason(mediaId, seasonNum, userId);
-        const data = { SEASON_NUM: seasonNum, EPISODES }
-        res.json(data);
-    }
-    catch(err){
-        console.error(err.message);
-        res.sendStatus(500);
-    }
-    
-});
-
-router.post('/episode', async (req, res) => {
-    try{
-        const episodeId = parseInt(req.body.episodeId);
-        const data = await mediaEpisodeInfo(episodeId);
-        res.json(data);
-    }
-    catch(err){
-        console.error(err.message);
-        res.sendStatus(500);
-    }
-});
-
-router.get('/search', async(req, res) => {
-    try{
-        const { value } = req.query;
-        if(!value) return res.status(400).send('Value empty');
-        const data = await searchMedia(value);
-        res.json(data);
+        // const { value } = req.query;
+        // if(!value) return res.status(400).send('Value empty');
+        // const data = await searchMedia(value);
+        // res.json(data);
+        res.json([]);
     }
     catch(err) {
         console.error(err.message);
@@ -141,48 +123,54 @@ router.get('/latest/releases', async (req, res) => {
     }
 });
 
-router.get('/latest/episodes', async (req, res) => {
+// Shows
+router.post('/season', async (req, res) => {
     try{
-        const { limit } = req.query;
-        const data = await latestEpisodes(limit);
-        res.json(data);
-    }
-    catch(err) {
-        console.error(err.message)
-        res.sendStatus(500);
-    }
-});
+        const { userId, userPin, mediaId, seasonNum} = req.body;
 
-router.get('/top-rated', async (req, res) => {
-    try{
-        const { limit, minVote } = req.query;
-        const data = await topRated(limit, minVote);
-        res.json(data);
-    }
-    catch(err) {
-        console.error(err.message)
-        res.sendStatus(500);
-    }
-});
-
-router.get('/date-range', async (req, res) => {
-    try {
-        const { startDate, endDate, limit } = req.query;
+        if(isNaN(seasonNum) || !mediaId){
+            return res.sendStatus(400);
+        }
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) {
+            return res.sendStatus(401);
+        }
         
-        if(!startDate || !endDate) return res.sendStatus(400);
-        const data = await dateRange(startDate, endDate, limit);
+        const EPISODES = await querySeason(mediaId, seasonNum, userId);
+        const data = { SEASON_NUM: seasonNum, EPISODES }
         res.json(data);
     }
-    catch(err) {
-        console.log(err.message);
+    catch(err){
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+    
+});
+
+router.post('/episode', async (req, res) => {
+    try{
+        const { episodeId, userId, userPin } = req.body; 
+        if(isNaN(episodeId)) {
+            return res.sendStatus(400);
+        }
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) {
+            return res.sendStatus(401);
+        }
+        const data = await queryEpisode(episodeId, userId);
+        res.json(data);
+    }
+    catch(err){
+        console.error(err.message);
         res.sendStatus(500);
     }
 });
 
-router.get('/filmography', async (req, res) => {
+// People 
+router.get('/person', async (req, res) => {
     try {
-        const { personId, limit } = req.query;
-        const data = await filmography(personId, limit || 30);
+        const { personId } = req.query;
+        const data = await queryPerson(personId);
         res.json(data);
     }
     catch(err) {
@@ -191,7 +179,20 @@ router.get('/filmography', async (req, res) => {
     }
 });
 
-router.post('/watch-again', async (req, res) => {
+router.get('person/filmography', async (req, res) => {
+    try {
+        const { personId, limit } = req.query;
+        const data = await queryFilmography(personId, limit || 1000);
+        res.json(data);
+    }
+    catch(err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
+});
+
+// User
+router.post('user/watched', async (req, res) => {
     try {
         const { userId, userPin, limit } = req.body;
         const auth = await authenticateUser(userId, userPin);
@@ -205,6 +206,7 @@ router.post('/watch-again', async (req, res) => {
     }
 });
 
+// Images
 router.get('/images', async (req, res) => {
     try {
         const { mediaId } = req.query;

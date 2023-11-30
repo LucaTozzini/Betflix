@@ -68,8 +68,6 @@ const infoUser = () => new Promise(async (res, rej) => {
     }
 });
 
-
-
 // Database and Conversion
 const convertSubtitle = (path) => new Promise(async (res, rej) => {
     try {
@@ -117,7 +115,6 @@ const deleteExisting = (id, isEpisode, language) => new Promise(async (res, rej)
     (err) => err ? rej(err) : res()
 ));
 
-
 // Exports
 const searchSubtitles = (id, isEpisode, language) => new Promise(async (res, rej) => {
     try {
@@ -141,7 +138,7 @@ const searchSubtitles = (id, isEpisode, language) => new Promise(async (res, rej
     }
 });
 
-const downloadSubtitle = (id, isEpisode, language, file_id) => new Promise(async (res, rej) => {
+const downloadSubtitle = (imdbId, language, fileId) => new Promise(async (res, rej) => {
     try {
         await loginUser();
         const headers = {
@@ -152,9 +149,9 @@ const downloadSubtitle = (id, isEpisode, language, file_id) => new Promise(async
             'Content-Type': 'application/json'
         };
 
-        const response = await axios.post(`${BASE}/download`, {file_id}, {headers});
+        const response = await axios.post(`${BASE}/download`, {fileId}, {headers});
         const subtitle = response.data;
-        const localFilePath = `${path}/${id}_${language}_${subtitle.file_name}`;
+        const localFilePath = `${path}/${imdbId}.${language}`;
 
         const download = await axios.get(subtitle.link, { responseType: 'stream' });
         await logoutUser();
@@ -193,7 +190,8 @@ const quickDowload = (id, isEpisode, language) => new Promise(async (res, rej) =
     try {
         const results = await searchSubtitles(id, isEpisode, language);
         const file_id = results[0].attributes.files[0].file_id;
-        const files = await downloadSubtitle(id, isEpisode, language, file_id );
+        const imdbId = await toIMDB(id, isEpisode);
+        const files = await downloadSubtitle(imdbId, language, file_id);
         res(files);
     }
     catch(err) {

@@ -16,8 +16,9 @@ import {
   mediaInfo,
   availableEpisodeSubtitles,
   availableMovieSubtitles,
+  queryMediaPath,
+  queryEpisodePath,
 } from "../helpers/queries.helpers.js";
-import { getMoviePath, getEpisodePath } from "../helpers/filesUtil.helpers.js";
 import {
   searchSubtitles,
   downloadSubtitle,
@@ -39,7 +40,7 @@ router.get("/stream", async (req, res) => {
     }
 
     const filePath =
-      type == 1 ? await getMoviePath(mediaId) : await getEpisodePath(episodeId);
+      type == 1 ? await queryMediaPath(mediaId) : await queryEpisodePath(episodeId);
 
     if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).send("File not found");
@@ -74,10 +75,14 @@ router.get("/stream", async (req, res) => {
 router.get("/video", async (req, res) => {
   try {
     const { type, mediaId, episodeId } = req.query;
-    if (type != 1 && type != 2) return res.status(400).send("Invalid type");
+    if (type != 1 && type != 2) {
+      return res.status(400).send("Invalid type");
+    }
     const filePath =
-      type == 1 ? await getMoviePath(mediaId) : await getEpisodePath(episodeId);
-    if (!filePath) return res.status(404).send("File not found :(");
+      type == 1 ? await queryMediaPath(mediaId) : await queryEpisodePath(episodeId);
+    if (!filePath) {
+      return res.status(404).send("File not found :(");
+    }
     const stream = send(req, filePath);
     stream.pipe(res);
   } catch (err) {
