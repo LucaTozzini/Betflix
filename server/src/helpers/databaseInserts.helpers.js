@@ -1,5 +1,5 @@
 import { db, transaction } from "./database.helpers";
-import { orphans, haveMedia, lastEpisodeDate } from "./queries.helpers.js";
+import { haveMedia, lastEpisodeDate } from "./queries.helpers.js";
 
 // Database Inserts
 const insertMedia = (mediaData) =>

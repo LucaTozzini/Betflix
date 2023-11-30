@@ -9,7 +9,7 @@ import {
   missingMedia,
 } from "./filesUtil.helpers.js";
 import { fetchItem, fetchPerson, fetchShow } from "./TMDb-api.helpers.js";
-import { orphans, haveMedia, lastEpisodeDate } from "./queries.helpers.js";
+import { orphans } from "./queries.helpers.js";
 import {
   insertMedia,
   insertShow,
@@ -406,6 +406,44 @@ const createTables = () =>
     res();
   });
 
+const run = async (action) => {
+  try {
+    if (manager.status.ACTIVE) {
+      throw new Error("Already Active");
+    }
+    manager.status.ACTIVE = true;
+    manager.status.PROGRESS = 0;
+
+    // Update Movies
+    if (action == 1) {
+      manager.status.ACTION = "Updating Movies";
+      manager.status.PROGRESS = 0;
+      await updateMovies();
+    }
+    // Update Shows
+    else if (action == 2) {
+      manager.status.ACTION = "Updating Shows";
+      manager.status.PROGRESS = 0;
+      await updateShows();
+    }
+    // Update People
+    else if (action == 3) {
+      manager.status.ACTION = "Updating people";
+      await updatePeople();
+    }
+    // Clean Database
+    else if (action == 4) {
+      manager.status.ACTION = "Cleaning";
+      await cleanMedia();
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
+  manager.status.ACTIVE = false;
+  manager.status.ACTION = null;
+  manager.status.PROGRESS = null;
+};
+
 // Updaters
 const updateShows = () =>
   new Promise(async (res, rej) => {
@@ -468,25 +506,25 @@ const updateMovies = () =>
 const updatePeople = () =>
   new Promise(async (res, rej) => {
     try {
-			/*
+      /*
 			orphans => [ personId ]
 			fetchPerson(personId) => personData
 			insertPerson(personData) => Null
 			*/
-			const personIds = await orphans();
-        let i = 0;
-        for (const personId of personIds) {
-          i++;
-          manager.status.PROGRESS = (100 / personIds.length) * i;
+      const personIds = await orphans();
+      let i = 0;
+      for (const personId of personIds) {
+        i++;
+        manager.status.PROGRESS = (100 / personIds.length) * i;
 
-          try {
-            const data = await fetchPerson(personId);
-            manager.status.ACTION = `Updating people - ${data.name}`;
-            await insertPerson(data);
-          } catch (err) {
-            console.error(err.message);
-          }
+        try {
+          const data = await fetchPerson(personId);
+          manager.status.ACTION = `Updating people - ${data.name}`;
+          await insertPerson(data);
+        } catch (err) {
+          console.error(err.message);
         }
+      }
     } catch (err) {
       rej(err);
     }
@@ -581,60 +619,25 @@ const cleanMedia = () =>
   });
 
 // Public Manager
-const manager = {
+const publicManager = {
+  run,
   status: {
     ACTIVE: false,
     ACTION: null,
     PROGRESS: null,
   },
-
-  run: async (action) => {
-    try {
-      if (manager.status.ACTIVE) {
-        throw new Error("Already Active");
-      }
-      manager.status.ACTIVE = true;
-      manager.status.PROGRESS = 0;
-
-      // Update Movies
-      if (action == 1) {
-        manager.status.ACTION = "Updating Movies";
-        manager.status.PROGRESS = 0;
-        await updateMovies();
-      }
-      // Update Shows
-      else if (action == 2) {
-        manager.status.ACTION = "Updating Shows";
-        manager.status.PROGRESS = 0;
-        await updateShows();
-      }
-      // Update People
-      else if (action == 3) {
-        manager.status.ACTION = "Updating people";
-				await updatePeople();
-      }
-			// Clean Database 
-			else if (action == 4) {
-        manager.status.ACTION = "Cleaning";
-        await cleanMedia();
-      }
-    } catch (err) {
-      console.error(err.message);
-    }
-    manager.status.ACTIVE = false;
-    manager.status.ACTION = null;
-    manager.status.PROGRESS = null;
+  images: {
+    setPoster,
+    setPosterNt,
+    setPosterWide,
+    setBackdrop,
+    setLogo,
   },
 };
 
 export {
   db,
   transaction,
-  manager,
-  continuePrep,
-  setPoster,
-  setPosterNt,
-  setPosterWide,
-  setBackdrop,
-  setLogo,
+  publicManager,
+  continuePrep
 };
