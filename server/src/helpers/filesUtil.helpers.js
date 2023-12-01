@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import episode from "episode";
 import env from "../../env.js";
-import { manager } from "./database.helpers.js";
+import { publicManager } from "./database.helpers.js";
 import { db } from "../helpers/database.helpers.js";
 import { haveMedia, haveEpisode } from "./queries.helpers.js";
 import { getVideoDurationInSeconds } from "get-video-duration";
@@ -28,8 +28,8 @@ const validExt = (filename) => {
 
 const scanMovies = () =>
   new Promise(async (res, rej) => {
-    manager.status.ACTION = "Scan Movies";
-    manager.status.PROGRESS = 0;
+    publicManager.status.ACTION = "Scan Movies";
+    publicManager.status.PROGRESS = 0;
     try {
       const files = fs
         .readdirSync(env.moviesPath)
@@ -38,7 +38,7 @@ const scanMovies = () =>
       let i = 0;
       for (const file of files) {
         i++;
-        manager.status.PROGRESS = (100 / files.length) * i;
+        publicManager.status.PROGRESS = (100 / files.length) * i;
         if (!(await haveMedia(`${env.moviesPath}/${file}`))) {
           returnArray.push({
             path: `${env.moviesPath}/${file}`,

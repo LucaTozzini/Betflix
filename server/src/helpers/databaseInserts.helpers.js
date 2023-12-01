@@ -1,4 +1,4 @@
-import { db, transaction } from "./database.helpers";
+import { db, transaction } from "./database.helpers.js";
 import { haveMedia, lastEpisodeDate } from "./queries.helpers.js";
 
 // Database Inserts

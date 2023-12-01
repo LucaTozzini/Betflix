@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { manager, db } from "./database.helpers.js";
 import env from '../../env.js';
 
 const TMDb_Key = env.TMDB_KEY;
@@ -156,14 +155,6 @@ const fetchShow = (show) => new Promise( async (res, rej) => {
         console.log('error with', show.title, err.message);
     }
 });
-
-const mediaInfo = (mediaId) => new Promise((res, rej) => db.get(
-    `SELECT TMDB_ID, TYPE
-    FROM media_main
-    WHERE MEDIA_ID = ?`,
-    [mediaId],
-    (err, row) => err ? rej(err) : res(row)
-));
 
 const fetchImages = (mediaId) => new Promise( async (res, rej) => {
     try {

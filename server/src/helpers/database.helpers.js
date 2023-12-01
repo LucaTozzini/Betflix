@@ -9,7 +9,7 @@ import {
   missingMedia,
 } from "./filesUtil.helpers.js";
 import { fetchItem, fetchPerson, fetchShow } from "./TMDb-api.helpers.js";
-import { orphans } from "./queries.helpers.js";
+import { queryOrphans } from "./queries.helpers.js";
 import {
   insertMedia,
   insertShow,
@@ -19,7 +19,7 @@ import {
 sqlite3.verbose();
 
 // Global Variables
-let continuePrep;
+let continuePrep, mediaPrep;
 
 const genres = [
   { id: 28, name: "Action" },
@@ -507,11 +507,11 @@ const updatePeople = () =>
   new Promise(async (res, rej) => {
     try {
       /*
-			orphans => [ personId ]
+			queryOrphans => [ personId ]
 			fetchPerson(personId) => personData
 			insertPerson(personData) => Null
 			*/
-      const personIds = await orphans();
+      const personIds = await queryOrphans();
       let i = 0;
       for (const personId of personIds) {
         i++;

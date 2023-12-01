@@ -9,11 +9,10 @@ import {
   episodeResumeTime,
 } from "../helpers/users.helpers.js";
 import {
-  mediaEpisodeInfo,
-  nextEpisode,
+  queryMedia,
+  queryNextEpisode,
   movieSubtitlePath,
   episodeSubtitlePath,
-  mediaInfo,
   availableEpisodeSubtitles,
   availableMovieSubtitles,
   queryMediaPath,
@@ -127,10 +126,8 @@ router.post("/next", async (req, res) => {
   try {
     const { episodeId } = req.body;
     if (!episodeId) return res.sendStatus(400);
-    const { MEDIA_ID, SEASON_NUM, EPISODE_NUM } = await mediaEpisodeInfo(
-      episodeId
-    );
-    const next = await nextEpisode(MEDIA_ID, SEASON_NUM, EPISODE_NUM);
+    const { MEDIA_ID, SEASON_NUM, EPISODE_NUM } = await queryMedia(episodeId);
+    const next = await queryNextEpisode(MEDIA_ID, SEASON_NUM, EPISODE_NUM);
     res.json(next);
   } catch (err) {
     console.error(err.message);
@@ -156,8 +153,8 @@ router.get("/subtitles", async (req, res) => {
         extension || "srt"
       );
     } else {
-      const info = await mediaInfo(mediaId);
-      if (info == undefined || info.type == 2) {
+      const { TYPE } = await queryMedia(mediaId);
+      if (TYPE == 2) {
         return res.sendStatus(400);
       }
       path = await movieSubtitlePath(

@@ -6,7 +6,7 @@ const compileRowData = (rows) =>
     try {
       const data = [];
       for (const row of rows) {
-        const rowData = await queryMedia(row.MEDIA_ID);
+        const rowData = await queryMedia(row.MEDIA_ID, null);
         data.push(rowData);
       }
       res(data);
@@ -81,7 +81,7 @@ const queryGenre = (genreName, type, orderBy, limit) =>
         if (err) {
           return rej(err);
         }
-        compileRowData(data)
+        compileRowData(rows)
           .then((data) => res(data))
           .catch((err) => rej(err));
       }
@@ -390,7 +390,6 @@ export {
   // Shows
   querySeason,
   queryEpisode,
-  haveEpisode,
   queryNextEpisode,
 
   // Subtitles
