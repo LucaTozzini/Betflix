@@ -40,7 +40,94 @@ const insertMedia = (mediaData) =>
         content_rating,
         duration,
         vote,
+
+        //
+        genres,
+        credits,
+        companies
       } = mediaData;
+
+      const mediaPrep = {
+        main: db.prepare(
+          `INSERT INTO media_main (
+            MEDIA_ID, 
+            TMDB_ID, 
+            IMDB_ID, 
+            TYPE, 
+            PATH
+          ) 
+          VALUES (?,?,?,?,?)`
+        ),
+        images: db.prepare(
+          `INSERT INTO media_images (
+              MEDIA_ID, 
+              POSTER_S, 
+              POSTER_L, 
+              POSTER_NT_S, 
+              POSTER_NT_L, 
+              POSTER_W_S, 
+              POSTER_W_L, 
+              LOGO_S, LOGO_L, 
+              BACKDROP_S, 
+              BACKDROP_L
+            ) 
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)`
+        ),
+        dates: db.prepare(
+          `INSERT INTO media_dates (
+            MEDIA_ID, 
+            YEAR, 
+            START_DATE, 
+            END_DATE
+          ) 
+          VALUES (?,?,?,?)`
+        ),
+        finances: db.prepare(
+          `INSERT INTO media_finances (
+            MEDIA_ID, 
+            BUDGET, 
+            REVENUE
+          ) 
+          VALUES (?,?,?)`
+        ),
+        companies: db.prepare(
+          `INSERT INTO media_companies (
+            KEY, 
+            MEDIA_ID, 
+            COMPANY_NAME
+          ) 
+          VALUES (?,?,?)`
+        ),
+        info: db.prepare(
+          `INSERT INTO media_info (
+            MEDIA_ID, 
+            TITLE, 
+            OVERVIEW, 
+            CONTENT_RATING, 
+            DURATION, 
+            VOTE
+          ) 
+          VALUES (?,?,?,?,?,?)`
+        ),
+        genres: db.prepare(
+          `INSERT INTO media_genres (
+            KEY, 
+            MEDIA_ID, 
+            GENRE_ID
+          ) 
+          VALUES (?,?,?)`
+        ),
+        cast: db.prepare(
+          `INSERT INTO cast (
+            KEY, 
+            MEDIA_ID, 
+            PERSON_ID, 
+            CHARACTER, 
+            CAST_ORDER
+          ) 
+          VALUES (?,?,?,?,?)`
+        ),
+      };
 
       const main_data = [media_id, tmdb_id, imdb_id, type, path];
       const images_data = [
@@ -69,39 +156,49 @@ const insertMedia = (mediaData) =>
 
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
-          if (err) console.error("media main", err.message);
+          if (err) {
+            console.error("media main", err.message);
+          }
           res();
         })
       );
       await new Promise((res) =>
         mediaPrep.images.run(images_data, (err) => {
-          if (err) console.error("media images", err.message);
+          if (err) {
+            console.error("media images", err.message);
+          }
           res();
         })
       );
       await new Promise((res) =>
         mediaPrep.dates.run(dates_data, (err) => {
-          if (err) console.error("media dates", err.message);
+          if (err) {
+            console.error("media dates", err.message);
+          }
           res();
         })
       );
       await new Promise((res) =>
         mediaPrep.finances.run(finances_data, (err) => {
-          if (err) console.error("media finances", err.message);
+          if (err) {
+            console.error("media finances", err.message);
+          }
           res();
         })
       );
       await new Promise((res) =>
         mediaPrep.info.run(info_data, (err) => {
-          if (err) console.error("media info", err.message);
+          if (err) {
+            console.error("media info", err.message);
+          }
           res();
         })
       );
 
-      for (const genre of m.genres) {
+      for (const genre of genres) {
         await new Promise((res) =>
           mediaPrep.genres.run(
-            [`KEY_${m.media_id}_${genre}`, m.media_id, genre],
+            [`KEY_${media_id}_${genre}`, media_id, genre],
             (err) => {
               res();
             }
@@ -109,10 +206,10 @@ const insertMedia = (mediaData) =>
         );
       }
 
-      for (const company of m.companies) {
+      for (const company of companies) {
         await new Promise((res) =>
           mediaPrep.companies.run(
-            [`KEY_${m.media_id}_${company}`, m.media_id, company],
+            [`KEY_${media_id}_${company}`, media_id, company],
             (err) => {
               res();
             }
@@ -120,12 +217,12 @@ const insertMedia = (mediaData) =>
         );
       }
 
-      for (const person of m.credits) {
+      for (const person of credits) {
         await new Promise((res) =>
           mediaPrep.cast.run(
             [
-              `KEY_${m.media_id}_${person.id}_${person.character}`,
-              m.media_id,
+              `KEY_${media_id}_${person.id}_${person.character}`,
+              media_id,
               person.id,
               person.character,
               person.order,
@@ -134,7 +231,7 @@ const insertMedia = (mediaData) =>
               if (err) {
                 console.error(
                   err.message,
-                  `KEY_${m.media_id}_${person.id}_${person.character}`
+                  `KEY_${media_id}_${person.id}_${person.character}`
                 );
               }
               res();
@@ -228,13 +325,18 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
     res();
   });
 
-const insertShow = (show) =>
+const insertShow = (showData) =>
   new Promise(async (res, rej) => {
     try {
+      const {
+        media_id,
+        path,
+        episodes,
+      } = showData;
       await transaction.begin();
-      const have = await haveMedia(show.path);
+      const have = await haveMedia(path);
       if (!have) {
-        await insertMedia(show);
+        await insertMedia(showData);
       }
       episodePrep = {
         main: db.prepare(
@@ -250,15 +352,15 @@ const insertShow = (show) =>
           `INSERT INTO episodes_info (EPISODE_ID, TITLE, OVERVIEW, DURATION, VOTE) VALUES (?,?,?,?,?)`
         ),
       };
-      for (const episode of show.episodes) {
-        await insertEpisode(show.media_id, episode, episodePrep);
+      for (const episode of episodes) {
+        await insertEpisode(media_id, episode, episodePrep);
       }
 
-      const lastDate = await lastEpisodeDate(show.media_id);
+      const lastDate = await lastEpisodeDate(media_id);
       await new Promise((res, rej) =>
         db.run(
           "UPDATE media_dates SET END_DATE = ? WHERE MEDIA_ID = ?",
-          [lastDate.AIR_DATE, show.media_id],
+          [lastDate.AIR_DATE, media_id],
           (err) => (err ? rej(err) : res())
         )
       );

@@ -16,6 +16,7 @@ import {
     queryFilmography,
     queryVoteRange,
     queryDateRange,
+    querylatestReleases
 } from '../helpers/queries.helpers.js';
 
 const router = express.Router();
@@ -42,8 +43,13 @@ router.post('/item', async (req, res) => {
 
 router.get('/range/vote', async (req, res) => {
     try{
-        const { minVote, maxVote, orderBy, limit } = req.query;
-        if(isNaN(minVote) || !isNaN(maxVote)) {
+        let { minVote, maxVote, orderBy, limit } = req.query;
+        minVote = parseFloat(minVote);
+        maxVote = parseFloat(maxVote);
+        limit = parseInt(limit);
+
+        console.log(minVote, maxVote);
+        if(isNaN(minVote) || isNaN(maxVote)) {
             return res.sendStatus(400);
         }
         const data = await queryVoteRange(minVote, maxVote, orderBy, limit);
@@ -114,7 +120,7 @@ router.get('/title', async(req, res) => {
 router.get('/latest/releases', async (req, res) => {
     try{
         const { limit } = req.query;
-        const data = await latestReleases(limit || 30);
+        const data = await querylatestReleases(limit || 30);
         res.json(data);
     }
     catch(err) {

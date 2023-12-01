@@ -19,7 +19,7 @@ import {
 sqlite3.verbose();
 
 // Global Variables
-let continuePrep, mediaPrep;
+let continuePrep;
 
 const genres = [
   { id: 28, name: "Action" },
@@ -63,39 +63,27 @@ const db = new sqlite3.Database(
     else {
       await foreignKeys();
       await createTables();
-      mediaPrep = {
-        main: db.prepare(
-          `INSERT INTO media_main (MEDIA_ID, TMDB_ID, IMDB_ID, TYPE, PATH) VALUES (?,?,?,?,?)`
-        ),
-        images: db.prepare(
-          `INSERT INTO media_images (MEDIA_ID, POSTER_S, POSTER_L, POSTER_NT_S, POSTER_NT_L, POSTER_W_S, POSTER_W_L, LOGO_S, LOGO_L, BACKDROP_S, BACKDROP_L) VALUES (?,?,?,?,?,?,?,?,?,?,?)`
-        ),
-        dates: db.prepare(
-          `INSERT INTO media_dates (MEDIA_ID, YEAR, START_DATE, END_DATE) VALUES (?,?,?,?)`
-        ),
-        finances: db.prepare(
-          `INSERT INTO media_finances (MEDIA_ID, BUDGET, REVENUE) VALUES (?,?,?)`
-        ),
-        companies: db.prepare(
-          `INSERT INTO media_companies (KEY, MEDIA_ID, COMPANY_NAME) VALUES (?,?,?)`
-        ),
-        info: db.prepare(
-          `INSERT INTO media_info (MEDIA_ID, TITLE, OVERVIEW, CONTENT_RATING, DURATION, VOTE) VALUES (?,?,?,?,?,?)`
-        ),
-        genres: db.prepare(
-          `INSERT INTO media_genres (KEY, MEDIA_ID, GENRE_ID) VALUES (?,?,?)`
-        ),
-        cast: db.prepare(
-          `INSERT INTO cast (KEY, MEDIA_ID, PERSON_ID, CHARACTER, CAST_ORDER) VALUES (?,?,?,?,?)`
-        ),
-      };
 
       continuePrep = {
         insert: db.prepare(
-          `INSERT INTO users_continue (KEY, USER_ID, MEDIA_ID, EPISODE_ID, PROGRESS_TIME, END_TIME, TIME_STAMP) VALUES (?,?,?,?,?,?,?)`
+          `INSERT INTO users_continue (
+            KEY, 
+            USER_ID, 
+            MEDIA_ID, 
+            EPISODE_ID, 
+            PROGRESS_TIME, 
+            END_TIME, 
+            TIME_STAMP
+          ) 
+          VALUES (?,?,?,?,?,?,?)`
         ),
         update: db.prepare(
-          `UPDATE users_continue SET PROGRESS_TIME = ?, END_TIME = ?, TIME_STAMP = ? WHERE KEY = ?`
+          `UPDATE users_continue 
+          SET 
+            PROGRESS_TIME = ?, 
+            END_TIME = ?, 
+            TIME_STAMP = ? 
+          WHERE KEY = ?`
         ),
       };
     }
@@ -408,40 +396,38 @@ const createTables = () =>
 
 const run = async (action) => {
   try {
-    if (manager.status.ACTIVE) {
+    if (publicManager.status.ACTIVE) {
       throw new Error("Already Active");
     }
-    manager.status.ACTIVE = true;
-    manager.status.PROGRESS = 0;
+    publicManager.status.ACTIVE = true;
+    publicManager.status.PROGRESS = 0;
 
     // Update Movies
     if (action == 1) {
-      manager.status.ACTION = "Updating Movies";
-      manager.status.PROGRESS = 0;
+      publicManager.status.ACTION = "Updating Movies";
       await updateMovies();
     }
     // Update Shows
     else if (action == 2) {
-      manager.status.ACTION = "Updating Shows";
-      manager.status.PROGRESS = 0;
+      publicManager.status.ACTION = "Updating Shows";
       await updateShows();
     }
     // Update People
     else if (action == 3) {
-      manager.status.ACTION = "Updating people";
+      publicManager.status.ACTION = "Updating people";
       await updatePeople();
     }
     // Clean Database
     else if (action == 4) {
-      manager.status.ACTION = "Cleaning";
+      publicManager.status.ACTION = "Cleaning";
       await cleanMedia();
     }
   } catch (err) {
     console.error(err.message);
   }
-  manager.status.ACTIVE = false;
-  manager.status.ACTION = null;
-  manager.status.PROGRESS = null;
+  publicManager.status.ACTIVE = false;
+  publicManager.status.ACTION = null;
+  publicManager.status.PROGRESS = null;
 };
 
 // Updaters
@@ -449,20 +435,23 @@ const updateShows = () =>
   new Promise(async (res, rej) => {
     try {
       /*
+      showObj = { path: string, title: string, year: int, episodes }
       episodes = [ path: string ]
       getShowFolders => [ path: string ]
-      scanShow => { path: string, title: string, year: int, episodes }
-      fetchShow => showData
+      scanShow => showObj
+      fetchShow(showObj) => showData
       insertShow(showData)
       */
       const showFolders = await getShowFolders();
       let i = 0;
       for (const showFolder of showFolders) {
         i++;
-        manager.status.PROGRESS = (i / showFolder.length) * 100;
+        publicManager.status.PROGRESS = (i / showFolder.length) * 100;
         try {
-          const show = await scanShow(env.showsPath + "/" + showFolder);
-          const data = await fetchShow(show);
+          const showObj = await scanShow(env.showsPath + "/" + showFolder);
+          publicManager.status.ACTION = `Insert Show - ${showObj.title} [${showObj.year}]`;
+          const data = await fetchShow(showObj);
+          
           await insertShow(data);
         } catch (err) {
           console.error(err.message);
@@ -486,18 +475,19 @@ const updateMovies = () =>
       const movieFiles = await scanMovies();
 
       let i = 0;
-      for (const file of movieFiles) {
+      for (const fileObject of movieFiles) {
         i++;
-        manager.status.PROGRESS = (100 / movieFiles.length) * i;
-        manager.status.ACTION = `Insert Movies - ${file.title} [${file.year}]`;
+        publicManager.status.PROGRESS = (100 / movieFiles.length) * i;
+        publicManager.status.ACTION = `Insert Movies - ${fileObject.title} [${fileObject.year}]`;
 
         try {
-          const data = await fetchItem(1, movie);
+          const data = await fetchItem(1, fileObject);
           await insertMedia(data);
         } catch (err) {
           console.error(err.message);
         }
       }
+      res();
     } catch (err) {
       rej(err);
     }
@@ -515,11 +505,11 @@ const updatePeople = () =>
       let i = 0;
       for (const personId of personIds) {
         i++;
-        manager.status.PROGRESS = (100 / personIds.length) * i;
+        publicManager.status.PROGRESS = (100 / personIds.length) * i;
 
         try {
           const data = await fetchPerson(personId);
-          manager.status.ACTION = `Updating people - ${data.name}`;
+          publicManager.status.ACTION = `Updating people - ${data.name}`;
           await insertPerson(data);
         } catch (err) {
           console.error(err.message);
@@ -604,7 +594,7 @@ const cleanMedia = () =>
 
       prep = db.prepare("DELETE FROM episodes_main WHERE PATH =?");
 
-      manager.status.PROGRESS = 50;
+      publicManager.status.PROGRESS = 50;
 
       for (const path of await missingEpisodes()) {
         await new Promise((res, rej) =>
@@ -635,9 +625,4 @@ const publicManager = {
   },
 };
 
-export {
-  db,
-  transaction,
-  publicManager,
-  continuePrep
-};
+export { db, transaction, publicManager, continuePrep };

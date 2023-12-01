@@ -24,19 +24,19 @@ router.post("/update/:item", async (req, res) => {
 
     if (item == "poster") {
       await publicManager.images.setPoster(mediaId, large, small);
-    } else if ("poster-nt") {
+    } else if (item == "poster-nt") {
       await publicManager.images.setPosterNt(mediaId, large, small);
-    } else if ("/poster-w") {
+    } else if (item == "/poster-w") {
       await publicManager.images.setPosterWide(mediaId, large, small);
-    } else if ("backdrop") {
+    } else if (item == "backdrop") {
       await publicManager.images.setBackdrop(mediaId, large, small);
-    } else if ("logo") {
+    } else if (item == "logo") {
       await publicManager.images.setLogo(mediaId, large, small);
-    } else if ("movies") {
+    } else if (item == "movies") {
       publicManager.run(1);
-    } else if ("shows") {
+    } else if (item == "shows") {
       publicManager.run(2);
-    } else if ("people") {
+    } else if (item == "people") {
       publicManager.run(3);
     }
   } catch (err) {
@@ -45,7 +45,7 @@ router.post("/update/:item", async (req, res) => {
   }
 });
 
-router.post("/maintanace/:action", async (req, res) => {
+router.post("/maintenance/:action", async (req, res) => {
   try {
     const { action } = req.params;
     const { userId, userPin } = req.body;

@@ -62,20 +62,20 @@ const queryGenre = (genreName, type, orderBy, limit) =>
   new Promise((res, rej) =>
     db.all(
       `SELECT main.MEDIA_ID
-	FROM media_main AS main
-	JOIN media_genres AS m_genres ON main.MEDIA_ID = m_genres.MEDIA_ID
-	JOIN genres ON m_genres.GENRE_ID = genres.GENRE_ID
-	JOIN media_info ON m.MEDIA_ID = media_info.MEDIA_ID
-	JOIN media_dates ON m.MEDIA_ID = media_dates.MEDIA_ID
-	WHERE GENRE_NAME = ? ${type ? "AND  TYPE = ?" : ""}
-	ORDER BY  ${
-    orderBy == "random"
-      ? "RANDOM()"
-      : orderBy == "vote"
-      ? "VOTE DESC"
-      : "START_DATE DESC"
-  }
-	LIMIT ?`,
+      FROM media_main AS main
+      JOIN media_genres AS m_genres ON main.MEDIA_ID = m_genres.MEDIA_ID
+      JOIN genres ON m_genres.GENRE_ID = genres.GENRE_ID
+      JOIN media_info ON m.MEDIA_ID = media_info.MEDIA_ID
+      JOIN media_dates ON m.MEDIA_ID = media_dates.MEDIA_ID
+      WHERE GENRE_NAME = ? ${type ? "AND  TYPE = ?" : ""}
+      ORDER BY  ${
+        orderBy == "random"
+          ? "RANDOM()"
+          : orderBy == "vote"
+          ? "VOTE DESC"
+          : "START_DATE DESC"
+      }
+      LIMIT ?`,
       type ? [genreName, type, limit] : [genreName, limit],
       async (err, rows) => {
         if (err) {
@@ -138,7 +138,7 @@ const querylatestReleases = (limit) =>
         if (err) {
           return rej(err);
         }
-        compileRowData(data)
+        compileRowData(rows)
           .then((data) => res(data))
           .catch((err) => rej(err));
       }
