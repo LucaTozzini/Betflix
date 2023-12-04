@@ -7,7 +7,7 @@ import {
 } from '../helpers/users.helpers.js';
 import { 
     availableGenres,
-    queryGenre,
+    queryMediaByGenre,
     queryMedia,
     queryCast,
     queryPerson,
@@ -48,7 +48,6 @@ router.get('/range/vote', async (req, res) => {
         maxVote = parseFloat(maxVote);
         limit = parseInt(limit);
 
-        console.log(minVote, maxVote);
         if(isNaN(minVote) || isNaN(maxVote)) {
             return res.sendStatus(400);
         }
@@ -94,7 +93,7 @@ router.get('/genres', async (req, res) => {
         if(!genreName) {
             return res.sendStatus(400);
         }
-        const data = await queryGenre(genreName, type, orderBy, limit || 30);
+        const data = await queryMediaByGenre(genreName, type, orderBy, limit || 30);
         res.json(data);
     }
     catch(err) {

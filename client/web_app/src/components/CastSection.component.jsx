@@ -19,8 +19,7 @@ const CastSection = ({ data }) => {
             </a>    
         )
     };
-
-    return (
+    if(data && data.length > 0) return (
         <div className={styles.container}>
             <div className={styles.top}>
                 <h2 className={styles.topTitle}>Cast</h2>
@@ -31,6 +30,8 @@ const CastSection = ({ data }) => {
             </div>
         </div>
     );
+
+    else return <></>
 };
 
 export default CastSection;

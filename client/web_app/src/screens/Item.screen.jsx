@@ -44,6 +44,7 @@ const Item = () => {
             const json = await response.json();
             setAdded(json.IN_WATCHLIST);
             setData(json);
+            console.log(json)
         }
         catch(err){
             console.error(err.message);
@@ -277,7 +278,7 @@ const Item = () => {
     };
 
     const Genres = () => {
-        const names = data.GENRES.map(i => i.GENRE_NAME);
+        const names = data.GENRES ? data.GENRES.map(i => i.GENRE_NAME) : [];
         const array = names.join(', ').split(' ');
         return (
             <div className={styles.genres}>
@@ -323,7 +324,7 @@ const Item = () => {
                     {data.OVERVIEW} 
                 </div>
                 {data.TYPE == 2 ? <EpisodesSection  Selector={Selector} data={seasonData || []} mediaId={data.MEDIA_ID}/> : <></>}
-                {data.CAST.length > 0 ? <CastSection data={data.CAST}/> : <></>}
+                {data.CAST ? <CastSection data={data.CAST}/> : <></>}
                 {moreWithStar ? <MediaSection title={`More With: ${moreWithStar.name}`} items={moreWithStar.filmography}/> : <></>}
                 {moreWithOther ? <MediaSection title={`More With: ${moreWithOther.name}`} items={moreWithOther.filmography}/> : <></>}
                 {genreMedia ? <MediaSection title={`More In: ${genreMedia.name}`} items={genreMedia.items}/> : <></> }

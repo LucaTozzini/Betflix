@@ -33,8 +33,8 @@ const Home = () => {
   const [continueMedia, setContinueMedia] = useState(null);
   const [watchlistMedia, setWatchlistMedia] = useState(null);
 
-  const [showGenres, setShowGenres] = useState([]);
-  const [movieGenres, setMovieGenres] = useState([]);
+  const [showGenres, setShowGenres] = useState(null);
+  const [movieGenres, setMovieGenres] = useState(null);
 
   const [browseState, setBrowseState] = useState(0);
 
@@ -43,6 +43,7 @@ const Home = () => {
       try {
         let genres = await fetch(`${serverAddress}/browse/genres/available`);
         genres = await genres.json();
+        console.log(genres)
         const data = [];
         for (const genre of genres) {
           const response = await fetch(
@@ -128,7 +129,7 @@ const Home = () => {
   const fetchTopRated = async () => {
     try {
       const response = await fetch(
-        `${serverAddress}/browse/range/vote?minVote=0.8&maxVote=10&orderBy=random&limit=40`
+        `${serverAddress}/browse/range/vote?minVote=8.5&maxVote=10&orderBy=random&limit=40`
       );
       const json = await response.json();
       setTopRatedMedia(json);
@@ -136,6 +137,7 @@ const Home = () => {
   };
 
   useEffect(() => {
+    console.log(browseState)
     if (browseState == 0) {
       if (!continueMedia) {
         fetchContinue();
@@ -216,15 +218,19 @@ const Home = () => {
         </>
       ) : browseState == 1 ? (
         <>
-          {movieGenres.map((i) => (
-            <MediaSection key={i.genre} title={i.genre} items={i.media} />
-          ))}
+          {movieGenres ? (
+            movieGenres.map((i) => (
+              <MediaSection key={"movie_"+i.genre} title={i.genre} items={i.media} />
+            ))
+          ) : (
+            <></>
+          )}
         </>
       ) : browseState == 2 ? (
         <>
-          {showGenres.map((i) => (
-            <MediaSection key={i.genre} title={i.genre} items={i.media} />
-          ))}
+          {showGenres ? showGenres.map((i) => (
+            <MediaSection key={"show_"+i.genre} title={i.genre} items={i.media} />
+          )) : <></>}
         </>
       ) : browseState == 3 ? (
         <>

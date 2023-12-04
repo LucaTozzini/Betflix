@@ -17,7 +17,6 @@ import {
 } from "./databaseInserts.helpers.js";
 
 sqlite3.verbose();
-
 // Global Variables
 let continuePrep;
 
@@ -61,6 +60,10 @@ const db = new sqlite3.Database(
   async (err) => {
     if (err) console.error(err.message);
     else {
+      // Enable logging of SQL queries
+      // db.on('trace', (sql) => {
+      //   console.log('SQL Query:', sql);
+      // });
       await foreignKeys();
       await createTables();
 
