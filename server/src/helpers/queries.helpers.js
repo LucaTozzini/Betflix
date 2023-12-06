@@ -69,7 +69,7 @@ const queryMedia = (mediaId, userId) =>
       [userId, mediaId],
       async (err, row) => {
         if (err) {
-          console.error("Error queryMedia")
+          console.error("Error queryMedia");
           return rej(err);
         }
         try {
@@ -77,7 +77,7 @@ const queryMedia = (mediaId, userId) =>
           row.AVAILABLE_SEASONS = await queryAvailableSeasons(mediaId);
           res(row);
         } catch (err) {
-          console.error("Error queryMedia Post")
+          console.error("Error queryMedia Post");
           rej(err);
         }
       }
@@ -105,7 +105,7 @@ const queryMediaByGenre = (genreName, type, orderBy, limit) =>
       type ? [genreName, type, limit] : [genreName, limit],
       async (err, rows) => {
         if (err) {
-          console.error("Error queryMediaByGenre")
+          console.error("Error queryMediaByGenre");
           return rej(err);
         }
         compileRowData(rows)
@@ -214,21 +214,19 @@ const queryCast = (mediaId) =>
     )
   );
 
-const queryFilmography = (personId, limit) =>
+const queryFilmography = (personId) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT DISTINCT MEDIA_ID
+      `SELECT MEDIA_ID
 			FROM cast
-			JOIN media_dates AS dates ON cast.MEDIA_ID = dates.MEDA_ID
-			WHERE c.PERSON_ID = ?
-			ORDER BY dates.START_DATE DESC
-			LIMIT ?`,
-      [personId, limit],
+			WHERE PERSON_ID = ?
+			`,
+      [personId],
       async (err, rows) => {
         if (err) {
           return rej(err);
         }
-        compileRowData(data)
+        compileRowData(rows)
           .then((data) => res(data))
           .catch((err) => rej(err));
       }
@@ -260,9 +258,11 @@ const querySeason = (mediaId, seasonNum, userId) =>
 const queryEpisode = (episodeId, userId) =>
   new Promise((res, rej) =>
     db.get(
-      `SELECT i.*, m.MEDIA_ID, IMDB_ID, SEASON_NUM, EPISODE_NUM, x.TYPE, PROGRESS_TIME, END_TIME
+      `SELECT i.*, m.MEDIA_ID, m.IMDB_ID, SEASON_NUM, EPISODE_NUM, x.TYPE, PROGRESS_TIME, END_TIME, img.STILL_S, img.STILL_L, dts.AIR_DATE
 			FROM episodes_info AS i 
 			JOIN episodes_main AS m ON i.EPISODE_ID = m.EPISODE_ID
+      JOIN episodes_images AS img ON i.EPISODE_ID = img.EPISODE_ID
+      JOIN episodes_dates AS dts ON i.EPISODE_ID = dts.EPISODE_ID
 			JOIN media_main AS x ON m.MEDIA_ID = x.MEDIA_ID
 			LEFT JOIN users_continue AS uc ON m.EPISODE_ID = uc.EPISODE_ID AND USER_ID = ? 
 			WHERE i.EPISODE_ID = ?`,
@@ -301,24 +301,16 @@ const queryNextEpisode = (mediaId, seasonNum, episodeNum) =>
   );
 
 // Subtitles Queries
-const movieSubtitlePath = (mediaId, language, extension) =>
+const querySubtitlePath = (imdbId, language, extension) =>
   new Promise((res, rej) =>
     db.get(
       `SELECT PATH
-    FROM subtitles
-    WHERE MEDIA_ID = ? AND LANG = ? AND EXT = ?`,
-      [mediaId, language, extension],
-      (err, row) => (err ? rej(err) : res(row ? row.PATH : null))
-    )
-  );
-
-const episodeSubtitlePath = (episodeId, language, extension) =>
-  new Promise((res, rej) =>
-    db.get(
-      `SELECT PATH
-    FROM subtitles
-    WHERE EPISODE_ID = ? AND LANG = ? AND EXT = ?`,
-      [episodeId, language, extension],
+      FROM subtitles
+      WHERE 
+        IMDB_ID = ? AND 
+        LANG = ? AND 
+        EXT = ?`,
+      [imdbId, language, extension],
       (err, row) => (err ? rej(err) : res(row ? row.PATH : null))
     )
   );
@@ -398,6 +390,15 @@ const lastEpisodeDate = (mediaId) =>
     )
   );
 
+const queryDrives = () =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT DISTINCT SUBSTR(PATH, 1, INSTR(PATH || '/', '/')) as DRIVE_PATH
+      FROM media_main`,
+      (err, rows) => (err ? rej(err) : res(rows))
+    )
+  );
+
 export {
   // Global
   availableGenres,
@@ -420,8 +421,7 @@ export {
   queryNextEpisode,
 
   // Subtitles
-  movieSubtitlePath,
-  episodeSubtitlePath,
+  querySubtitlePath,
   availableMovieSubtitles,
   availableEpisodeSubtitles,
 
@@ -431,4 +431,5 @@ export {
   queryMediaPath,
   queryEpisodePath,
   lastEpisodeDate,
+  queryDrives,
 };

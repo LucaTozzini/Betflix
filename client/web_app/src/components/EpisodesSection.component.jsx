@@ -7,6 +7,7 @@ import NavButtons from './NavButtons.component';
 import styles from '../styles/EpisodesSection.component.module.css';
 
 const EpisodesSection = ({ data, mediaId, Selector }) => {
+    console.log(data)
     const ref = useRef(null);
 
     useEffect(() => {
@@ -16,9 +17,9 @@ const EpisodesSection = ({ data, mediaId, Selector }) => {
     }, [data]);
 
     const Item = ({ episodeId, still, title, seasonNum, episodeNum, airDate, progress, overview }) => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const dates = airDate.split('-');
-        const month = months[parseInt(dates[1]) - 1];
+        const months = ['?', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dates = airDate ? airDate.split('-') : ['?',0,'?'];
+        const month = months[parseInt(dates[1])];
         const day = dates[2];
         const year = dates[0];
 

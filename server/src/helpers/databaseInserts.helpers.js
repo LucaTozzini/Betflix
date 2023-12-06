@@ -44,7 +44,8 @@ const insertMedia = (mediaData) =>
         //
         genres,
         credits,
-        companies
+        companies,
+        directors,
       } = mediaData;
 
       const mediaPrep = {
@@ -127,6 +128,14 @@ const insertMedia = (mediaData) =>
           ) 
           VALUES (?,?,?,?,?)`
         ),
+        directors: db.prepeare(
+          `INSERT INTO directors (
+            KEY, 
+            MEDIA_ID, 
+            PERSON_ID
+          )
+          VALUES (?,?,?)`
+        ),
       };
 
       const main_data = [media_id, tmdb_id, imdb_id, type, path];
@@ -153,7 +162,6 @@ const insertMedia = (mediaData) =>
         duration,
         vote,
       ];
-
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
           if (err) {
@@ -239,6 +247,21 @@ const insertMedia = (mediaData) =>
           )
         );
       }
+
+      for (const director of directors) {
+        await new Promise((res) =>
+          mediaPrep.directors.run(
+            [`KEY_${media_id}_${director.id}`, media_id, id],
+            (err) => {
+              if (err) {
+                console.log("Director Insert", err.message);
+              }
+              res();
+            }
+          )
+        );
+      }
+
       res();
     } catch (err) {
       rej(err);
@@ -328,17 +351,15 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
 const insertShow = (showData) =>
   new Promise(async (res, rej) => {
     try {
-      const {
-        media_id,
-        path,
-        episodes,
-      } = showData;
+      const { media_id, path, episodes } = showData;
       await transaction.begin();
       const have = await haveMedia(path);
+
       if (!have) {
         await insertMedia(showData);
       }
-      episodePrep = {
+
+      const episodePrep = {
         main: db.prepare(
           `INSERT INTO episodes_main (EPISODE_ID, IMDB_ID, MEDIA_ID, SEASON_NUM, EPISODE_NUM, PATH) VALUES (?,?,?,?,?,?)`
         ),
@@ -352,11 +373,13 @@ const insertShow = (showData) =>
           `INSERT INTO episodes_info (EPISODE_ID, TITLE, OVERVIEW, DURATION, VOTE) VALUES (?,?,?,?,?)`
         ),
       };
+
       for (const episode of episodes) {
         await insertEpisode(media_id, episode, episodePrep);
       }
 
       const lastDate = await lastEpisodeDate(media_id);
+
       await new Promise((res, rej) =>
         db.run(
           "UPDATE media_dates SET END_DATE = ? WHERE MEDIA_ID = ?",

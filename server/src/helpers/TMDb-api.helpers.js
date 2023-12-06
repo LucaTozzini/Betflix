@@ -40,6 +40,7 @@ const fetchItem = (type, item) =>
       }
 
       const match_data = match_response.data;
+      console.log(match_data.credits.crew);
 
       const backdrop = match_data.images.backdrops.filter(
         (i) => i.iso_639_1 == null
@@ -112,6 +113,7 @@ const fetchItem = (type, item) =>
             ? item.duration
             : parseFloat(match_data.episode_run_time[0]) * 60,
         vote: match.vote_average,
+        collection_id: match_data.belongs_to_collection.id || null,
 
         // genres
         genres: match_data.genres.map((i) => i.id),
@@ -124,11 +126,19 @@ const fetchItem = (type, item) =>
                 character: i.character,
                 order: i.order,
               }))
-            : match_data.aggregate_credits.cast.map((i) => ({
-                id: i.id,
-                character: i.roles.map((x) => x.character).join("/"),
-                order: i.order,
+            : match_data.aggregate_credits.cast.map(({ id, roles, order }) => ({
+                id,
+                character: roles.map(({ character }) => character).join("/"),
+                order,
               })),
+
+        // directors
+        directors:
+          type == 1
+            ? match_data.credits.crew
+                .filter(({ job }) => job === "Director")
+                .map(({ id }) => id)
+            : [],
       };
       res(data);
     } catch (err) {
@@ -148,7 +158,7 @@ const fetchShow = (show) =>
           const response = await axios.get(
             `${BASE}/tv/${showData.tmdb_id}/season/${season}?api_key=${TMDb_Key}`
           );
-          if(response.status == 200) {
+          if (response.status == 200) {
             seasonsData.push(...response.data.episodes);
           }
         } catch (err) {
@@ -195,7 +205,7 @@ const fetchShow = (show) =>
       showData["episodes"] = episodeArray;
       res(showData);
     } catch (err) {
-			rej(err);
+      rej(err);
     }
   });
 

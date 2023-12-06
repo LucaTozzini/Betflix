@@ -9,7 +9,7 @@ import {
   missingMedia,
 } from "./filesUtil.helpers.js";
 import { fetchItem, fetchPerson, fetchShow } from "./TMDb-api.helpers.js";
-import { queryOrphans } from "./queries.helpers.js";
+import { queryOrphans, queryDrives } from "./queries.helpers.js";
 import {
   insertMedia,
   insertShow,
@@ -258,6 +258,7 @@ const createTables = () =>
             OVERVIEW TEXT,
             DURATION REAL NOT NULL,
             VOTE REAL,
+            COLLECTION_ID INT,
             FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`,
         (err) => (err ? console.error("Episodes Info", err.message) : res())
@@ -303,6 +304,22 @@ const createTables = () =>
       )
     );
 
+    // Collections
+    await new Promise((res) =>
+      db.run(
+        `CREATE TABLE IF NOT EXISTS collections(
+          ID INT PRIMARY KEY,
+          NAME TEXT NOT NULL,
+          OVERVIEW TEXT,
+          POSTER_S TEXT,
+          POSTER_L TEXT,
+          BACKDROP_S TEXT,
+          BACKDROP_L TEXT
+        )`,
+        (err) => (err ? console.error(err.message) : res())
+      )
+    );
+
     // People
     await new Promise((res) =>
       db.run(
@@ -330,6 +347,19 @@ const createTables = () =>
 						FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`,
         (err) => (err ? console.error("Cast", err.message) : res())
+      )
+    );
+
+    // Directors
+    await new Promise((res) =>
+      db.run(
+        `CREATE TABLE IF NOT EXISTS directors (
+          KEY TEXT PRIMARY KEY,
+          MEDIA_ID TEXT NOT NULL,
+          PERSON_ID INT NOT NULL,
+          FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+        )`,
+        (err) => (err ? console.error("Directors", err.message) : res())
       )
     );
 
@@ -384,12 +414,11 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS subtitles (
-                PATH TEXT PRIMARY KEY NOT NULL,
-                MEDIA_ID TEXT,
-                EPISODE_ID INT,
-                LANG TEXT NOT NULL,
-                EXT TEXT NOT NULL
-            )`,
+          PATH TEXT PRIMARY KEY NOT NULL,
+          IMDB_ID TEXT,
+          LANG TEXT NOT NULL,
+          EXT TEXT NOT NULL
+        )`,
         (err) => (err ? console.error("User Watchlist", err.message) : res())
       )
     );
@@ -449,13 +478,12 @@ const updateShows = () =>
       let i = 0;
       for (const showFolder of showFolders) {
         i++;
-        publicManager.status.PROGRESS = (i / showFolder.length) * 100;
+        publicManager.status.PROGRESS = (i / showFolders.length) * 100;
         try {
           const showObj = await scanShow(env.showsPath + "/" + showFolder);
           publicManager.status.ACTION = `Insert Show - ${showObj.title} [${showObj.year}]`;
           const data = await fetchShow(showObj);
-          
-          await insertShow(data);
+          // await insertShow(data);
         } catch (err) {
           console.error(err.message);
         }
@@ -485,7 +513,7 @@ const updateMovies = () =>
 
         try {
           const data = await fetchItem(1, fileObject);
-          await insertMedia(data);
+          // await insertMedia(data);
         } catch (err) {
           console.error(err.message);
         }
@@ -611,6 +639,19 @@ const cleanMedia = () =>
     }
   });
 
+const drivesStatus = () =>
+  new Promise(async (res, rej) => {
+    try {
+      const drives = await queryDrives();
+      for (const drive of drives) {
+        drive["ONLINE"] = fs.existsSync(drive.DRIVE_PATH);
+      }
+      res(drives);
+    } catch (err) {
+      rej(err);
+    }
+  });
+
 // Public Manager
 const publicManager = {
   run,
@@ -628,4 +669,4 @@ const publicManager = {
   },
 };
 
-export { db, transaction, publicManager, continuePrep };
+export { db, transaction, publicManager, continuePrep, drivesStatus };

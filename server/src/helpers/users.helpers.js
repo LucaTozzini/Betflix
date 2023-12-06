@@ -121,11 +121,16 @@ const watchlist = (userId) =>
 const mediaContinue = (userId, mediaId) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT *, CASE WHEN END_TIME < 60 THEN 1 ELSE 0 END AS DONE_WATCHING
-    FROM users_continue AS c
-    LEFT JOIN episodes_main AS m ON c.EPISODE_ID = m.EPISODE_ID 
-    WHERE USER_ID = ? AND c.MEDIA_ID = ?
-    ORDER BY TIME_STAMP DESC`,
+      `SELECT 
+        *, 
+        CASE WHEN END_TIME < 60 
+          THEN 1 
+          ELSE 0 
+          END AS DONE_WATCHING
+      FROM users_continue AS c
+      LEFT JOIN episodes_main AS m ON c.EPISODE_ID = m.EPISODE_ID 
+      WHERE USER_ID = ? AND c.MEDIA_ID = ?
+      ORDER BY TIME_STAMP DESC`,
       [userId, mediaId],
       (err, rows) => (err ? rej(err) : res(rows))
     )
@@ -135,8 +140,8 @@ const currentEpisode = (userId, mediaId) =>
   new Promise(async (res, rej) => {
     try {
       const data = await mediaContinue(userId, mediaId);
-      const done = [],
-        notDone = [];
+      const done = [];
+      const notDone = [];
       data.forEach((i) =>
         i.DONE_WATCHING == 1 ? done.push(i) : notDone.push(i)
       );
@@ -159,6 +164,7 @@ const currentEpisode = (userId, mediaId) =>
         res(next);
       }
     } catch (err) {
+      console.log("oh oh");
       rej(err);
     }
   });

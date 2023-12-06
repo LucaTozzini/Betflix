@@ -11,8 +11,7 @@ import {
 import {
   queryMedia,
   queryNextEpisode,
-  movieSubtitlePath,
-  episodeSubtitlePath,
+  querySubtitlePath,
   availableEpisodeSubtitles,
   availableMovieSubtitles,
   queryMediaPath,
@@ -28,7 +27,6 @@ const router = express.Router();
 
 router.get("/stream", async (req, res) => {
   try {
-
     if (!req.headers.range) {
       req.headers.range = "bytes=0-";
     }
@@ -39,7 +37,9 @@ router.get("/stream", async (req, res) => {
     }
 
     const filePath =
-      type == 1 ? await queryMediaPath(mediaId) : await queryEpisodePath(episodeId);
+      type == 1
+        ? await queryMediaPath(mediaId)
+        : await queryEpisodePath(episodeId);
 
     if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).send("File not found");
@@ -47,13 +47,13 @@ router.get("/stream", async (req, res) => {
 
     const size = fs.statSync(filePath).size;
     const chunk = 10 ** 6;
-    
+
     const start = parseInt(
       req.headers.range.replace(/bytes=/, "").split("-")[0]
     );
-    
+
     const end = Math.min(start + chunk, size - 1);
-    
+
     const contentLength = end - start + 1;
 
     const headers = {
@@ -78,7 +78,9 @@ router.get("/video", async (req, res) => {
       return res.status(400).send("Invalid type");
     }
     const filePath =
-      type == 1 ? await queryMediaPath(mediaId) : await queryEpisodePath(episodeId);
+      type == 1
+        ? await queryMediaPath(mediaId)
+        : await queryEpisodePath(episodeId);
     if (!filePath) {
       return res.status(404).send("File not found :(");
     }
@@ -125,7 +127,9 @@ router.post("/resume", async (req, res) => {
 router.post("/next", async (req, res) => {
   try {
     const { episodeId } = req.body;
-    if (!episodeId) return res.sendStatus(400);
+    if (!episodeId) {
+      return res.sendStatus(400);
+    }
     const { MEDIA_ID, SEASON_NUM, EPISODE_NUM } = await queryMedia(episodeId);
     const next = await queryNextEpisode(MEDIA_ID, SEASON_NUM, EPISODE_NUM);
     res.json(next);
@@ -137,41 +141,25 @@ router.post("/next", async (req, res) => {
 
 router.get("/subtitles", async (req, res) => {
   try {
-    if(!fs.existsSync(env.subtitlesPath)) {
-      return res.status(503).json({error: "Subtitles path not found, make sure needed drive is mounted"});
+    if (!fs.existsSync(env.subtitlesPath)) {
+      return res.status(503).json({
+        error: "Subtitles path not found, make sure needed drive is mounted",
+      });
     }
-    const { mediaId, episodeId, language, extension } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!mediaId && !isEpisode) {
+    const { imdbId, language, extension } = req.query;
+    if (!imdbId) {
       return res.sendStatus(400);
     }
-    let path;
-    if (isEpisode) {
-      path = await episodeSubtitlePath(
-        episodeId,
-        language || "en",
-        extension || "srt"
-      );
-    } else {
-      const { TYPE } = await queryMedia(mediaId);
-      if (TYPE == 2) {
-        return res.sendStatus(400);
-      }
-      path = await movieSubtitlePath(
-        mediaId,
-        language || "en",
-        extension || "srt"
-      );
-    }
+    let path = await querySubtitlePath(imdbId, language || "en", extension || "vtt");
 
-    if (!path) {
-      const files = await quickDowload(
-        isEpisode ? episodeId : mediaId,
-        isEpisode,
-        language || "en"
-      );
-      path = extension == "vtt" ? files.vtt : files.srt;
-    }
+    // if (!path) {
+    //   const files = await quickDowload(
+    //     isEpisode ? episodeId : mediaId,
+    //     isEpisode,
+    //     language || "en"
+    //   );
+    //   path = extension == "vtt" ? files.vtt : files.srt;
+    // }
 
     res.sendFile(path);
   } catch (err) {

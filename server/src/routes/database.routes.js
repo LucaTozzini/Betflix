@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateAdmin } from "../helpers/users.helpers.js";
-import { publicManager } from "../helpers/database.helpers.js";
+import { publicManager, drivesStatus } from "../helpers/database.helpers.js";
 
 const router = express.Router();
 
@@ -60,6 +60,16 @@ router.post("/maintenance/:action", async (req, res) => {
     res.sendStatus(200);
   } catch (err) {
     console.log(err.message);
+    res.sendStatus(500);
+  }
+});
+
+router.get("/drives", async(req, res) => {
+  try {
+    const drives = await drivesStatus();
+    res.json(drives);
+  } catch(err) {
+    console.error(err.message);
     res.sendStatus(500);
   }
 });

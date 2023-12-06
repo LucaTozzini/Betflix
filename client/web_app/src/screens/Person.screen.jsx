@@ -24,15 +24,26 @@ const Person = () => {
   const [ fullBio, setFullBio ] = useState(null);
 
   const FetchPerson = async () => {
-    const response = await fetch(`${serverAddress}/browse/person?personId=${personId}`);
-    const json = await response.json();
-    setPersonData(json); 
+    try {
+      const response = await fetch(`${serverAddress}/browse/person?personId=${personId}`);
+      const json = await response.json();
+      setPersonData(json); 
+      
+    } catch(err) {
+
+    }
   };
 
   const FetchFilmography = async () => {
-    const response = await fetch(`${serverAddress}/browse/filmography?personId=${personId}`);
-    const json = await response.json();
-    setFilmographyData(json);
+    try {
+      const response = await fetch(`${serverAddress}/browse/person/filmography?personId=${personId}`);
+      const json = await response.json();
+      json.sort((a, b) => a.START_DATE < b.START_DATE ? 1 : -1);
+      setFilmographyData(json);
+      
+    } catch(err) {
+
+    }
   };
 
   useEffect(() => {

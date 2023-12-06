@@ -167,14 +167,21 @@
 
 .genres {
     display: flex;
+    flex: 1;
     gap: 1ch;
-    flex-wrap: wrap;
+    overflow: hidden;
 }
 
-.genre {
+.genres > a {
     text-transform: capitalize;
     flex-shrink: 0;
-    color: rgb(197, 197, 197);
+    font-size: 1.5rem;
+    color: rgb(211, 211, 211);
+}
+
+.genres > a:hover {
+    color: white;
+    cursor: pointer;
 }
 
 .overview {
