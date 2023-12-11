@@ -18,7 +18,7 @@ const Database = () => {
     } catch (err) {
       console.error(err.message);
     }
-    setTimeout(FetchStatus, 1000);
+    setTimeout(FetchStatus, 100);
   };
   const queryUpdate = (param) => {
     const options = {

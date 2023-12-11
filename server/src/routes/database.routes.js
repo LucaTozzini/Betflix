@@ -26,7 +26,7 @@ router.post("/update/:item", async (req, res) => {
       await publicManager.images.setPoster(mediaId, large, small);
     } else if (item == "poster-nt") {
       await publicManager.images.setPosterNt(mediaId, large, small);
-    } else if (item == "/poster-w") {
+    } else if (item == "poster-w") {
       await publicManager.images.setPosterWide(mediaId, large, small);
     } else if (item == "backdrop") {
       await publicManager.images.setBackdrop(mediaId, large, small);
@@ -39,6 +39,9 @@ router.post("/update/:item", async (req, res) => {
     } else if (item == "people") {
       publicManager.run(3);
     }
+
+    res.sendStatus(200);
+
   } catch (err) {
     console.error(err);
     res.sendStatus(500);

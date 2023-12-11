@@ -9,11 +9,11 @@ import {
   availableGenres,
   queryMediaByGenre,
   queryMedia,
-  queryCast,
   queryPerson,
   querySeason,
   queryEpisode,
   queryFilmography,
+  queryByDirector,
   queryVoteRange,
   queryDateRange,
   querylatestReleases,
@@ -32,7 +32,6 @@ router.post("/item", async (req, res) => {
     }
 
     const data = await queryMedia(mediaId, userId);
-    data["CAST"] = await queryCast(mediaId);
     data["IN_WATCHLIST"] = (await inWatchlist(userId, mediaId)) ? 1 : 0;
     res.json(data);
   } catch (err) {
@@ -92,19 +91,6 @@ router.get("/genres", async (req, res) => {
     }
     const data = await queryMediaByGenre(genreName, type, orderBy, limit || 30);
     res.json(data);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
-});
-
-router.get("/title", async (req, res) => {
-  try {
-    // const { value } = req.query;
-    // if(!value) return res.status(400).send('Value empty');
-    // const data = await searchMedia(value);
-    // res.json(data);
-    res.json([]);
   } catch (err) {
     console.error(err.message);
     res.sendStatus(500);
@@ -178,6 +164,17 @@ router.get("/person/filmography", async (req, res) => {
   try {
     const { personId } = req.query;
     const data = await queryFilmography(personId);
+    res.json(data);
+  } catch (err) {
+    console.error(err.message);
+    res.sendStatus(500);
+  }
+});
+
+router.get("/person/directed", async (req, res) => {
+  try {
+    const { personId } = req.query;
+    const data = await queryByDirector(personId);
     res.json(data);
   } catch (err) {
     console.error(err.message);

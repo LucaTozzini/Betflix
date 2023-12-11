@@ -40,6 +40,7 @@ const insertMedia = (mediaData) =>
         content_rating,
         duration,
         vote,
+        collection_id,
 
         //
         genres,
@@ -106,9 +107,10 @@ const insertMedia = (mediaData) =>
             OVERVIEW, 
             CONTENT_RATING, 
             DURATION, 
-            VOTE
+            VOTE,
+            COLLECTION_ID
           ) 
-          VALUES (?,?,?,?,?,?)`
+          VALUES (?,?,?,?,?,?,?)`
         ),
         genres: db.prepare(
           `INSERT INTO media_genres (
@@ -128,7 +130,7 @@ const insertMedia = (mediaData) =>
           ) 
           VALUES (?,?,?,?,?)`
         ),
-        directors: db.prepeare(
+        directors: db.prepare(
           `INSERT INTO directors (
             KEY, 
             MEDIA_ID, 
@@ -161,6 +163,7 @@ const insertMedia = (mediaData) =>
         content_rating,
         duration,
         vote,
+        collection_id
       ];
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
@@ -248,10 +251,10 @@ const insertMedia = (mediaData) =>
         );
       }
 
-      for (const director of directors) {
+      for (const id of directors) {
         await new Promise((res) =>
           mediaPrep.directors.run(
-            [`KEY_${media_id}_${director.id}`, media_id, id],
+            [`KEY_${media_id}_${id}`, media_id, id],
             (err) => {
               if (err) {
                 console.log("Director Insert", err.message);

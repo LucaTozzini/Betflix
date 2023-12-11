@@ -1,6 +1,8 @@
 import axios from "axios";
 import env from "../../env.js";
 
+import { queryMedia } from "../helpers/queries.helpers.js";
+
 const TMDb_Key = env.TMDB_KEY;
 const BASE = "https://api.themoviedb.org/3";
 const Img_Base = "https://image.tmdb.org/t/p/original";
@@ -26,7 +28,9 @@ const fetchItem = (type, item) =>
       );
       const match = filtered[0] || results[0];
 
-      if (match == undefined) throw new Error(`No match for ${item.title}`);
+      if (match == undefined) {
+        throw new Error(`No match for ${item.title}`);
+      }
 
       let match_response;
       if (type == 1) {
@@ -40,22 +44,21 @@ const fetchItem = (type, item) =>
       }
 
       const match_data = match_response.data;
-      console.log(match_data.credits.crew);
 
       const backdrop = match_data.images.backdrops.filter(
-        (i) => i.iso_639_1 == null
+        ({ iso_639_1 }) => iso_639_1 == null
       )[0];
       const logo = match_data.images.logos.filter(
-        (i) => i.iso_639_1 == "en"
+        ({ iso_639_1 }) => iso_639_1 == "en"
       )[0];
       const poster = match_data.images.posters.filter(
-        (i) => i.iso_639_1 == "en"
+        ({ iso_639_1 }) => iso_639_1 == "en"
       )[0];
       const poster_nt = match_data.images.posters.filter(
-        (i) => i.iso_639_1 == null
+        ({ iso_639_1 }) => iso_639_1 == null
       )[0];
       const poster_w = match_data.images.backdrops.filter(
-        (i) => i.iso_639_1 == "en"
+        ({ iso_639_1 }) => iso_639_1 == "en"
       )[0];
 
       const content_rating =
@@ -66,6 +69,7 @@ const fetchItem = (type, item) =>
           : match_data.content_ratings.results.filter(
               (i) => i.iso_3166_1 == "US" && i.certification != ""
             )[0];
+
       const data = {
         // main
         media_id: type == 1 ? `mv_${match.id}` : `sh_${match.id}`,
@@ -113,18 +117,20 @@ const fetchItem = (type, item) =>
             ? item.duration
             : parseFloat(match_data.episode_run_time[0]) * 60,
         vote: match.vote_average,
-        collection_id: match_data.belongs_to_collection.id || null,
+        collection_id: match_data.belongs_to_collection
+          ? match_data.belongs_to_collection.id
+          : null,
 
         // genres
-        genres: match_data.genres.map((i) => i.id),
+        genres: match_data.genres.map(({ id }) => id),
 
         // credits
         credits:
           type == 1
-            ? match_data.credits.cast.map((i) => ({
-                id: i.id,
-                character: i.character,
-                order: i.order,
+            ? match_data.credits.cast.map(({ id, character, order }) => ({
+                id,
+                character,
+                order,
               }))
             : match_data.aggregate_credits.cast.map(({ id, roles, order }) => ({
                 id,
@@ -212,13 +218,9 @@ const fetchShow = (show) =>
 const fetchImages = (mediaId) =>
   new Promise(async (res, rej) => {
     try {
-      const info = await mediaInfo(mediaId);
-      const id = info.TMDB_ID;
-      const type = info.TYPE;
-
-      const url = `${BASE}/${
-        type == 2 ? "tv" : "movie"
-      }/${id}/images?api_key=${TMDb_Key}`;
+      const { TMDB_ID, TYPE } = await queryMedia(mediaId);
+      const path = TYPE == 2 ? "tv" : "movie";
+      const url = `${BASE}/${path}/${TMDB_ID}/images?api_key=${TMDb_Key}`;
       const response = await axios.get(url);
       const data = response.data;
 

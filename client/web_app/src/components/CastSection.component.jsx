@@ -7,7 +7,7 @@ import NavButtons from './NavButtons.component';
 // CSS
 import styles from '../styles/CastSection.component.module.css';
 
-const CastSection = ({ data }) => {
+const CastSection = ({ title, data }) => {
     const ref = useRef(null);
 
     const Item = ({personId, image, character, name}) => {
@@ -22,7 +22,7 @@ const CastSection = ({ data }) => {
     if(data && data.length > 0) return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <h2 className={styles.topTitle}>Cast</h2>
+                <h2 className={styles.topTitle}>{title}</h2>
                 <NavButtons scrollRef={ref} items={data}/>
             </div>
             <div className={styles.items} ref={ref}>

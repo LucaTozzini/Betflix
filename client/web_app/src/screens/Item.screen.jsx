@@ -116,7 +116,7 @@ const Item = () => {
             return new Promise(async (res) => {
               const person = data.CAST[index];
               const response = await fetch(
-                `${serverAddress}/browse/filmography?personId=${person.PERSON_ID}&limit=30`
+                `${serverAddress}/browse/person/filmography?personId=${person.PERSON_ID}&limit=30`
               );
               const json = await response.json();
               res({
@@ -400,7 +400,8 @@ const Item = () => {
           ) : (
             <></>
           )}
-          {data.CAST ? <CastSection key={"Cast"} data={data.CAST} /> : <></>}
+          <CastSection key="Cast" title="Cast" data={data ? data.CAST : []} />
+          <CastSection key="Directors" title="Directed By" data={data ? data.DIRECTORS : []} />
           {moreWithStar ? (
             <MediaSection
               key={"More_With_1"}

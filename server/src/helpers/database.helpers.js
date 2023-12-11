@@ -201,6 +201,7 @@ const createTables = () =>
             CONTENT_RATING TEXT,
             DURATION REAL,
             VOTE REAL,
+            COLLECTION_ID INT,
             FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
         )`,
         (err) => (err ? console.error("Media Info", err.message) : res())
@@ -258,7 +259,6 @@ const createTables = () =>
             OVERVIEW TEXT,
             DURATION REAL NOT NULL,
             VOTE REAL,
-            COLLECTION_ID INT,
             FOREIGN KEY(EPISODE_ID) REFERENCES episodes_main(EPISODE_ID) ON DELETE CASCADE
         )`,
         (err) => (err ? console.error("Episodes Info", err.message) : res())
@@ -483,7 +483,7 @@ const updateShows = () =>
           const showObj = await scanShow(env.showsPath + "/" + showFolder);
           publicManager.status.ACTION = `Insert Show - ${showObj.title} [${showObj.year}]`;
           const data = await fetchShow(showObj);
-          // await insertShow(data);
+          await insertShow(data);
         } catch (err) {
           console.error(err.message);
         }
@@ -504,7 +504,6 @@ const updateMovies = () =>
       fetchItem(type: int, fileObject)
       */
       const movieFiles = await scanMovies();
-
       let i = 0;
       for (const fileObject of movieFiles) {
         i++;
@@ -513,7 +512,7 @@ const updateMovies = () =>
 
         try {
           const data = await fetchItem(1, fileObject);
-          // await insertMedia(data);
+          await insertMedia(data);
         } catch (err) {
           console.error(err.message);
         }
@@ -546,6 +545,7 @@ const updatePeople = () =>
           console.error(err.message);
         }
       }
+      res()
     } catch (err) {
       rej(err);
     }
@@ -556,10 +556,10 @@ const setPoster = (mediaId, large, small) =>
   new Promise(async (res, rej) =>
     db.run(
       `UPDATE media_images
-    SET POSTER_L = ?, POSTER_S = ?
-    WHERE MEDIA_ID = ?`,
+      SET POSTER_L = ?, POSTER_S = ?
+      WHERE MEDIA_ID = ?`,
       [large, small, mediaId],
-      (err) => (err ? rej() : res())
+      (err) => (err ? rej(err) : res())
     )
   );
 
@@ -567,10 +567,10 @@ const setPosterNt = (mediaId, large, small) =>
   new Promise(async (res, rej) =>
     db.run(
       `UPDATE media_images
-    SET POSTER_NT_L = ?, POSTER_NT_S = ?
-    WHERE MEDIA_ID = ?`,
+      SET POSTER_NT_L = ?, POSTER_NT_S = ?
+      WHERE MEDIA_ID = ?`,
       [large, small, mediaId],
-      (err) => (err ? rej() : res())
+      (err) => (err ? rej(err) : res())
     )
   );
 
@@ -578,10 +578,10 @@ const setPosterWide = (mediaId, large, small) =>
   new Promise(async (res, rej) =>
     db.run(
       `UPDATE media_images
-    SET POSTER_W_L = ?, POSTER_W_S = ?
-    WHERE MEDIA_ID = ?`,
+      SET POSTER_W_L = ?, POSTER_W_S = ?
+      WHERE MEDIA_ID = ?`,
       [large, small, mediaId],
-      (err) => (err ? rej() : res())
+      (err) => (err ? rej(err) : res())
     )
   );
 
@@ -589,10 +589,10 @@ const setBackdrop = (mediaId, large, small) =>
   new Promise(async (res, rej) =>
     db.run(
       `UPDATE media_images
-    SET BACKDROP_L = ?, BACKDROP_S = ?
-    WHERE MEDIA_ID = ?`,
+      SET BACKDROP_L = ?, BACKDROP_S = ?
+      WHERE MEDIA_ID = ?`,
       [large, small, mediaId],
-      (err) => (err ? rej() : res())
+      (err) => (err ? rej(err) : res())
     )
   );
 
@@ -600,10 +600,10 @@ const setLogo = (mediaId, large, small) =>
   new Promise(async (res, rej) =>
     db.run(
       `UPDATE media_images
-    SET LOGO_L = ?, LOGO_S = ?
-    WHERE MEDIA_ID = ?`,
+      SET LOGO_L = ?, LOGO_S = ?
+      WHERE MEDIA_ID = ?`,
       [large, small, mediaId],
-      (err) => (err ? rej() : res())
+      (err) => (err ? rej(err) : res())
     )
   );
 

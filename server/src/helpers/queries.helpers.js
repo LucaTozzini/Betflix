@@ -1,5 +1,17 @@
 import { db } from "./database.helpers.js";
 
+const shallowItemQuery = `SELECT 
+                            main.IMDB_ID, 
+                            main.TMDB_ID, 
+                            main.TYPE, 
+                            info.*, 
+                            images.*, 
+                            dates.*
+                          FROM media_main AS main
+                          JOIN media_info AS info ON main.MEDIA_ID = info.MEDIA_ID
+                          JOIN media_images AS images ON main.MEDIA_ID = images.MEDIA_ID
+                          JOIN media_dates AS dates ON main.MEDIA_ID = dates.MEDIA_ID`;
+
 // Helper Functions
 const compileRowData = (rows) =>
   new Promise(async (res, rej) => {
@@ -75,6 +87,8 @@ const queryMedia = (mediaId, userId) =>
         try {
           row.GENRES = await queryGenres(mediaId);
           row.AVAILABLE_SEASONS = await queryAvailableSeasons(mediaId);
+          row.DIRECTORS = await queryDirectors(mediaId);
+          row.CAST = await queryCast(mediaId);
           res(row);
         } catch (err) {
           console.error("Error queryMedia Post");
@@ -87,12 +101,9 @@ const queryMedia = (mediaId, userId) =>
 const queryMediaByGenre = (genreName, type, orderBy, limit) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT main.MEDIA_ID
-      FROM media_main AS main
+      `${shallowItemQuery}
       JOIN media_genres AS m_genres ON main.MEDIA_ID = m_genres.MEDIA_ID
       JOIN genres ON m_genres.GENRE_ID = genres.GENRE_ID
-      JOIN media_info ON main.MEDIA_ID = media_info.MEDIA_ID
-      JOIN media_dates ON main.MEDIA_ID = media_dates.MEDIA_ID
       WHERE GENRE_NAME = ? ${type ? "AND  TYPE = ?" : ""}
       ORDER BY  ${
         orderBy == "random"
@@ -103,33 +114,25 @@ const queryMediaByGenre = (genreName, type, orderBy, limit) =>
       }
       LIMIT ?`,
       type ? [genreName, type, limit] : [genreName, limit],
-      async (err, rows) => {
-        if (err) {
-          console.error("Error queryMediaByGenre");
-          return rej(err);
-        }
-        compileRowData(rows)
-          .then((data) => res(data))
-          .catch((err) => rej(err));
-      }
+      async (err, rows) => err ? rej(err) : res(rows)
     )
   );
 
-const queryTitle = (regex) =>
+const queryTitle = (title, limit) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT MEDIA_ID
-		FROM media_info
-		WHERE TITLE REGEXP ?`,
-      [regex],
-      async (err, rows) => {
-        if (err) {
-          return rej(err);
-        }
-        compileRowData(data)
-          .then((data) => res(data))
-          .catch((err) => rej(err));
-      }
+      `${shallowItemQuery}
+      WHERE TITLE LIKE "%"|| ? ||"%"
+      ORDER BY (
+        CASE
+          WHEN TITLE = ? THEN 1
+          WHEN TITLE LIKE ? ||"%" THEN 2
+          ELSE 3
+        END
+      )
+      LIMIT ?`,
+      [title, title, title, limit],
+      async (err, rows) => err ? rej(err) : res(rows)
     )
   );
 
@@ -194,23 +197,21 @@ const queryVoteRange = (minVote, maxVote, orderBy, limit) =>
   );
 
 // People Queries
+const queryByDirector = (personId) =>
+  new Promise((res, rej) =>
+    db.all(
+      `${shallowItemQuery}
+      JOIN directors ON main.MEDIA_ID = directors.MEDIA_ID
+      WHERE directors.PERSON_ID = ?`,
+      [personId],
+      (err, rows) => (err ? rej(err) : res(rows))
+    )
+  );
+
 const queryPerson = (personId) =>
   new Promise((res, rej) =>
     db.get("SELECT * FROM people WHERE PERSON_ID = ?", [personId], (err, row) =>
       err ? rej() : res(row)
-    )
-  );
-
-const queryCast = (mediaId) =>
-  new Promise((res, rej) =>
-    db.all(
-      `SELECT p.PERSON_ID, c.CHARACTER, p.NAME, p.PROFILE_IMAGE
-			FROM cast AS c
-			JOIN people AS p ON c.PERSON_ID = p.PERSON_ID
-			WHERE c.MEDIA_ID = ?
-			ORDER BY c.CAST_ORDER ASC`,
-      [mediaId],
-      (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
@@ -232,6 +233,23 @@ const queryFilmography = (personId) =>
       }
     )
   );
+
+const queryPersonByName = (name, limit) => 
+  new Promise((res, rej) => db.all(
+    `SELECT *
+    FROM people
+    WHERE NAME LIKE "%"|| ? ||"%"
+    ORDER BY (
+      CASE 
+        WHEN NAME = ? THEN 1
+        WHEN NAME = ? ||"%" THEN 2
+        ELSE 3
+      END
+    )
+    LIMIT ?`,
+    [name, name, name, limit],
+    (err, rows) => err ? rej(err) : res(rows)
+  ))
 
 // TV Show Queries
 const querySeason = (mediaId, seasonNum, userId) =>
@@ -268,16 +286,6 @@ const queryEpisode = (episodeId, userId) =>
 			WHERE i.EPISODE_ID = ?`,
       [userId, episodeId],
       (err, row) => (err ? rej(err) : res(row))
-    )
-  );
-
-const queryOrphans = () =>
-  new Promise((res, rej) =>
-    db.all(
-      `SELECT DISTINCT PERSON_ID 
-			FROM cast 
-			WHERE PERSON_ID NOT IN (SELECT PERSON_ID FROM people)`,
-      (err, rows) => (err ? rej(err) : res(rows.map((i) => i.PERSON_ID)))
     )
   );
 
@@ -338,6 +346,45 @@ const availableEpisodeSubtitles = (episodeId) =>
   );
 
 // Private Queries
+const queryCast = (mediaId) =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT p.PERSON_ID, c.CHARACTER, p.NAME, p.PROFILE_IMAGE
+			FROM cast AS c
+			JOIN people AS p ON c.PERSON_ID = p.PERSON_ID
+			WHERE c.MEDIA_ID = ?
+			ORDER BY c.CAST_ORDER ASC`,
+      [mediaId],
+      (err, rows) => (err ? rej(err) : res(rows))
+    )
+  );
+
+const queryDirectors = (mediaId) =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT people.*
+      FROM directors
+      JOIN people ON directors.PERSON_ID = people.PERSON_ID
+      WHERE directors.MEDIA_ID = ?`,
+      [mediaId],
+      (err, rows) => (err ? rej(err) : res(rows))
+    )
+  );
+
+const queryOrphans = () =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT DISTINCT PERSON_ID 
+			FROM (
+        SELECT PERSON_ID FROM cast
+        UNION
+        SELECT PERSON_ID FROM directors
+      )
+			WHERE PERSON_ID NOT IN (SELECT PERSON_ID FROM people)`,
+      (err, rows) => (err ? rej(err) : res(rows.map((i) => i.PERSON_ID)))
+    )
+  );
+
 const haveMedia = (path) =>
   new Promise((res, rej) =>
     db.get(`SELECT * FROM media_main WHERE PATH = ?`, [path], (err, row) =>
@@ -410,10 +457,10 @@ export {
   queryVoteRange,
 
   // People
+  queryByDirector,
   queryPerson,
-  queryCast,
   queryFilmography,
-  queryOrphans,
+  queryPersonByName,
 
   // Shows
   querySeason,
@@ -426,6 +473,7 @@ export {
   availableEpisodeSubtitles,
 
   // Private Queries
+  queryOrphans,
   haveMedia,
   haveEpisode,
   queryMediaPath,

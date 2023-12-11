@@ -7,21 +7,50 @@ import { db } from "../helpers/database.helpers.js";
 import { haveMedia, haveEpisode } from "./queries.helpers.js";
 import { getVideoDurationInSeconds } from "get-video-duration";
 
-const parseString = (string) =>
-  new Promise(async (res, rej) => {
-    try {
-      const split = string.split("/")
-      const match = split[split.length - 1].match(/(.*)\W((19|20)\d{2})/i);
-      res({ year: parseInt(match[2]), title: match[1].replaceAll(/\W/g, " ").trim() });
-    } catch (err) {
-      console.log(err.message);
-      rej(err);
-    }
-  });
+const parseString = (string) => {
+  const split = string.split("/");
+  const match = split[split.length - 1].match(/(.*)\W((19|20)\d{2})/i);
+  return {
+    year: parseInt(match[2]),
+    title: match[1].replaceAll(/[^A-Za-z0-9\'\s]/g, " ").trim(),
+  };
+};
 
-const validExt = (filename) => {
-  const ext = path.extname(filename).toLowerCase();
-  return [".mp4", ".m4v", ".mkv"].includes(ext);
+const validExt = (filename) =>
+  [".mp4", ".m4v", ".mkv"].includes(path.extname(filename).toLowerCase());
+
+const validSubExt = (fileName) =>
+  [".srt", ".vtt"].includes(path.extname(fileName).toLowerCase());
+
+const findMovieSubs = (path, isRoot) => {
+  const paths = [];
+  const files = fs.readdirSync(path);
+  const numOfVideos = files.filter((i) => validExt(i)).length;
+  if ((isRoot && numOfVideos == 1) || (!isRoot && !numOfVideos)) {
+    for (const file of files) {
+      if (fs.statSync(path + "/" + file).isDirectory()) {
+        paths.push(...findMovieSubs(path + "/" + file, false));
+      } else if (validSubExt(file)) {
+        paths.push(path + "/" + file);
+      }
+    }
+  }
+  return paths;
+};
+
+const findEpisodeSubs = (path, seasonNum, episodeNum) => {
+  const paths = [];
+  for (const file of fs.readdirSync(path)) {
+    if (fs.statSync(file).isDirectory()) {
+      paths.push(...findEpisodeSubs(path + "/" + file));
+    } else if (validSubExt(file)) {
+      const data = episode(file);
+      if (data.season == seasonNum && data.episode == episodeNum) {
+        paths.push(file);
+      }
+    }
+  }
+  return paths;
 };
 
 const moviesInDirectory = (path) =>
@@ -56,18 +85,19 @@ const scanMovies = () =>
         publicManager.status.PROGRESS = (100 / files.length) * i;
         if (!(await haveMedia(`${env.moviesPath}/${file}`))) {
           try {
-            const parse = await parseString(file);
-            console.log(parse);
-            continue;
+            const { title, year } = parseString(file);
+            const duration = await getVideoDurationInSeconds(file);
+
+            publicManager.status.ACTION = `Scan Movies - ${title} (${year})`;
+
             returnArray.push({
-              path: `${env.moviesPath}/${file}`,
-              title: parseString(file).title,
-              year: parseString(file).year,
-              duration: await getVideoDurationInSeconds(
-                `${env.moviesPath}/${file}`
-              ),
+              path: file,
+              title,
+              year,
+              duration,
             });
           } catch (err) {
+            console.error(err.message);
             continue;
           }
         }
@@ -108,9 +138,9 @@ const scanShow = (folderPath) =>
       if (!fs.statSync(folderPath).isDirectory()) {
         throw new Error("Invalid path");
       }
-      const folderInfo = parseString(
-        folderPath.split("/")[folderPath.split("/").length - 1]
-      );
+      const pathSplit = folderPath.split("/");
+      const folderName = pathSplit[pathSplit.length - 1];
+      const folderInfo = parseString(folderName);
       const episodesPaths = await scanEpisodes(folderPath);
       if (episodesPaths.length == 0) {
         throw new Error("No new episodes");
@@ -119,10 +149,11 @@ const scanShow = (folderPath) =>
       for (const episodePath of episodesPaths) {
         const fileName =
           episodePath.split("/")[episodePath.split("/").length - 1];
+        const episodeParse = episode(fileName);
         episodesData.push({
           path: episodePath,
-          season_num: episode(fileName).season,
-          episode_num: episode(fileName).episode,
+          season_num: episodeParse.season,
+          episode_num: episodeParse.episode,
           duration: await getVideoDurationInSeconds(episodePath),
         });
       }

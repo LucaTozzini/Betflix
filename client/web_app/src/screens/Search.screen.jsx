@@ -3,6 +3,7 @@ import { MdClear } from "react-icons/md";
 
 // Components
 import MediaSection from "../components/MediaSection.component";
+import CastSection from "../components/CastSection.component";
 
 // CSS
 import styles from "../styles/Search.screen.module.css";
@@ -14,23 +15,45 @@ const Search = () => {
   const { serverAddress } = useContext(serverContext);
   const [query, setQuery] = useState(null);
   const [results, setResults] = useState(null);
+  const [people, setPeople] = useState(null);
   const ref = useRef(null);
 
-  const FetchSearch = async () => {
+  const fetchSearch = async () => {
     try {
       const response = await fetch(
-        `${serverAddress}/browse/search?value=${query}`
+        `${serverAddress}/search/title?value=${query}`
       );
       const json = await response.json();
-      console.log(json);
       setResults(json);
     } catch (err) {
       setResults([]);
     }
   };
 
+  const fetchPeople = async () => {
+    try {
+      if (query.length == 0) {
+        return;
+      }
+      const response = await fetch(
+        `${serverAddress}/search/person?value=${query}&limit=40`
+      );
+      const json = await response.json();
+      setPeople(json);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    console.log(people);
+  }, [people]);
+
   let queryTimeout;
   const handleInput = (value) => {
+    if(value == " ") {
+      ref.current.value = "";
+    } else if(value.match(/\s+$/g)) {
+      ref.current.value = value.trim() + " "; 
+    }
     clearTimeout(queryTimeout);
     queryTimeout = setTimeout(() => setQuery(value), 500);
   };
@@ -39,10 +62,12 @@ const Search = () => {
     document.getElementsByClassName(styles.inputText)[0].value = "";
     setQuery("");
     setResults([]);
+    setPeople([]);
   };
 
   useEffect(() => {
-    FetchSearch();
+    fetchSearch();
+    fetchPeople();
   }, [query]);
 
   useEffect(() => {
@@ -72,14 +97,16 @@ const Search = () => {
         )}
       </div>
       <div className={styles.items}>
-        {results && results.length > 0 ? (
-          <MediaSection title={"Results"} items={results} />
-        ) : (
-          <></>
-        )}
-        {query && query.length != 0 && results && results.length == 0 && (
-          <h3 style={{ color: "white", textAlign: "center" }}>No Results</h3>
-        )}
+        <MediaSection title={"Results"} items={results || []} />
+        <CastSection title={"People"} data={people || []} />
+        {query &&
+          query.length != 0 &&
+          results &&
+          results.length == 0 &&
+          people &&
+          people.length == 0 && (
+            <h3 style={{ color: "white", textAlign: "center" }}>No Results</h3>
+          )}
       </div>
     </div>
   );
