@@ -285,10 +285,9 @@ const fetchImages = (mediaId) =>
 const fetchPerson = (id) =>
   new Promise(async (res, rej) => {
     try {
-      const response = await axios.get(
+      const { data } = await axios.get(
         `${BASE}/person/${id}?api_key=${TMDb_Key}&language=en`
       );
-      const data = response.data;
 
       const obj = {
         person_id: data.id,
@@ -308,4 +307,47 @@ const fetchPerson = (id) =>
     }
   });
 
-export { fetchItem, fetchPerson, fetchShow, fetchImages };
+const fetchCollection = (id) =>
+  new Promise(async (res, rej) => {
+    try {
+      console.log(
+        `${BASE}/collection/${id}?api_key=${TMDb_Key}&language=en&append_to_response=images`
+      );
+      const { data } = await axios.get(
+        `${BASE}/collection/${id}?api_key=${TMDb_Key}&language=en&append_to_response=images`
+      );
+
+      const poster = data.images.posters.filter(
+        ({ iso_639_1 }) => iso_639_1 == "en"
+      )[0];
+      const poster_nt = data.images.posters.filter(
+        ({ iso_639_1 }) => iso_639_1 == null
+      )[0];
+      const poster_w = data.images.backdrops.filter(
+        ({ iso_639_1 }) => iso_639_1 == "en"
+      )[0];
+      const backdrop = data.images.backdrops.filter(
+        ({ iso_639_1 }) => iso_639_1 == null
+      )[0];
+
+      const collectionObj = {
+        collection_id: data.id,
+        title: data.name,
+        overview: data.overview,
+        // images
+        backdrop_s: backdrop ? Img_Base_500 + backdrop.file_path : null,
+        backdrop_l: backdrop ? Img_Base + backdrop.file_path : null,
+        poster_s: poster ? Img_Base_200 + poster.file_path : null,
+        poster_l: poster ? Img_Base + poster.file_path : null,
+        poster_nt_s: poster_nt ? Img_Base_200 + poster_nt.file_path : null,
+        poster_nt_l: poster_nt ? Img_Base + poster_nt.file_path : null,
+        poster_w_s: poster_w ? Img_Base_500 + poster_w.file_path : null,
+        poster_w_l: poster_w ? Img_Base + poster_w.file_path : null,
+      };
+      res(collectionObj);
+    } catch (err) {
+      rej(err);
+    }
+  });
+
+export { fetchItem, fetchPerson, fetchShow, fetchImages, fetchCollection };

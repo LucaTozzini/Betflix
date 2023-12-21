@@ -41,11 +41,11 @@ const findMovieSubs = (path, isRoot) => {
 const findEpisodeSubs = (path, seasonNum, episodeNum) => {
   const paths = [];
   for (const file of fs.readdirSync(path)) {
-    if (fs.statSync(file).isDirectory()) {
-      paths.push(...findEpisodeSubs(path + "/" + file));
+    if (fs.statSync(path + "/" + file).isDirectory()) {
+      paths.push(...findEpisodeSubs(path + "/" + file, seasonNum, episodeNum));
     } else if (validSubExt(file)) {
       const data = episode(file);
-      if (data.season == seasonNum && data.episode == episodeNum) {
+      if (data.season === seasonNum && data.episode === episodeNum) {
         paths.push(file);
       }
     }
@@ -77,29 +77,28 @@ const scanMovies = () =>
     publicManager.status.ACTION = "Scan Movies";
     publicManager.status.PROGRESS = 0;
     try {
-      const files = await moviesInDirectory(env.moviesPath);
+      const filePaths = await moviesInDirectory(env.moviesPath);
       const returnArray = [];
       let i = 0;
-      for (const file of files) {
+      for (const filePath of filePaths) {
         i++;
-        publicManager.status.PROGRESS = (100 / files.length) * i;
-        if (!(await haveMedia(`${env.moviesPath}/${file}`))) {
-          try {
-            const { title, year } = parseString(file);
-            const duration = await getVideoDurationInSeconds(file);
+        publicManager.status.PROGRESS = (100 / filePaths.length) * i;
 
-            publicManager.status.ACTION = `Scan Movies - ${title} (${year})`;
+        try {
+          const { title, year } = parseString(filePath);
+          const duration = await getVideoDurationInSeconds(filePath);
 
-            returnArray.push({
-              path: file,
-              title,
-              year,
-              duration,
-            });
-          } catch (err) {
-            console.error(err.message);
-            continue;
-          }
+          publicManager.status.ACTION = `Scan Movies - ${title} (${year})`;
+
+          returnArray.push({
+            path: filePath,
+            title,
+            year,
+            duration,
+          });
+        } catch (err) {
+          console.error(err.message);
+          continue;
         }
       }
       res(returnArray);
@@ -201,4 +200,4 @@ const missingEpisodes = () =>
     )
   );
 
-export { scanMovies, getShowFolders, scanShow, missingMedia, missingEpisodes };
+export { scanMovies, getShowFolders, scanShow, missingMedia, missingEpisodes, findMovieSubs, findEpisodeSubs };

@@ -9,19 +9,11 @@ import {
   episodeResumeTime,
 } from "../helpers/users.helpers.js";
 import {
-  queryMedia,
+  queryEpisode,
   queryNextEpisode,
-  querySubtitlePath,
-  availableEpisodeSubtitles,
-  availableMovieSubtitles,
   queryMediaPath,
   queryEpisodePath,
 } from "../helpers/queries.helpers.js";
-import {
-  searchSubtitles,
-  downloadSubtitle,
-  quickDowload,
-} from "../helpers/OpenSubtitles-api.js";
 
 const router = express.Router();
 
@@ -130,99 +122,9 @@ router.post("/next", async (req, res) => {
     if (!episodeId) {
       return res.sendStatus(400);
     }
-    const { MEDIA_ID, SEASON_NUM, EPISODE_NUM } = await queryMedia(episodeId);
+    const { MEDIA_ID, SEASON_NUM, EPISODE_NUM } = await queryEpisode(episodeId);
     const next = await queryNextEpisode(MEDIA_ID, SEASON_NUM, EPISODE_NUM);
     res.json(next);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
-});
-
-router.get("/subtitles", async (req, res) => {
-  try {
-    if (!fs.existsSync(env.subtitlesPath)) {
-      return res.status(503).json({
-        error: "Subtitles path not found, make sure needed drive is mounted",
-      });
-    }
-    const { imdbId, language, extension } = req.query;
-    if (!imdbId) {
-      return res.sendStatus(400);
-    }
-    let path = await querySubtitlePath(imdbId, language || "en", extension || "vtt");
-
-    // if (!path) {
-    //   const files = await quickDowload(
-    //     isEpisode ? episodeId : mediaId,
-    //     isEpisode,
-    //     language || "en"
-    //   );
-    //   path = extension == "vtt" ? files.vtt : files.srt;
-    // }
-
-    res.sendFile(path);
-  } catch (err) {
-    console.log(err.message);
-    if (err.cause == "no results") {
-      return res.sendStatus(404);
-    }
-    res.sendStatus(500);
-  }
-});
-
-router.get("/subtitles/available", async (req, res) => {
-  try {
-    const { mediaId, episodeId } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!mediaId && !isEpisode) {
-      return res.sendStatus(400);
-    }
-    const data = isEpisode
-      ? await availableEpisodeSubtitles(episodeId)
-      : await availableMovieSubtitles(mediaId);
-    res.json(data);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
-});
-
-router.get("/subtitles/search", async (req, res) => {
-  try {
-    const { mediaId, episodeId, language } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!language || (!mediaId && !isEpisode)) {
-      return res.sendStatus(400);
-    }
-    const data = await searchSubtitles(
-      isEpisode ? episodeId : mediaId,
-      isEpisode,
-      language
-    );
-    res.json(data);
-  } catch (err) {
-    if (err.cause == "no results") {
-      return res.sendStatus(404);
-    }
-    res.sendStatus(500);
-  }
-});
-
-router.get("/subtitles/download", async (req, res) => {
-  try {
-    const { mediaId, episodeId, language, fileId, extension } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!fileId || (!mediaId && !isEpisode) || !language || !extension) {
-      return res.sendStatus(400);
-    }
-    const data = await downloadSubtitle(
-      isEpisode ? episodeId : mediaId,
-      isEpisode,
-      language,
-      fileId
-    );
-    res.sendFile(extension == "vtt" ? data.vtt : data.srt);
   } catch (err) {
     console.error(err.message);
     res.sendStatus(500);

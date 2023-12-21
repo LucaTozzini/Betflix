@@ -66,11 +66,6 @@
     cursor: pointer;
 }
 
-.progressFrame:hover > .progressBar {
-    /* height: 1rem;
-    border-radius: 1rem; */
-}
-
 .progressFrame:hover .progressKnob {
     --size: 1rem;
     height: var(--size);
@@ -239,13 +234,23 @@
     width: 100%;
     background-color: rgba(128, 128, 128, 0.4);
     z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .subtitlesContainer {
     display: flex;
+    overflow: auto;
+    height: 70%;
+    width: 70%;
+    max-width: 50rem;
+    border-radius: 1rem;
+
     flex-direction: column;
     padding: 0 1rem 1rem 1rem;
-    background-color: black;
+    background-color: rgb(20, 20, 20);
     color: white;
     gap: 1.6rem;
 }
@@ -275,9 +280,9 @@
     left: 0;
     top: 0;
     padding: 1rem 0;
-    background-color: black;
     z-index: 3;
     border-bottom: solid 1px rgb(122, 122, 122);
+    background-color: inherit;
 }
 
 .closeSubtitles {

@@ -41,7 +41,7 @@ const Player = () => {
   const [fullScreen, setFullScreen] = useState(document.fullscreenElement);
   const fillRef = useRef(null);
   const barRef = useRef(null);
-  const [videoRef, setVideoRef] = useState(null);
+  const [ videoRef, setVideoRef ] = useState(null);
   const seekRef = useRef(false);
 
   // volume
@@ -60,7 +60,7 @@ const Player = () => {
   const [arbNumber, setArbNumber] = useState(0);
   const [loadingSubtitles, setLoadingSubtitles] = useState(false);
   const [showSubtitlesModal, setShowSubtitlesModal] = useState(false);
-  const [availableSubtitles, setAvailableSubtitles] = useState(null);
+  const [availableSubtitles, setAvailableSubtitles] = useState([]);
   const [showSubtitles, setShowSubtitles] = useState(
     () => window.localStorage.getItem("showSubtitles") === "true"
   );
@@ -395,7 +395,9 @@ const Player = () => {
   };
 
   const FetchSource = async () => {
-    if (!mediaData) return;
+    if (!mediaData) {
+      return;
+    }
     if (mediaData.TYPE == 1) {
       const url = `${serverAddress}/player/stream/?type=1&mediaId=${mediaData.MEDIA_ID}`;
       const response = await fetch(url);
@@ -424,7 +426,11 @@ const Player = () => {
         const options = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ episodeId: Number(episodeId) }),
+          body: JSON.stringify({
+            episodeId: Number(episodeId),
+            userId,
+            userPin,
+          }),
         };
         const response = await fetch(
           `${serverAddress}/browse/episode`,
@@ -566,15 +572,16 @@ const Player = () => {
     }, 3000);
   };
 
+  // Subtitles
   const fetchSubtitles = async () => {
     setLoadingSubtitles(true);
     try {
+      console.log(mediaData)
       const response = await fetch(
-        `${serverAddress}/player/subtitles/available?mediaId=${mediaId}&episodeId=${
-          episodeData ? episodeData.EPISODE_ID : null
-        }&extension=vtt`
+        `${serverAddress}/subtitles/available?imdbId=${mediaData.IMDB_ID}&extension=vtt`
       );
       const json = await response.json();
+      console.log(json)
       setAvailableSubtitles(json);
     } catch (err) {
       console.error(err.message);
@@ -582,15 +589,11 @@ const Player = () => {
     setLoadingSubtitles(false);
   };
 
-  // Subtitles
-
   const quickDownloadSubtitle = async (language) => {
     setLoadingSubtitles(true);
     try {
       const response = await fetch(
-        `${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${
-          episodeData ? episodeId : null
-        }&language=${language}`
+        `${serverAddress}/subtitles?imdbId=${mediaData.IMDB_ID}&language=${language}`
       );
       if (response.status == 200) {
         setSubtitlesLanguage(language);
@@ -607,7 +610,7 @@ const Player = () => {
     try {
       setSubtitlesResults(null);
       const response = await fetch(
-        `${serverAddress}/player/subtitles/search?mediaId=${mediaId}&episodeId=${
+        `${serverAddress}/subtitles/search?mediaId=${mediaId}&episodeId=${
           episodeData ? episodeData.EPISODE_ID : null
         }&language=${language}`
       );
@@ -621,7 +624,7 @@ const Player = () => {
     setLoadingSubtitles(true);
     try {
       const response = await fetch(
-        `${serverAddress}/player/subtitles/download?mediaId=${mediaId}&episodeId=${
+        `${serverAddress}/subtitles/download?mediaId=${mediaId}&episodeId=${
           episodeData ? episodeData.EPISODE_ID : null
         }&language=${language}&fileId=${fileId}&extension=vtt`
       );
@@ -654,13 +657,15 @@ const Player = () => {
   }, []);
 
   useEffect(() => {
-    if (!mediaData) return;
-    mediaRef.current = mediaData;
-    FetchSource();
-    if (mediaData.TYPE == 1) {
-      FetchResume();
+    if (mediaData && videoRef) {
+      mediaRef.current = mediaData;
+      FetchSource();
+      if (mediaData.TYPE == 1) {
+        FetchResume();
+        fetchSubtitles();
+      }
     }
-  }, [mediaData]);
+  }, [mediaData, videoRef]);
 
   useEffect(() => {
     if (episodeData) {
@@ -694,6 +699,11 @@ const Player = () => {
   }, [videoRef]);
 
   useEffect(() => {
+    if (progress == 1 && nextEpisode) {
+      window.location.replace(
+        `/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`
+      );
+    }
     if (fillRef.current && !seekRef.current) {
       fillRef.current.style.width = `${progress * 100}%`;
     }
@@ -713,7 +723,7 @@ const Player = () => {
     window.localStorage.setItem("showSubtitles", showSubtitles);
   }, [showSubtitles]);
 
-  return (
+  if(mediaData) return (
     <>
       <video
         ref={setVideoRef}
@@ -725,9 +735,7 @@ const Player = () => {
         {showSubtitles ? (
           <track
             ref={trackRef}
-            src={`${serverAddress}/player/subtitles?mediaId=${mediaId}&episodeId=${
-              episodeData ? episodeId : null
-            }&language=${subtitlesLanguage}&extension=vtt&arbNumber=${arbNumber}`}
+            src={`${serverAddress}/subtitles?imdbId=${mediaData.IMDB_ID}&language=${subtitlesLanguage}&extension=vtt&arbNumber=${arbNumber}`}
             kind="subtitles"
             srcLang="en"
             label="English"
@@ -828,11 +836,11 @@ const Player = () => {
                   className={styles.languageButton}
                   onClick={() => setShowSubtitlesModal(true)}
                 >
-                  {
+                  { availableSubtitles.length ?
                     langDict.filter(
                       (i) => i.language_code == subtitlesLanguage.toLowerCase()
                     )[0].language_name
-                  }
+                   : "Not Available"}
                 </button>
               ) : (
                 <></>
@@ -876,9 +884,9 @@ const Player = () => {
         <></>
       )}
 
-      {showSubtitlesModal && availableSubtitles ? (
-        <div className={styles.subtitlesModal}>
-          <div className={styles.subtitlesContainer}>
+      {showSubtitlesModal ? (
+        <div className={styles.subtitlesModal} onClick={() => setShowSubtitlesModal(false)}>
+          <div className={styles.subtitlesContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.subtitlesTop}>
               <div
                 className={styles.subtitlesSection}
@@ -895,7 +903,7 @@ const Player = () => {
               {loadingSubtitles ? <div>Loading</div> : <></>}
             </div>
 
-            <div className={styles.subtitlesSection}>
+            {availableSubtitles.length ? <div className={styles.subtitlesSection}>
               <h1>Available</h1>
               <div className={styles.subtitlesList}>
                 {availableSubtitles
@@ -918,7 +926,7 @@ const Player = () => {
                     </button>
                   ))}
               </div>
-            </div>
+            </div> : <></>}
 
             {availableSubtitles.find((i) => i.LANG == "en") &&
             availableSubtitles.find((i) => i.LANG == "it") &&

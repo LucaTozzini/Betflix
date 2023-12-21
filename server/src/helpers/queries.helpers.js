@@ -114,7 +114,7 @@ const queryMediaByGenre = (genreName, type, orderBy, limit) =>
       }
       LIMIT ?`,
       type ? [genreName, type, limit] : [genreName, limit],
-      async (err, rows) => err ? rej(err) : res(rows)
+      async (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
@@ -132,7 +132,7 @@ const queryTitle = (title, limit) =>
       )
       LIMIT ?`,
       [title, title, title, limit],
-      async (err, rows) => err ? rej(err) : res(rows)
+      async (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
@@ -159,19 +159,11 @@ const queryDateRange = (startDate, endDate, orderBy, limit) =>
 const querylatestReleases = (limit) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT MEDIA_ID
-			FROM media_dates
+      `${shallowItemQuery}
 			ORDER BY END_DATE DESC
 			LIMIT ?`,
       [limit],
-      (err, rows) => {
-        if (err) {
-          return rej(err);
-        }
-        compileRowData(rows)
-          .then((data) => res(data))
-          .catch((err) => rej(err));
-      }
+      (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
@@ -234,9 +226,10 @@ const queryFilmography = (personId) =>
     )
   );
 
-const queryPersonByName = (name, limit) => 
-  new Promise((res, rej) => db.all(
-    `SELECT *
+const queryPersonByName = (name, limit) =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT *
     FROM people
     WHERE NAME LIKE "%"|| ? ||"%"
     ORDER BY (
@@ -247,9 +240,10 @@ const queryPersonByName = (name, limit) =>
       END
     )
     LIMIT ?`,
-    [name, name, name, limit],
-    (err, rows) => err ? rej(err) : res(rows)
-  ))
+      [name, name, name, limit],
+      (err, rows) => (err ? rej(err) : res(rows))
+    )
+  );
 
 // TV Show Queries
 const querySeason = (mediaId, seasonNum, userId) =>
@@ -323,24 +317,13 @@ const querySubtitlePath = (imdbId, language, extension) =>
     )
   );
 
-const availableMovieSubtitles = (mediaId) =>
+const availableSubtitles = (imdbId) =>
   new Promise((res, rej) =>
     db.all(
       `SELECT EXT, LANG
-    FROM subtitles
-    WHERE MEDIA_ID = ?`,
-      [mediaId],
-      (err, rows) => (err ? rej(err) : res(rows))
-    )
-  );
-
-const availableEpisodeSubtitles = (episodeId) =>
-  new Promise((res, rej) =>
-    db.all(
-      `SELECT EXT, LANG
-    FROM subtitles
-    WHERE EPISODE_ID = ?`,
-      [episodeId],
+      FROM subtitles
+      WHERE IMDB_ID = ?`,
+      [imdbId],
       (err, rows) => (err ? rej(err) : res(rows))
     )
   );
@@ -446,6 +429,17 @@ const queryDrives = () =>
     )
   );
 
+const missingCollections = () =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT DISTINCT COLLECTION_ID
+      FROM media_info
+      WHERE COLLECTION_ID IS NOT NULL AND COLLECTION_ID NOT IN (SELECT COLLECTION_ID FROM collections)`,
+      (err, rows) =>
+        err ? rej(err) : res(rows.map(({ COLLECTION_ID }) => COLLECTION_ID))
+    )
+  );
+
 export {
   // Global
   availableGenres,
@@ -469,8 +463,7 @@ export {
 
   // Subtitles
   querySubtitlePath,
-  availableMovieSubtitles,
-  availableEpisodeSubtitles,
+  availableSubtitles,
 
   // Private Queries
   queryOrphans,
@@ -480,4 +473,5 @@ export {
   queryEpisodePath,
   lastEpisodeDate,
   queryDrives,
+  missingCollections
 };

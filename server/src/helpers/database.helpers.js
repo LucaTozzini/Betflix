@@ -8,8 +8,17 @@ import {
   missingEpisodes,
   missingMedia,
 } from "./filesUtil.helpers.js";
-import { fetchItem, fetchPerson, fetchShow } from "./TMDb-api.helpers.js";
-import { queryOrphans, queryDrives } from "./queries.helpers.js";
+import {
+  fetchItem,
+  fetchPerson,
+  fetchShow,
+  fetchCollection,
+} from "./TMDb-api.helpers.js";
+import {
+  queryOrphans,
+  queryDrives,
+  missingCollections,
+} from "./queries.helpers.js";
 import {
   insertMedia,
   insertShow,
@@ -66,7 +75,7 @@ const db = new sqlite3.Database(
       // });
       await foreignKeys();
       await createTables();
-
+      
       continuePrep = {
         insert: db.prepare(
           `INSERT INTO users_continue (
@@ -308,11 +317,15 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS collections(
-          ID INT PRIMARY KEY,
-          NAME TEXT NOT NULL,
+          COLLECTION_ID INT PRIMARY KEY,
+          TITLE TEXT NOT NULL,
           OVERVIEW TEXT,
           POSTER_S TEXT,
           POSTER_L TEXT,
+          POSTER_NT_S TEXT,
+          POSTER_NT_L TEXT,
+          POSTER_W_S TEXT,
+          POSTER_W_L TEXT,
           BACKDROP_S TEXT,
           BACKDROP_L TEXT
         )`,
@@ -488,7 +501,6 @@ const updateShows = () =>
           console.error(err.message);
         }
       }
-
       res();
     } catch (err) {
       rej(err);
@@ -517,6 +529,7 @@ const updateMovies = () =>
           console.error(err.message);
         }
       }
+      await updateCollections();
       res();
     } catch (err) {
       rej(err);
@@ -545,8 +558,59 @@ const updatePeople = () =>
           console.error(err.message);
         }
       }
-      res()
+      res();
     } catch (err) {
+      rej(err);
+    }
+  });
+
+const updateCollections = () =>
+  new Promise(async (res, rej) => {
+    try {
+      const missing = await missingCollections();
+      publicManager.status.ACTION = `Updating Collections`;
+      const prep = db.prepare(
+        `INSERT INTO collections (
+          COLLECTION_ID,
+          TITLE,
+          OVERVIEW,
+          POSTER_S,
+          POSTER_L,
+          POSTER_NT_S,
+          POSTER_NT_L,
+          POSTER_W_S,
+          POSTER_W_L,
+          BACKDROP_S,
+          BACKDROP_L) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`
+      );
+      let i = 0;
+      for (const id of missing) {
+        i++;
+        publicManager.status.PROGRESS = (i / missing.length) * 100;
+        const data = await fetchCollection(id);
+        await new Promise((res, rej) =>
+          prep.run(
+            [
+              data.collection_id,
+              data.title,
+              data.overview,
+              data.poster_s,
+              data.poster_l,
+              data.poster_nt_s,
+              data.poster_nt_l,
+              data.poster_w_s,
+              data.poster_w_l,
+              data.backdrop_s,
+              data.backdrop_l,
+            ],
+            (err) => (err ? rej(err) : res())
+          )
+        );
+      }
+      res();
+    } catch (err) {
+      console.error("Whoops");
       rej(err);
     }
   });

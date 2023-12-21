@@ -168,7 +168,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
           if (err) {
-            console.error("media main", err.message);
+            // console.error("media main", err.message);
           }
           res();
         })
@@ -176,7 +176,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.images.run(images_data, (err) => {
           if (err) {
-            console.error("media images", err.message);
+            // console.error("media images", err.message);
           }
           res();
         })
@@ -184,7 +184,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.dates.run(dates_data, (err) => {
           if (err) {
-            console.error("media dates", err.message);
+            // console.error("media dates", err.message);
           }
           res();
         })
@@ -192,7 +192,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.finances.run(finances_data, (err) => {
           if (err) {
-            console.error("media finances", err.message);
+            // console.error("media finances", err.message);
           }
           res();
         })
@@ -200,7 +200,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.info.run(info_data, (err) => {
           if (err) {
-            console.error("media info", err.message);
+            // console.error("media info", err.message);
           }
           res();
         })
@@ -240,10 +240,10 @@ const insertMedia = (mediaData) =>
             ],
             (err) => {
               if (err) {
-                console.error(
-                  err.message,
-                  `KEY_${media_id}_${person.id}_${person.character}`
-                );
+                // console.error(
+                //   err.message,
+                //   `KEY_${media_id}_${person.id}_${person.character}`
+                // );
               }
               res();
             }
@@ -257,7 +257,7 @@ const insertMedia = (mediaData) =>
             [`KEY_${media_id}_${id}`, media_id, id],
             (err) => {
               if (err) {
-                console.log("Director Insert", err.message);
+                // console.log("Director Insert", err.message);
               }
               res();
             }
