@@ -4,7 +4,7 @@ import env from "../../env.js";
 import episode from "episode";
 import { publicManager } from "./database.helpers.js";
 import { db } from "../helpers/database.helpers.js";
-import { haveMedia, haveEpisode } from "./queries.helpers.js";
+import { haveMedia, haveEpisode, queryDrivePaths } from "./queries.helpers.js";
 import { getVideoDurationInSeconds } from "get-video-duration";
 
 const parseString = (string) => {
@@ -67,45 +67,30 @@ const moviesInDirectory = (path) =>
       }
       res(paths);
     } catch (err) {
-      console.log("ohohoho");
       rej(err);
     }
   });
 
-const scanMovies = () =>
-  new Promise(async (res, rej) => {
-    publicManager.status.ACTION = "Scan Movies";
-    publicManager.status.PROGRESS = 0;
+async function* scanMovies() {
+  for(const drivePath of await queryDrivePaths(1)) {
     try {
-      const filePaths = await moviesInDirectory(env.moviesPath);
-      const returnArray = [];
-      let i = 0;
+      const filePaths = await moviesInDirectory(drivePath);
       for (const filePath of filePaths) {
-        i++;
-        publicManager.status.PROGRESS = (100 / filePaths.length) * i;
-
-        try {
-          const { title, year } = parseString(filePath);
-          const duration = await getVideoDurationInSeconds(filePath);
-
-          publicManager.status.ACTION = `Scan Movies - ${title} (${year})`;
-
-          returnArray.push({
-            path: filePath,
-            title,
-            year,
-            duration,
-          });
-        } catch (err) {
-          console.error(err.message);
-          continue;
-        }
+        const { title, year } = parseString(filePath);
+        const duration = await getVideoDurationInSeconds(filePath);
+        yield {
+          path: filePath,
+          title,
+          year,
+          duration,
+        };
       }
-      res(returnArray);
-    } catch (err) {
-      rej(err);
+    } catch(err) {
+      console.error("Error with", drivePath);
     }
-  });
+  }
+  return;
+}
 
 const scanEpisodes = (folderPath) =>
   new Promise(async (res, rej) => {

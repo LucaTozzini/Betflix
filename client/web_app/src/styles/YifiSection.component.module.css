@@ -26,11 +26,11 @@
 .items 
 {
     --itemsOnPage: 5;
-    --itemHeight: calc(((100vw - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage)) * 0.5);
+    --itemHeight: calc(((100vw - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage))*1.3);
     --itemsGap: .5rem;
 
-    --start: 2;
-    --inc: 1;
+    --start: 3;
+    --inc: 2;
 
     display: flex;
     overflow: auto;
@@ -58,7 +58,7 @@
     flex-direction: column;
     gap: .5rem;
     
-    width: calc((100% - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage));
+    width: calc(((100% - (var(--itemsGap) * (var(--itemsOnPage) - 1))) / var(--itemsOnPage)));
     
     scroll-snap-align: start;
     
@@ -95,10 +95,39 @@
     color: white;
 }
 
-
 .items:has(.item:hover) .item:not(:hover) 
 {
     opacity: 0.5;
+}
+
+.modalContainer {
+    position: fixed;
+    top: 0;
+    z-index: 2000;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.modalContainer > div {
+    flex: 1;
+    margin: 2rem;
+    background-color: black;
+    border-radius: 1rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.modalContainer > div > button {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+    font-size: 1.2rem;
+    padding: .7rem;
+    border-radius: .5rem;
 }
 
 @media (width >= 4000px)

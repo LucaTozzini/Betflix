@@ -9,6 +9,7 @@ import watchlist_routes from "./src/routes/watchlist.routes.js";
 import player_router from "./src/routes/player.routes.js";
 import search_router from "./src/routes/search.routes.js";
 import subtitles_router from "./src/routes/subtitles.routes.js";
+import torrents_router from "./src/routes/torrents.routes.js";
 
 const PORT = 2000;
 const app = express();
@@ -26,6 +27,7 @@ app.use("/search", search_router);
 app.use("/database", database_routes);
 app.use("/watchlist", watchlist_routes);
 app.use("/subtitles", subtitles_router);
+app.use("/torrents", torrents_router);
 
 //
 app.get("/ciao", (req, res) => res.send("yellow"));

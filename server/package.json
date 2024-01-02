@@ -172,6 +172,7 @@
     "utils-merge": "^1.0.1",
     "vary": "^1.1.2",
     "webidl-conversions": "^3.0.1",
+    "webtorrent": "^2.1.32",
     "whatwg-url": "^5.0.0",
     "which": "^2.0.2",
     "wide-align": "^1.1.5",

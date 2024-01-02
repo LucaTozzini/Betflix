@@ -440,6 +440,17 @@ const missingCollections = () =>
     )
   );
 
+const queryDrivePaths = (type) =>
+  new Promise((res, rej) =>
+    db.all(
+      `SELECT path
+    FROM drives
+    WHERE type = ?`,
+      [type],
+      (err, rows) => (err ? rej(err) : res(rows.map((i) => i.path)))
+    )
+  );
+
 export {
   // Global
   availableGenres,
@@ -473,5 +484,6 @@ export {
   queryEpisodePath,
   lastEpisodeDate,
   queryDrives,
-  missingCollections
+  missingCollections,
+  queryDrivePaths,
 };

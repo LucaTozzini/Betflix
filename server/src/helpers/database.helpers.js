@@ -75,7 +75,7 @@ const db = new sqlite3.Database(
       // });
       await foreignKeys();
       await createTables();
-      
+
       continuePrep = {
         insert: db.prepare(
           `INSERT INTO users_continue (
@@ -125,6 +125,17 @@ const foreignKeys = () =>
 
 const createTables = () =>
   new Promise(async (res) => {
+    // Drives
+    await new Promise((res) =>
+      db.run(
+        `CREATE TABLE IF NOT EXISTS drives (
+          path TEXT PRIMARY KEY,
+          type INT NOT NULL,
+          target INT
+        )`,
+        (err) => (err ? console.error("Drives", err.message) : res())
+      )
+    );
     // Media Main
     await new Promise((res) =>
       db.run(
@@ -703,6 +714,25 @@ const cleanMedia = () =>
     }
   });
 
+const addDrive = (path, type) =>
+  new Promise((res, rej) =>
+    db.run(
+      `INSERT INTO drives (path, type) VALUES (?,?)`,
+      [path, type],
+      (err) => (err ? rej(err) : res())
+    )
+  );
+
+const remDrive = (path) =>
+  new Promise((res, rej) =>
+    db.run(
+      `DELETE FROM drives
+      WHERE path = ?`,
+      [path],
+      (err) => (err ? rej(err) : res())
+    )
+  );
+
 const drivesStatus = () =>
   new Promise(async (res, rej) => {
     try {
@@ -733,4 +763,12 @@ const publicManager = {
   },
 };
 
-export { db, transaction, publicManager, continuePrep, drivesStatus };
+export {
+  db,
+  transaction,
+  publicManager,
+  continuePrep,
+  drivesStatus,
+  addDrive,
+  remDrive,
+};
