@@ -14,7 +14,7 @@ import serverContext from "../contexts/server.context";
 
 const Search = () => {
   const { serverAddress } = useContext(serverContext);
-  const [query, setQuery] = useState(null);
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
   const [people, setPeople] = useState(null);
   const [yifiResults, setYifiResults] = useState(null);
@@ -82,12 +82,17 @@ const Search = () => {
     setQuery("");
     setResults([]);
     setPeople([]);
+    setYifiResults([]);
   };
 
   useEffect(() => {
-    fetchSearch();
-    fetchPeople();
-    fetchYifiSearch();
+    if(query.length) {
+      fetchSearch();
+      fetchPeople();
+      fetchYifiSearch();
+    } else {
+      handleClear()
+    }
   }, [query]);
 
   useEffect(() => {
@@ -96,19 +101,6 @@ const Search = () => {
       ref.current.select();
     }
   }, [ref.current]);
-
-  const test = async () => {
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        magnetURI:
-          "magnet:?xt=urn:btih:5AEC152C9F9253CA24C6083CEC292C5D9089D089&dn=Saltburn.2023.1080p.AMZN.WEBRip.1600MB.DD5.1.x264-GalaxyRG&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.bittor.pw%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fpublic.popcorn-tracker.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
-      }),
-    };
-    const response = await fetch(`${serverAddress}/torrents/add`, options);
-    console.log(response.status);
-  };
 
   return (
     <div className={styles.container}>
@@ -129,9 +121,6 @@ const Search = () => {
           <></>
         )}
       </div>
-
-      {/* <button style={{ width: "100%", height: "20rem" }} onClick={test} /> */}
-
       <div className={styles.items}>
         <MediaSection title={"Results"} items={results || []} />
         <CastSection title={"People"} data={people || []} />

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 
 // CSS
 import styles from "../styles/Database.screen.module.css";
@@ -10,114 +10,214 @@ import currentUserContext from "../contexts/currentUser.context";
 const Database = () => {
   const { serverAddress } = useContext(serverContext);
   const { userId, userPin } = useContext(currentUserContext);
-  const [loaded, setLoaded] = useState(false);
-  const [status, setStatus] = useState({});
-  const [activeTorrents, setActiveTorrents] = useState([]);
+
+  const consoleRef = useRef(null);
+
+  const [loopAlt1, setLoopAlt1] = useState(false);
+  const [loopAlt2, setLoopAlt2] = useState(false);
+  const [action, setAction] = useState(null);
+  const [active, setActive] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [drives, setDrives] = useState([]);
+  const [torrents, setTorrents] = useState([]);
+
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
   const fetchStatus = async () => {
     try {
       const response = await fetch(`${serverAddress}/database/status`);
-      const json = await response.json();
-      setStatus(json);
+      const { ACTION, PROGRESS, ACTIVE } = await response.json();
+
+      const logs = consoleRef.current.innerHTML.split("<br>");
+      if ((logs == 1 || logs[logs.length -2] != ACTION) && consoleRef.current) {
+        consoleRef.current.innerHTML += `${ACTION}<br>`;
+        consoleRef.current.scrollTo(0, consoleRef.current.scrollHeight);
+      }
+      setAction(ACTION);
+      setProgress(PROGRESS);
+      setActive(ACTIVE);
     } catch (err) {
       console.error(err.message);
     }
-    setTimeout(fetchStatus, 100);
+    await sleep(200);
+    setLoopAlt1(!loopAlt1);
+  };
+
+  const fetchDrives = async () => {
+    try {
+      const response = await fetch(`${serverAddress}/database/drives`);
+      const json = await response.json();
+      setDrives(json);
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   const fetchTorrents = async () => {
     try {
       const response = await fetch(`${serverAddress}/torrents/active`);
       const json = await response.json();
-      setActiveTorrents(json);
-    } catch (err) {}
-    setTimeout(fetchTorrents, 2000);
+      setTorrents(json);
+    } catch (err) {
+      console.error(err.message);
+    }
+    await sleep(1000);
+    setLoopAlt2(!loopAlt2);
   };
 
-  const queryUpdate = (param) => {
+  const postUpdate = (item) => {
     const options = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ userId, userPin }),
     };
-    fetch(`${serverAddress}/database/update/${param}`, options);
+
+    fetch(`${serverAddress}/database/update/${item}`, options).catch((err) =>
+      console.error(err.message)
+    );
   };
 
-  const queryMaintenace = (param) => {
+  const postMaintenace = (item) => {
     const options = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ userId, userPin }),
     };
-    fetch(`${serverAddress}/database/maintenance/${param}`, options);
+    fetch(`${serverAddress}/database/maintenance/${item}`, options).catch((err) =>
+      console.error(err.message)
+    );
   };
+
+  const addTorrentsFromDB = () => {
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, userPin }),
+    };
+    fetch(`${serverAddress}/torrents/addDB`, options).catch((err) =>
+      console.error(err.message)
+    );
+  }
 
   useEffect(() => {
-    if (!loaded) setLoaded(true);
-    else {
-      fetchStatus();
-      fetchTorrents();
-    }
-  }, [loaded]);
+    fetchDrives();
+  }, []);
 
-  const Torrent = ({ name, progress, time }) => {
-    const timeString = () => {
-      let sec = Math.floor(time / 1000);
-      const hrs = Math.floor(sec / 3600);
-      sec -= hrs * 3600;
-      const min = Math.floor(sec / 60);
-      sec -= min * 60;
-      return `${hrs ? hrs + "h " : ""}${min ? min + "m " : ""}${sec}s`;
+  useEffect(() => {
+    fetchStatus();
+    // console.log(loopAlt);
+  }, [loopAlt1]);
+
+  useEffect(() => {
+    fetchTorrents();
+  }, [loopAlt2]);
+
+  const Torrent = ({ name, timeRemaining, progress }) => {
+    const time = () => {
+      let seconds = timeRemaining / 1000;
+      const hours = Math.floor(seconds / 3600);
+      seconds -= hours * 3600;
+      const minutes = Math.floor(seconds / 60);
+      seconds -= minutes * 60;
+      seconds = Math.floor(seconds);
+      return `${hours}h : ${minutes}m : ${seconds}s`;
     };
     return (
       <div>
-        <h3>{name} - {timeString()}</h3>
-        <div
-          className={styles.torrentProgress}
-          style={{ width: progress * 100 + "%" }}
-        />
+        <p>{name}</p>
+        <p>{time()}</p>
+        <div className={styles.progressBar}>
+          <div style={{ width: progress * 100 + "%" }} />
+        </div>
       </div>
     );
   };
 
   return (
     <div className={styles.container}>
+      {/* Media Manager */}
       <div className={styles.section}>
-        <h2>Media Manager</h2>
-        <div
-          className={styles.buttonRow}
-          {...(status.ACTIVE && { className: styles.ghost })}
-        >
-          <button onClick={() => queryUpdate("movies")}>Scan Movies</button>
-          <button onClick={() => queryUpdate("shows")}>Scan Shows</button>
-          <button onClick={() => queryUpdate("people")}>Update People</button>
-          <button onClick={() => queryMaintenace("clean")}>Clean</button>
+        <h2>{"> Media Manager"}</h2>
+        <div className={styles.buttons}>
+          <button
+            className={active ? styles.inactive : ""}
+            onClick={() => postUpdate("movies")}
+          >
+            Movies
+          </button>
+          <button
+            className={active ? styles.inactive : ""}
+            onClick={() => postUpdate("shows")}
+          >
+            Shows
+          </button>
+          <button
+            className={active ? styles.inactive : ""}
+            onClick={() => postUpdate("people")}
+          >
+            People
+          </button>
+          <button
+            className={active ? styles.inactive : ""}
+            onClick={() => postMaintenace("clean")}
+          >
+            Clean
+          </button>
         </div>
-        <h2 className={styles.action}>
-          {status.ACTION || "No Active Actions"}
-        </h2>
         <div className={styles.progressBar}>
-          <div
-            className={styles.progressBarFill}
-            style={{ width: `${status.PROGRESS || 0}%` }}
-          ></div>
+          <div style={{ width: progress || 0 }} />
         </div>
+        <div className={styles.console} ref={consoleRef}></div>
       </div>
-      {activeTorrents[0] ? (
-        <div className={styles.section}>
-          <h2>Active Torrents</h2>
-          <div className={styles.torrents}>
-            {activeTorrents.map((torrent) => (
-              <Torrent
-                name={torrent.name}
-                progress={torrent.progress}
-                time={torrent.timeRemaining}
-              />
-            ))}
+
+      {/* Drives */}
+      <div className={styles.section}>
+        <h2>{"> Drives"}</h2>
+        <div className={styles.list}>
+          {drives.map((i) => (
+            <div>
+              <p>Movies</p>
+              <p>D:/</p>
+              <button>Remove</button>
+            </div>
+          ))}
+
+          <div>
+            <select>
+              <option value={1}>Movies</option>
+              <option value={2}>Shows</option>
+            </select>
+            <input type="text" placeholder="Location" />
+            <button>Add</button>
           </div>
         </div>
-      ) : (
-        <div />
-      )}
+      </div>
+
+      {/* Torrents */}
+      <div
+        className={styles.section}
+      >
+        <h2>{"> Torrents"}</h2>
+        <div className={styles.buttons}>
+          <button onClick={addTorrentsFromDB}>Add From DB</button>
+        </div>
+        <div className={styles.list}>
+          {torrents.map((i) => (
+            <Torrent
+              key={i.magnetURI}
+              name={i.name}
+              timeRemaining={i.timeRemaining}
+              progress={i.progress}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

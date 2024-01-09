@@ -447,6 +447,16 @@ const createTables = () =>
       )
     );
 
+    // Active Torrents
+    await new Promise((res) =>
+      db.run(
+        `CREATE TABLE IF NOT EXISTS active_torrents (
+        uri TEXT PRIMARY KEY
+      )`,
+        (err) => (err ? console.error("Active Torrents", err.message) : res())
+      )
+    );
+
     res();
   });
 
@@ -482,7 +492,6 @@ const run = async (action) => {
     console.error(err.message);
   }
   publicManager.status.ACTIVE = false;
-  publicManager.status.ACTION = null;
   publicManager.status.PROGRESS = null;
 };
 
@@ -512,6 +521,7 @@ const updateShows = () =>
           console.error(err.message);
         }
       }
+      publicManager.status.ACTION = "Finished Updating Shows";
       res();
     } catch (err) {
       rej(err);
@@ -541,6 +551,7 @@ const updateMovies = () =>
         }
       }
       await updateCollections();
+      publicManager.status.ACTION = "Finished Updating Movies";
       res();
     } catch (err) {
       rej(err);
@@ -569,6 +580,7 @@ const updatePeople = () =>
           console.error(err.message);
         }
       }
+      publicManager.status.ACTION = "Finished Updating People";
       res();
     } catch (err) {
       rej(err);
@@ -619,6 +631,7 @@ const updateCollections = () =>
           )
         );
       }
+      publicManager.status.ACTION = "Finished Updating Collections";
       res();
     } catch (err) {
       console.error("Whoops");
@@ -707,7 +720,7 @@ const cleanMedia = () =>
           prep.run([path], (err) => (err ? rej(err) : res()))
         );
       }
-
+      publicManager.status.ACTION = "Finished Clean";
       res();
     } catch (err) {
       rej(err);
@@ -746,6 +759,28 @@ const drivesStatus = () =>
     }
   });
 
+// Torrents Mainatenance
+const getTorrents = () =>
+  new Promise((res, rej) =>
+    db.all(`SELECT * FROM active_torrents`, (err, rows) =>
+      err ? rej(err) : res(rows)
+    )
+  );
+
+const addTorrent = (URI) =>
+  new Promise((res, rej) =>
+    db.run(`INSERT INTO active_torrents(uri) VALUES (?)`, [URI], (err) =>
+      err ? rej(err) : res()
+    )
+  );
+
+const remTorrent = (URI) =>
+  new Promise((res, rej) =>
+    db.run(`DELETE FROM active_torrents WHERE uri = ?`, [URI], (err) =>
+      err ? rej(err) : res()
+    )
+  );
+
 // Public Manager
 const publicManager = {
   run,
@@ -764,11 +799,19 @@ const publicManager = {
 };
 
 export {
+  // Database
   db,
   transaction,
   publicManager,
   continuePrep,
+
+  // Drives
   drivesStatus,
   addDrive,
   remDrive,
+  
+  // Torrents
+  getTorrents,
+  addTorrent,
+  remTorrent,
 };

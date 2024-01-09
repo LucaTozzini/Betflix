@@ -485,5 +485,5 @@ export {
   lastEpisodeDate,
   queryDrives,
   missingCollections,
-  queryDrivePaths,
+  queryDrivePaths
 };

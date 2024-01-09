@@ -81,9 +81,15 @@ const YifiSection = ({ title, items }) => {
               : "No Items"}
           </div>
         </div>
-        {showModal ? (
-          <div className={styles.modalContainer}>
-            <div>
+
+        <div
+          className={styles.modalContainer}
+          style={showModal ? {} : { display: "none" }}
+          onClick={() => setShowModal(false)}
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <button onClick={() => setShowModal(false)}>X</button>
+            <div className={styles.list}>
               {torrents.map((torrent) => (
                 <Torrent
                   hash={torrent.hash}
@@ -96,9 +102,7 @@ const YifiSection = ({ title, items }) => {
               ))}
             </div>
           </div>
-        ) : (
-          <></>
-        )}
+        </div>
       </>
     );
 };

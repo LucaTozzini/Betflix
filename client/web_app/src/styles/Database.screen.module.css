@@ -2,76 +2,99 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: .2rem;
-    padding: 1rem 0;
     gap: 2rem;
+    padding: 0 var(--marginHorizontal) 5rem var(--marginHorizontal);
+    --accentClr: rgb(255, 255, 255);
+}
+
+button.inactive {
+    opacity: .5;
+    cursor: default;
+    pointer-events: none;
+}
+
+.container button, .container input, .container select {
+    background-color: transparent;
+    border: solid 1px var(--accentClr);
+    color: var(--accentClr);
+    outline: none;
+    transition: background 200ms, color 300ms;
+    font-size: 1rem;
+}
+
+.container option {
+    background-color: black;
+    font-size: 1.2rem;
+}
+
+.container button:hover {
+    color: black;
+    background-color: var(--accentClr);
 }
 
 .section {
     display: flex;
     flex-direction: column;
-    gap: .5rem;
-    border: solid rgba(255, 255, 255, 0.4) 2px;
-    border-radius: 1rem;
-    padding: 1rem;
+    gap: 1rem;
 }
 
-.section > h2 {
-    color: white;
+.section h2 {
+    color: var(--accentClr);
 }
 
-.container > * {
-    width: calc(100% - (var(--marginHorizontal) * 2));
-}
-
-.action {
-    color: white;
-    text-align: center;
-}
-
-.buttonRow {
+.buttons {
     display: flex;
-    justify-content: center;
-    gap: .2rem;
+    gap: .5rem;
 }
 
-.buttonRow button {
-    background-color: white;
-    padding: 1rem;
+.buttons > button {
     flex: 1;
-    border-radius: .4rem;
-}
-
-.ghost {
-    pointer-events: none;
-    opacity: 0.5;
+    padding: .5rem;
+    font-size: 1.2rem;
 }
 
 .progressBar {
-    height: 1rem;
-    background-color: grey;
-    border-radius: 1rem;
-    overflow: hidden;
+    height: .5rem;
+    border: solid 1px var(--accentClr);
 }
 
-.progressBarFill {
-    background-color: red;
-    height: 100%;
-    width: 0%;
-    transition: width 800ms;
+.progressBar > div {
+    height: inherit;
+    background-color: var(--accentClr);
 }
-.torrents {
+
+.console {
+    border: solid 1px var(--accentClr);
+    height: 7rem;
+    overflow: auto;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.486);
+
+    color: var(--accentClr);
+    font-size: 1.1rem;
+}
+
+.list {
     display: flex;
     flex-direction: column;
+    gap: .6rem;
 }
-.torrents > div {
-    color: white;
+
+.list > div {
+    border: solid 1px var(--accentClr);
+    color: var(--accentClr);
+    padding: .7rem;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    display: flex;
+    gap: .6rem;
 }
-.torrentProgress {
-    height: .5rem;
-    background-color: lightblue;
-    border-radius: .5rem;
+
+.list > div > * {
+    padding: .5rem;
+    flex: 1;    
+}
+
+.list > div > button {
+    flex: .5;
 }

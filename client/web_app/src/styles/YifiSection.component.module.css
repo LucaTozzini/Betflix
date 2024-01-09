@@ -115,14 +115,29 @@
     flex: 1;
     margin: 2rem;
     background-color: black;
-    border-radius: 1rem;
+    border-radius: .5rem;
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: 1rem;
 }
 
 .modalContainer > div > button {
+    font-size: 1rem;
+    color: white;
+    background-color: transparent;
+    height: 2rem;
+    width: 2rem;
+    margin-left: auto;
+}
+
+.modalContainer > div > .list {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.modalContainer > div > .list > button {
     color: white;
     background-color: rgba(255, 255, 255, 0.2);
     font-size: 1.2rem;

@@ -54,43 +54,35 @@ const findEpisodeSubs = (path, seasonNum, episodeNum) => {
 };
 
 const moviesInDirectory = (path) =>
-  new Promise(async (res, rej) => {
-    try {
-      const files = fs.readdirSync(path);
-      const paths = [];
-      for (const file of files) {
-        if (fs.statSync(path + "/" + file).isDirectory()) {
-          paths.push(...(await moviesInDirectory(path + "/" + file)));
-        } else if (validExt(file) && !(await haveMedia(path + "/" + file))) {
-          paths.push(path + "/" + file);
-        }
+  new Promise(async (res) => {
+    const files = fs.readdirSync(path);
+    const paths = [];
+    for (const file of files) {
+      if (fs.statSync(path + "/" + file).isDirectory()) {
+        paths.push(...(await moviesInDirectory(path + "/" + file)));
+      } else if (validExt(file) && !(await haveMedia(path + "/" + file))) {
+        paths.push(path + "/" + file);
       }
-      res(paths);
-    } catch (err) {
-      rej(err);
     }
+    res(paths);
   });
 
-async function* scanMovies() {
-  for(const drivePath of await queryDrivePaths(1)) {
-    try {
-      const filePaths = await moviesInDirectory(drivePath);
-      for (const filePath of filePaths) {
-        const { title, year } = parseString(filePath);
-        const duration = await getVideoDurationInSeconds(filePath);
-        yield {
-          path: filePath,
-          title,
-          year,
-          duration,
-        };
-      }
-    } catch(err) {
-      console.error("Error with", drivePath);
+const scanMovies = () =>
+  new Promise(async (res) => {
+    const filePaths = await moviesInDirectory(env.moviesPath);
+    const fileObjects = [];
+    for (const filePath of filePaths) {
+      const { title, year } = parseString(filePath);
+      const duration = await getVideoDurationInSeconds(filePath);
+      fileObjects.push({
+        path: filePath,
+        title,
+        year,
+        duration,
+      });
     }
-  }
-  return;
-}
+    res(fileObjects);
+  });
 
 const scanEpisodes = (folderPath) =>
   new Promise(async (res, rej) => {
@@ -185,4 +177,14 @@ const missingEpisodes = () =>
     )
   );
 
-export { scanMovies, getShowFolders, scanShow, missingMedia, missingEpisodes, findMovieSubs, findEpisodeSubs };
+export {
+  scanMovies,
+  getShowFolders,
+  scanShow,
+  missingMedia,
+  missingEpisodes,
+  findMovieSubs,
+  findEpisodeSubs,
+  validExt,
+  validSubExt,
+};
