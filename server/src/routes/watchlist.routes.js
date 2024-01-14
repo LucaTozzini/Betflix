@@ -20,13 +20,18 @@ router.put(`/add`, async (req, res) => {
 });
 
 router.delete('/remove', async (req, res) => {
-    const { userId, userPin, mediaId } = req.body;
-
-    const auth = await authenticateUser(userId, userPin);
-    if(!auth) return res.sendStatus(401);
-
-    await removeWatchlist(userId, mediaId);
-    res.sendStatus(202);
+    try {
+        const { userId, userPin, mediaId } = req.body;
+    
+        const auth = await authenticateUser(userId, userPin);
+        if(!auth) return res.sendStatus(401);
+    
+        await removeWatchlist(userId, mediaId);
+        res.sendStatus(202);
+    } catch (err) {
+        console.error(err.message);
+        res.sendStatus(500);
+    }
 });
 
 router.post('/', async (req, res) => {
