@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import {
   Modal,
   ScrollView,
@@ -11,6 +12,7 @@ import {
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 const Stack = createNativeStackNavigator();
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 // Screens
 import BrowseScreen from './screens/Browse.screen';
@@ -21,6 +23,7 @@ import UserScreen from './screens/User.screen';
 import AddressScreen from './screens/Address.screen';
 import TorrentsScreen from './screens/Torrents.screen';
 import MediaScreen from './screens/Media.screen';
+import PlayerScreen from './screens/Player.screen';
 
 // Components
 import NavMenuComponent from './components/NavMenu.component';
@@ -28,7 +31,6 @@ import NavMenuComponent from './components/NavMenu.component';
 // Hooks
 import useAuthentication from './hooks/useAuthentication.hook';
 import useServer from './hooks/useServer.hooks';
-import {useState} from 'react';
 
 const MyTheme = {
   ...DefaultTheme,
@@ -40,9 +42,22 @@ const MyTheme = {
 
 function App() {
   const [showCast, setShowCast] = useState(false);
+  const [showNav, setShowNav] = useState(true);
+  const [showStatusBar, setShowStatusBar] = useState(true);
   const {address} = useServer();
   const {userId, userPin, userName, userImage, admin, child, login, logout} =
     useAuthentication({address});
+
+  const handleStateChange = state => {
+    const routeName = state?.routes[state?.routes.length - 1].name;
+    setShowNav(routeName !== 'player');
+    setShowStatusBar(routeName !== 'player');
+    if(routeName === "player") {
+      SystemNavigationBar.navigationHide();
+    } else {
+      SystemNavigationBar.navigationShow();
+    }
+  };
 
   if (!address) {
     return <AddressScreen />;
@@ -105,49 +120,52 @@ function App() {
   };
 
   return (
-    <NavigationContainer theme={MyTheme}>
+    <NavigationContainer theme={MyTheme} onStateChange={handleStateChange}>
       {/* Status Bar */}
-      <StatusBar translucent backgroundColor={'transparent'} />
+      <StatusBar translucent hidden={!showStatusBar} backgroundColor={'transparent'} />
 
       {/* Main */}
       <View style={styles.container}>
-          <Stack.Navigator
-            screenOptions={{animation: 'none', headerShown: false}}>
-            <Stack.Screen
-              name="browse"
-              component={BrowseScreen}
-              initialParams={{address, userName, setShowCast}}
-            />
-            <Stack.Screen
-              name="search"
-              component={SearchScreen}
-              initialParams={{address}}
-            />
-            <Stack.Screen
-              name="watchlist"
-              component={WatchListScreen}
-              initialParams={{address, userId, userPin}}
-            />
-            <Stack.Screen
-              name="user"
-              component={UserScreen}
-              initialParams={{logout, userName, userImage, admin, child}}
-            />
-            <Stack.Screen
-              name="torrents"
-              component={TorrentsScreen}
-              initialParams={{userId, userPin, address}}
-            />
-            <Stack.Screen
-              name="media"
-              component={MediaScreen}
-              initialParams={{userId, userPin, address}}
-            />
-          </Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{animation: 'none', headerShown: false}}>
+          <Stack.Screen
+            name="browse"
+            component={BrowseScreen}
+            initialParams={{address, userName, setShowCast}}
+          />
+          <Stack.Screen
+            name="search"
+            component={SearchScreen}
+            initialParams={{address}}
+          />
+          <Stack.Screen
+            name="watchlist"
+            component={WatchListScreen}
+            initialParams={{address, userId, userPin}}
+          />
+          <Stack.Screen
+            name="user"
+            component={UserScreen}
+            initialParams={{logout, userName, userImage, admin, child}}
+          />
+          <Stack.Screen
+            name="torrents"
+            component={TorrentsScreen}
+            initialParams={{userId, userPin, address}}
+          />
+          <Stack.Screen
+            name="media"
+            component={MediaScreen}
+            initialParams={{userId, userPin, address}}
+          />
+          <Stack.Screen name="player" component={PlayerScreen} initialParams={{setShowCast}}/>
+        </Stack.Navigator>
       </View>
-      <NavMenuComponent />
 
-      {/* Cast */}
+      {/* NavBar */}
+      <NavMenuComponent show={showNav} />
+
+      {/* Modal */}
       <CastModal />
     </NavigationContainer>
   );

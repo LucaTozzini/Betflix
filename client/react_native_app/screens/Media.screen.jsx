@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {BlurView} from '@react-native-community/blur';
+import { useNavigation } from '@react-navigation/native';
 
 // Screens
 import LoadingScreen from './Loading.screen';
@@ -26,6 +27,7 @@ import useMediaRow from '../hooks/useMediaRow.hook';
 
 export default ({route}) => {
   const {userId, userPin, address, mediaId} = route.params;
+  const navigation = useNavigation();
   const [media, setMedia] = useState(null);
   const [inWatchlist, setInWatchlist] = useState(null);
   const [showOverview, setShowOverview] = useState(false);
@@ -225,7 +227,7 @@ export default ({route}) => {
                 Icon={<Icon name="add" color="white" size={40} />}
               />
             )}
-            <BlurButton Icon={<Icon name="play" color="white" size={40} />} />
+            <BlurButton Icon={<Icon name="play" color="white" size={40} />} onPress={() => navigation.navigate("player")} />
           </LinearGradient>
         </ImageBackground>
       </View>

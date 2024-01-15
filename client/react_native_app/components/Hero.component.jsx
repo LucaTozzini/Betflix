@@ -5,19 +5,21 @@ import {
   Text,
   useWindowDimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // Icons
 import Icon from 'react-native-vector-icons/Ionicons';
 
-export default ({margin}) => {
+export default ({margin, item}) => {
+  const navigation = useNavigation();
   const {width} = useWindowDimensions();
   const imageHeight = (width - (2 * margin)) * 1.5;
+  
   const styles = StyleSheet.create({
     container: {
       height: imageHeight,
       marginHorizontal: margin,
       overflow: 'hidden',
-      // backgroundColor: 'lightblue',
     },
     image: {
 			backgroundColor: 'grey',
@@ -25,7 +27,7 @@ export default ({margin}) => {
 			borderRadius: 20,
 			overflow: "hidden",
 			borderWidth: 1,
-			borderColor: "rgba(255, 255, 255, .5)",
+			borderColor: "rgba(255, 255, 255, .2)",
 			justifyContent: "flex-end"
     },
 		button: {
@@ -45,9 +47,9 @@ export default ({margin}) => {
   });
 
   return (
-    <TouchableOpacity style={styles.container} activeOpacity={0.9}>
-      <ImageBackground style={styles.image} source={{uri: "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/11bea319098925.562d4ee6c5cc0.png"}}>
-        <TouchableOpacity style={styles.button} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.container} activeOpacity={0.9} onPress={() => navigation.navigate("media", {mediaId: item.MEDIA_ID})}>
+      <ImageBackground style={styles.image} source={{uri: item.POSTER_L}}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("player")}>
           <Icon name="play" color="black" size={35} />
           <Text style={styles.text}>Play</Text>
         </TouchableOpacity>

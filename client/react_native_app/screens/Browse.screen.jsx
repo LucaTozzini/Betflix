@@ -31,14 +31,31 @@ export default ({route}) => {
   // For Expand Top
   const [lastY, setLastY] = useState(0);
   const [expandTop, setExpandTop] = useState(true);
-  const expandAnim = useRef(new Animated.Value(0)).current;
+  const translateAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const borderOpacityAnim = useRef(new Animated.Value(1)).current;
+
   const expandSlide = expand => {
-    Animated.timing(expandAnim, {
-      toValue: expand ? 0 : -80,
+    Animated.timing(translateAnim, {
+      toValue: expand ? 0 : -40,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(opacityAnim, {
+      toValue: expand ? 1 : 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
   };
+
+  const showBorder = show => {
+    Animated.timing(borderOpacityAnim, {
+      toValue: show ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }
 
   const fetchLatest = async () => {
     try {
@@ -54,10 +71,12 @@ export default ({route}) => {
 
   const handleScroll = e => {
     const {y} = e.nativeEvent.contentOffset;
+    showBorder(y > 10);
+
     if (y < 50) {
       setExpandTop(true);
-    } else if (y < lastY !== expandTop) {
-      setExpandTop(y < lastY);
+    } else if (y <= lastY !== expandTop) {
+      setExpandTop(y <= lastY);
     }
     // finally
     setLastY(y);
@@ -71,32 +90,30 @@ export default ({route}) => {
     expandSlide(expandTop);
   }, [expandTop]);
 
-  const Top = () => {
-    const styles = StyleSheet.create({
-      container: {
-        backgroundColor: 'black',
+  return (
+    <>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          zIndex: 100,
+          transform: [{translateY: translateAnim}],
+          backgroundColor: "black",
+          paddingTop: StatusBar.currentHeight + 10
+        }}>
+        <Animated.View
+          style={{
+            opacity: opacityAnim,
 
-        paddingBottom: 10,
-        paddingHorizontal: 20,
-        paddingTop: StatusBar.currentHeight + 10,
+            paddingHorizontal: 12,
+            height: 40,
 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-
-        zIndex: 1000,
-
-        flex: 1,
-        height: StatusBar.currentHeight + 50,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      },
-    });
-    return (
-      <>
-        <View style={styles.container}>
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            zIndex: 99,
+          }}>
           <Text style={{color: 'white', fontSize: 23, fontWeight: 'bold'}}>
             For {userName}
           </Text>
@@ -106,69 +123,42 @@ export default ({route}) => {
             }}>
             <Icon name="cast" color="white" size={25} />
           </TouchableOpacity>
-        </View>
-      </>
-    );
-  };
+        </Animated.View>
 
-  const Expand = () => {
-    const styles = StyleSheet.create({
-      expand: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        backgroundColor: 'black',
-        gap: 7,
-        zIndex: 999,
-        paddingBottom: 10,
-      },
+        <Animated.View
+          style={{
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingBottom: 7,
+            backgroundColor: 'black',
+            zIndex: 100,
+            gap: 5,
+          }}>
+          <TouchableOpacity style={styles.expandButton}>
+            <Text style={styles.expandText}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.expandButton}>
+            <Text style={styles.expandText}>Movies</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.expandButton}>
+            <Text style={styles.expandText}>Shows</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
-      button: {
-        backgroundColor: 'white',
-        padding: 5,
-        borderRadius: 10,
-      },
-      text: {
-        fontSize: 17,
-        color: 'black',
-      },
-    });
+        <Animated.View style={{height: 1, backgroundColor: "rgb(40, 40, 40)", opacity: borderOpacityAnim}}/>
+      </Animated.View>
 
-    const Button = ({text}) => {
-      return (
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.text}>{text}</Text>
-        </TouchableOpacity>
-      );
-    };
-
-    return (
-      <View style={styles.expand}>
-        <Button text="Home" />
-        <Button text="Movies" />
-        <Button text="Shows" />
-      </View>
-    );
-  };
-
-  return (
-    <>
-      <Top />
       <ScrollView
         style={styles.container}
         onScroll={handleScroll}
-        scrollEventThrottle={100}
-        stickyHeaderIndices={[0]}>
+        >
         <View
           style={{
-            height: StatusBar.currentHeight + 92,
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-          }}>
-          <Animated.View style={{translateY: expandAnim}}>
-            <Expand />
-          </Animated.View>
-        </View>
-        <HeroComponent margin={20} />
+            height: StatusBar.currentHeight + 100,
+            // backgroundColor: 'red',
+          }}></View>
+
+        <HeroComponent margin={20} item={latest[1] || {}}/>
         <View style={styles.rows}>
           <MediaRowComponent
             header={'Latest Releases'}
@@ -207,6 +197,25 @@ export default ({route}) => {
 
 const styles = StyleSheet.create({
   container: {},
+  expand: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    // backgroundColor: 'black',
+    gap: 7,
+    zIndex: 999,
+    paddingBottom: 10,
+  },
+  expandButton: {
+    backgroundColor: 'rgb(30, 30, 30)',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "rgb(60, 60, 60)",
+    borderRadius: 10,
+  },
+  expandText: {
+    fontSize: 17,
+    color: 'white',
+  },
   rows: {
     gap: 20,
   },
