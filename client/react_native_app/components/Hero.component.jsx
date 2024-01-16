@@ -49,7 +49,7 @@ export default ({margin, item}) => {
   return (
     <TouchableOpacity style={styles.container} activeOpacity={0.9} onPress={() => navigation.navigate("media", {mediaId: item.MEDIA_ID})}>
       <ImageBackground style={styles.image} source={{uri: item.POSTER_L}}>
-        <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("player")}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("player", {mediaId: item.MEDIA_ID})}>
           <Icon name="play" color="black" size={35} />
           <Text style={styles.text}>Play</Text>
         </TouchableOpacity>

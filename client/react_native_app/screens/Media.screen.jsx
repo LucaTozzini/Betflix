@@ -227,7 +227,7 @@ export default ({route}) => {
                 Icon={<Icon name="add" color="white" size={40} />}
               />
             )}
-            <BlurButton Icon={<Icon name="play" color="white" size={40} />} onPress={() => navigation.navigate("player")} />
+            <BlurButton Icon={<Icon name="play" color="white" size={40} />} onPress={() => navigation.navigate("player", {mediaId})} />
           </LinearGradient>
         </ImageBackground>
       </View>

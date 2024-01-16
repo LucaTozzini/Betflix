@@ -13,6 +13,11 @@ import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 const Stack = createNativeStackNavigator();
 import SystemNavigationBar from 'react-native-system-navigation-bar';
+import {
+  OrientationLocker,
+  PORTRAIT,
+  LANDSCAPE,
+} from 'react-native-orientation-locker';
 
 // Screens
 import BrowseScreen from './screens/Browse.screen';
@@ -45,26 +50,42 @@ function App() {
   const [showNav, setShowNav] = useState(true);
   const [showStatusBar, setShowStatusBar] = useState(true);
   const {address} = useServer();
+  const [orientation, setOrientation] = useState(PORTRAIT);
   const {userId, userPin, userName, userImage, admin, child, login, logout} =
     useAuthentication({address});
 
   const handleStateChange = state => {
     const routeName = state?.routes[state?.routes.length - 1].name;
-    setShowNav(routeName !== 'player');
-    setShowStatusBar(routeName !== 'player');
-    if(routeName === "player") {
+
+    if (routeName === 'player') {
       SystemNavigationBar.navigationHide();
+      setOrientation(LANDSCAPE);
+      setShowStatusBar(false);
+      setShowNav(false);
     } else {
       SystemNavigationBar.navigationShow();
+      setOrientation(PORTRAIT);
+      setShowStatusBar(true);
+      setShowNav(true);
     }
   };
 
   if (!address) {
-    return <AddressScreen />;
+    return (
+      <>
+        <OrientationLocker orientation={PORTRAIT} />
+        <AddressScreen />
+      </>
+    );
   }
 
   if (!userId) {
-    return <UsersScreen login={login} address={address} />;
+    return (
+      <>
+        <OrientationLocker orientation={PORTRAIT} />
+        <UsersScreen login={login} address={address} />
+      </>
+    );
   }
 
   const CastModal = () => {
@@ -122,7 +143,14 @@ function App() {
   return (
     <NavigationContainer theme={MyTheme} onStateChange={handleStateChange}>
       {/* Status Bar */}
-      <StatusBar translucent hidden={!showStatusBar} backgroundColor={'transparent'} />
+      <StatusBar
+        translucent
+        hidden={!showStatusBar}
+        backgroundColor={'transparent'}
+      />
+
+      {/* Lock Orientation */}
+      <OrientationLocker orientation={orientation} />
 
       {/* Main */}
       <View style={styles.container}>
@@ -158,7 +186,11 @@ function App() {
             component={MediaScreen}
             initialParams={{userId, userPin, address}}
           />
-          <Stack.Screen name="player" component={PlayerScreen} initialParams={{setShowCast}}/>
+          <Stack.Screen
+            name="player"
+            component={PlayerScreen}
+            initialParams={{setShowCast, userId, userPin, address}}
+          />
         </Stack.Navigator>
       </View>
 
