@@ -22,7 +22,8 @@
     "react-native-slider": "^0.11.0",
     "react-native-system-navigation-bar": "^2.6.3",
     "react-native-vector-icons": "^10.0.3",
-    "react-native-video": "^5.2.1"
+    "react-native-video": "^5.2.1",
+    "vtt-2-json": "^1.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

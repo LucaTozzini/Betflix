@@ -209,7 +209,9 @@ const Item = () => {
   }, [data]);
 
   useEffect(() => {
-    if (!isNaN(currentSeason)) FetchSeasonData(currentSeason);
+    if (!isNaN(currentSeason)) {
+      FetchSeasonData(currentSeason);
+    }
   }, [currentSeason]);
 
   const InfoBar = () => {
@@ -328,7 +330,16 @@ const Item = () => {
 
   const Genres = () => {
     const genres = data.GENRES ? data.GENRES.map((i) => i.GENRE_NAME) : [];
-    return <div className={styles.genres}>{genres.join(', ').split(' ').map(i => <a href=""> {i} </a>)}</div>;
+    return (
+      <div className={styles.genres}>
+        {genres
+          .join(", ")
+          .split(" ")
+          .map((i) => (
+            <a href=""> {i} </a>
+          ))}
+      </div>
+    );
   };
 
   if (data)
@@ -401,7 +412,11 @@ const Item = () => {
             <></>
           )}
           <CastSection key="Cast" title="Cast" data={data ? data.CAST : []} />
-          <CastSection key="Directors" title="Directed By" data={data ? data.DIRECTORS : []} />
+          <CastSection
+            key="Directors"
+            title="Directed By"
+            data={data ? data.DIRECTORS : []}
+          />
           {moreWithStar ? (
             <MediaSection
               key={"More_With_1"}

@@ -83,8 +83,8 @@
 
 .progressFill {
     height: 100%;
-    width: 50%;
-    background: orange;
+    width: 0;
+    background: white;
     display: flex;
     justify-content: right;
     align-items: center;
@@ -96,7 +96,7 @@
     width: 0;
     flex-shrink: 0;
     border-radius: 50%;
-    background: orange;
+    background: white;
     box-shadow: 0 0 .2rem rgba(0, 0, 0, 0.7);
     transition: height 300ms, width 300ms, margin 300ms;
 }

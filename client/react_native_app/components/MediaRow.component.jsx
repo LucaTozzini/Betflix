@@ -19,12 +19,16 @@ export default ({items, header, width, gap, margin}) => {
       <Text numberOfLines={1} style={[styles.title, {maxWidth: width * 0.9}]}>{title}</Text>
     </TouchableOpacity>
   );
+  if(items.length === 0) {
+    return;
+  }
+
   return (
 		<View style={styles.container}> 
 		<Text style={[styles.header, {paddingHorizontal: margin}]}>{header}</Text>
     <FlatList
       contentContainerStyle={{gap, paddingHorizontal: margin}}
-      data={[...items, ...items]}
+      data={items}
       renderItem={({item}) => <Item key={item.MEDIA_ID} image={item.POSTER_S} title={item.TITLE} mediaId={item.MEDIA_ID}/>}
       horizontal
 			showsHorizontalScrollIndicator={false}
@@ -35,7 +39,7 @@ export default ({items, header, width, gap, margin}) => {
 
 const styles = StyleSheet.create({
 	container: {
-		gap: 5
+		gap: 5,
 	},
 	header: {
 		fontSize: 20,

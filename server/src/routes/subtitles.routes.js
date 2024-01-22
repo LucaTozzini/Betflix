@@ -1,4 +1,6 @@
 import express from "express";
+import env from "../../env.js";
+import fs from "fs";
 import {
   queryMedia,
   queryMediaPath,
@@ -14,7 +16,7 @@ import {
   searchSubtitles,
   downloadSubtitle,
   quickDowload,
-} from "../helpers/OpenSubtitles-api.js";
+} from "../helpers/subtitles.js";
 
 const router = express.Router();
 
@@ -35,14 +37,10 @@ router.get("/", async (req, res) => {
       extension || "vtt"
     );
 
-    // if (!path) {
-    //   const files = await quickDowload(
-    //     isEpisode ? episodeId : mediaId,
-    //     isEpisode,
-    //     language || "en"
-    //   );
-    //   path = extension == "vtt" ? files.vtt : files.srt;
-    // }
+    if (!path) {
+      const files = await quickDowload(imdbId, language || "en");
+      path = extension == "vtt" ? files.vtt : files.srt;
+    }
     if (!path) {
       return res.sendStatus(404);
     }
@@ -72,16 +70,12 @@ router.get("/available", async (req, res) => {
 
 router.get("/search", async (req, res) => {
   try {
-    const { mediaId, episodeId, language } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!language || (!mediaId && !isEpisode)) {
+    const { imdbId, language } = req.query;
+
+    if (!language || !imdbId) {
       return res.sendStatus(400);
     }
-    const data = await searchSubtitles(
-      isEpisode ? episodeId : mediaId,
-      isEpisode,
-      language
-    );
+    const data = await searchSubtitles(imdbId, language);
     res.json(data);
   } catch (err) {
     if (err.cause == "no results") {
@@ -93,17 +87,12 @@ router.get("/search", async (req, res) => {
 
 router.get("/download", async (req, res) => {
   try {
-    const { mediaId, episodeId, language, fileId, extension } = req.query;
-    const isEpisode = !isNaN(episodeId);
-    if (!fileId || (!mediaId && !isEpisode) || !language || !extension) {
+    const { imdbId, language, fileId, extension } = req.query;
+
+    if (!fileId || !imdbId || !language || !extension) {
       return res.sendStatus(400);
     }
-    const data = await downloadSubtitle(
-      isEpisode ? episodeId : mediaId,
-      isEpisode,
-      language,
-      fileId
-    );
+    const data = await downloadSubtitle(imdbId, language, fileId);
     res.sendFile(extension == "vtt" ? data.vtt : data.srt);
   } catch (err) {
     console.error(err.message);

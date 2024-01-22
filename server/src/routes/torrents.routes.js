@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addMagnet,
+  remMagnet,
   activeTorrents,
   addFromDB,
 } from "../helpers/torrents.helpers.js";
@@ -20,6 +21,20 @@ router.post("/add", (req, res) => {
     res.sendStatus(500);
   }
 });
+
+router.delete("/rem", async (req, res) => {
+  try {
+    const { magnetURI } = req.body;
+    if (!magnetURI) {
+      return res.sendStatus(400);
+    }
+    await remMagnet(magnetURI);
+    res.sendStatus(200);
+  } catch(err) {
+    console.log(err.message);
+    res.sendStatus(500);
+  }
+})
 
 router.post("/addDB", (req, res) => {
   try {

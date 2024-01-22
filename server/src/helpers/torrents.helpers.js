@@ -55,9 +55,25 @@ const addMagnet = async (magnetURI) => {
   }
 };
 
+const remMagnet = (magnetURI) => new Promise(async (res, rej) => {
+  try {
+    await new Promise((res, rej) => client.remove(magnetURI, (err) => err ? rej(err) : res()));
+    await remTorrent(magnetURI);
+    res();
+  } catch(err) {
+    rej(err);
+  }
+});
+
 const activeTorrents = () => {
   const data = [];
-  for (const { name, progress, timeRemaining, magnetURI, paused } of client.torrents) {
+  for (const {
+    name,
+    progress,
+    timeRemaining,
+    magnetURI,
+    paused,
+  } of client.torrents) {
     data.push({ name, progress, timeRemaining, magnetURI, paused });
   }
   return data;
@@ -70,10 +86,4 @@ const addFromDB = async () => {
   }
 };
 
-const removeAll = () => new Promise
-
-export {
-  addMagnet,
-  activeTorrents,
-  addFromDB,
-};
+export { addMagnet, remMagnet, activeTorrents, addFromDB };

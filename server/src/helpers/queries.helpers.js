@@ -12,20 +12,6 @@ const shallowItemQuery = `SELECT
                           JOIN media_images AS images ON main.MEDIA_ID = images.MEDIA_ID
                           JOIN media_dates AS dates ON main.MEDIA_ID = dates.MEDIA_ID`;
 
-// Helper Functions
-const compileRowData = (rows) =>
-  new Promise(async (res, rej) => {
-    try {
-      const data = [];
-      for (const row of rows) {
-        const rowData = await queryMedia(row.MEDIA_ID, null);
-        data.push(rowData);
-      }
-      res(data);
-    } catch (err) {
-      rej(err);
-    }
-  });
 
 // Global Queries
 const availableGenres = () =>
@@ -194,7 +180,7 @@ const queryByDirector = (personId) =>
     db.all(
       `${shallowItemQuery}
       JOIN directors ON main.MEDIA_ID = directors.MEDIA_ID
-      WHERE directors.PERSON_ID = ?`,
+      WHERE PERSON_ID = ?`,
       [personId],
       (err, rows) => (err ? rej(err) : res(rows))
     )
@@ -210,19 +196,12 @@ const queryPerson = (personId) =>
 const queryFilmography = (personId) =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT MEDIA_ID
-			FROM cast
-			WHERE PERSON_ID = ?
-			`,
+      // Not working >:(
+      `${shallowItemQuery}
+      JOIN cast AS c ON c.MEDIA_ID = main.MEDIA_ID
+      WHERE PERSON_ID = ?`,
       [personId],
-      async (err, rows) => {
-        if (err) {
-          return rej(err);
-        }
-        compileRowData(rows)
-          .then((data) => res(data))
-          .catch((err) => rej(err));
-      }
+      (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
@@ -485,5 +464,5 @@ export {
   lastEpisodeDate,
   queryDrives,
   missingCollections,
-  queryDrivePaths
+  queryDrivePaths,
 };

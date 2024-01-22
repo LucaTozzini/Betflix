@@ -28,34 +28,21 @@ export default ({route}) => {
   const [latest, setLatest] = useState([]);
   const {itemWidth} = useMediaRow({gap, margin, numItems});
 
-  // For Expand Top
-  const [lastY, setLastY] = useState(0);
-  const [expandTop, setExpandTop] = useState(true);
-  const translateAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-  const borderOpacityAnim = useRef(new Animated.Value(1)).current;
-
-  const expandSlide = expand => {
-    Animated.timing(translateAnim, {
-      toValue: expand ? 0 : -40,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.timing(opacityAnim, {
-      toValue: expand ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const showBorder = show => {
-    Animated.timing(borderOpacityAnim, {
-      toValue: show ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }
+  // Animation Refs
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const clampY = Animated.diffClamp(scrollY, 0, 180);
+  const headerY = clampY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0, -40],
+  });
+  const headerOpacity = clampY.interpolate({
+    inputRange: [0, 150],
+    outputRange: [1, 0],
+  });
+  const borderOpacity = scrollY.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
 
   const fetchLatest = async () => {
     try {
@@ -69,26 +56,9 @@ export default ({route}) => {
     }
   };
 
-  const handleScroll = e => {
-    const {y} = e.nativeEvent.contentOffset;
-    showBorder(y > 10);
-
-    if (y < 50) {
-      setExpandTop(true);
-    } else if (y <= lastY !== expandTop) {
-      setExpandTop(y <= lastY);
-    }
-    // finally
-    setLastY(y);
-  };
-
   useEffect(() => {
     fetchLatest();
   }, []);
-
-  useEffect(() => {
-    expandSlide(expandTop);
-  }, [expandTop]);
 
   return (
     <>
@@ -99,13 +69,13 @@ export default ({route}) => {
           right: 0,
           top: 0,
           zIndex: 100,
-          transform: [{translateY: translateAnim}],
-          backgroundColor: "black",
-          paddingTop: StatusBar.currentHeight + 10
+          transform: [{translateY: headerY}],
+          backgroundColor: 'black',
+          paddingTop: StatusBar.currentHeight + 10,
         }}>
         <Animated.View
           style={{
-            opacity: opacityAnim,
+            opacity: headerOpacity,
 
             paddingHorizontal: 12,
             height: 40,
@@ -125,7 +95,7 @@ export default ({route}) => {
           </TouchableOpacity>
         </Animated.View>
 
-        <Animated.View
+        <View
           style={{
             flexDirection: 'row',
             paddingHorizontal: 12,
@@ -143,22 +113,28 @@ export default ({route}) => {
           <TouchableOpacity style={styles.expandButton}>
             <Text style={styles.expandText}>Shows</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
-        <Animated.View style={{height: 1, backgroundColor: "rgb(40, 40, 40)", opacity: borderOpacityAnim}}/>
+        <Animated.View
+          style={{
+            height: 1,
+            backgroundColor: 'rgb(40, 40, 40)',
+            opacity: borderOpacity,
+          }}
+        />
       </Animated.View>
 
       <ScrollView
         style={styles.container}
-        onScroll={handleScroll}
-        >
+        onScroll={Animated.event([
+          {nativeEvent: {contentOffset: {y: scrollY}}},
+        ])}>
         <View
           style={{
             height: StatusBar.currentHeight + 100,
-            // backgroundColor: 'red',
           }}></View>
 
-        <HeroComponent margin={20} item={latest[1] || {}}/>
+        <HeroComponent margin={20} item={latest[1] || {}} />
         <View style={styles.rows}>
           <MediaRowComponent
             header={'Latest Releases'}
@@ -209,7 +185,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(30, 30, 30)',
     padding: 8,
     borderWidth: 1,
-    borderColor: "rgb(60, 60, 60)",
+    borderColor: 'rgb(60, 60, 60)',
     borderRadius: 10,
   },
   expandText: {

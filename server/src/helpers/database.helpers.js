@@ -79,7 +79,6 @@ const db = new sqlite3.Database(
       continuePrep = {
         insert: db.prepare(
           `INSERT INTO users_continue (
-            KEY, 
             USER_ID, 
             MEDIA_ID, 
             EPISODE_ID, 
@@ -87,7 +86,7 @@ const db = new sqlite3.Database(
             END_TIME, 
             TIME_STAMP
           ) 
-          VALUES (?,?,?,?,?,?,?)`
+          VALUES (?,?,?,?,?,?)`
         ),
         update: db.prepare(
           `UPDATE users_continue 
@@ -95,7 +94,7 @@ const db = new sqlite3.Database(
             PROGRESS_TIME = ?, 
             END_TIME = ?, 
             TIME_STAMP = ? 
-          WHERE KEY = ?`
+          WHERE USER_ID = ? AND MEDIA_ID = ? AND EPISODE_ID = ?`
         ),
       };
     }
@@ -202,10 +201,10 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS media_companies (
-            KEY TEXT PRIMARY KEY,
             MEDIA_ID TEXT NOT NULL,
             COMPANY_NAME TEXT NOT NULL,
-            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+            UNIQUE(MEDIA_ID, COMPANY_NAME)
         )`,
         (err) => (err ? console.error("Media Info", err.message) : res())
       )
@@ -289,21 +288,18 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS genres (
-            KEY TEXT PRIMARY KEY, 
             GENRE_ID INT NOT NULL, 
-            GENRE_NAME TEXT NOT NULL
+            GENRE_NAME TEXT NOT NULL,
+            UNIQUE(GENRE_ID, GENRE_NAME)
         )`,
         (err) => {
           if (err) console.error(err.message);
           else {
             const prep = db.prepare(
-              `INSERT INTO genres (KEY, GENRE_ID, GENRE_NAME) VALUES (?,?,?)`
+              `INSERT INTO genres (GENRE_ID, GENRE_NAME) VALUES (?,?)`
             );
             for (const genre of genres) {
-              prep.run(
-                [`${genre.id}_${genre.name}`, genre.id, genre.name],
-                (err) => (err ? {} : {})
-              );
+              prep.run([genre.id, genre.name], (err) => {});
             }
             res();
           }
@@ -315,10 +311,10 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS media_genres (
-            KEY TEXT PRIMARY KEY,
             MEDIA_ID TEXT NOT NULL,
             GENRE_ID INT NOT NULL,
-            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+            UNIQUE(MEDIA_ID, GENRE_ID)
         )`,
         (err) => (err ? console.error("Media Genres", err.message) : res())
       )
@@ -363,12 +359,12 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS cast (
-            KEY TEXT PRIMARY KEY,
             MEDIA_ID TEXT NOT NULL,
             PERSON_ID INT NOT NULL,
             CHARACTER TEXT,
             CAST_ORDER INT,
-						FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+						FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+            UNIQUE(MEDIA_ID, PERSON_ID, CHARACTER)
         )`,
         (err) => (err ? console.error("Cast", err.message) : res())
       )
@@ -378,10 +374,10 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS directors (
-          KEY TEXT PRIMARY KEY,
           MEDIA_ID TEXT NOT NULL,
           PERSON_ID INT NOT NULL,
-          FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+          FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+          UNIQUE(MEDIA_ID, PERSON_ID)
         )`,
         (err) => (err ? console.error("Directors", err.message) : res())
       )
@@ -406,14 +402,14 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS users_continue(
-            KEY TEXT PRIMARY KEY,
             USER_ID TEXT NOT NULL, 
             MEDIA_ID TEXT NOT NULL, 
             EPISODE_ID INT,
             PROGRESS_TIME REAL NOT NULL,
             END_TIME REAL NOT NULL,
             TIME_STAMP TEXT NOT NULL,
-            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE
+            FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE,
+            UNIQUE(USER_ID, MEDIA_ID, EPISODE_ID)
         )`,
         (err) => (err ? console.error("User Continue", err.message) : res())
       )
@@ -423,12 +419,12 @@ const createTables = () =>
     await new Promise((res) =>
       db.run(
         `CREATE TABLE IF NOT EXISTS users_watchlist(
-            KEY TEXT PRIMARY KEY,
             USER_ID TEXT NOT NULL, 
             MEDIA_ID TEXT NOT NULL, 
             TIME_STAMP TEXT NOT NULL,
             FOREIGN KEY(USER_ID) REFERENCES users_main(USER_ID) ON DELETE CASCADE,
-            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE
+            FOREIGN KEY(MEDIA_ID) REFERENCES media_main(MEDIA_ID) ON DELETE CASCADE,
+            UNIQUE(USER_ID, MEDIA_ID)
         )`,
         (err) => (err ? console.error("User Watchlist", err.message) : res())
       )
@@ -809,7 +805,7 @@ export {
   drivesStatus,
   addDrive,
   remDrive,
-  
+
   // Torrents
   getTorrents,
   addTorrent,

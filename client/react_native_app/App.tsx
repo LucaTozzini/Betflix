@@ -34,7 +34,7 @@ import PlayerScreen from './screens/Player.screen';
 import NavMenuComponent from './components/NavMenu.component';
 
 // Hooks
-import useAuthentication from './hooks/useAuthentication.hook';
+import useUserHook from './hooks/useUser.hook';
 import useServer from './hooks/useServer.hooks';
 
 const MyTheme = {
@@ -51,8 +51,8 @@ function App() {
   const [showStatusBar, setShowStatusBar] = useState(true);
   const {address} = useServer();
   const [orientation, setOrientation] = useState(PORTRAIT);
-  const {userId, userPin, userName, userImage, admin, child, login, logout} =
-    useAuthentication({address});
+  const {userId, userPin, userName, userImage, admin, child, watchlist, login, logout, deleteUser, fetchWatchlist} =
+    useUserHook({address});
 
   const handleStateChange = state => {
     const routeName = state?.routes[state?.routes.length - 1].name;
@@ -169,12 +169,12 @@ function App() {
           <Stack.Screen
             name="watchlist"
             component={WatchListScreen}
-            initialParams={{address, userId, userPin}}
+            initialParams={{watchlist, fetchWatchlist}}
           />
           <Stack.Screen
             name="user"
             component={UserScreen}
-            initialParams={{logout, userName, userImage, admin, child}}
+            initialParams={{logout, deleteUser, userName, userImage, admin, child, address}}
           />
           <Stack.Screen
             name="torrents"
@@ -184,7 +184,7 @@ function App() {
           <Stack.Screen
             name="media"
             component={MediaScreen}
-            initialParams={{userId, userPin, address}}
+            initialParams={{userId, userPin, address, setShowCast}}
           />
           <Stack.Screen
             name="player"

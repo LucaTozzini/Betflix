@@ -3,12 +3,7 @@ import axios from "axios";
 import env from "../../env.js";
 import srt2vtt from "srt-to-vtt";
 import { db } from "./database.helpers.js";
-import {
-  queryMedia,
-  queryEpisode,
-  queryMediaPath,
-  queryEpisodePath,
-} from "./queries.helpers.js";
+
 const api_key = env.OpenSubtitles_KEY;
 const username = env.OpenSubtitles_username;
 const password = env.OpenSubtitles_password;
@@ -18,7 +13,43 @@ const user_agent = "BetflixDev";
 
 let token = null;
 
-// User
+// Database and Conversion
+const convertSubtitle = (path) =>
+  new Promise(async (res, rej) => {
+    try {
+      fs.createReadStream(path)
+        .pipe(srt2vtt())
+        .pipe(
+          fs
+            .createWriteStream(`${path}.vtt`)
+            .on("finish", () => res(`${path}.vtt`))
+        );
+    } catch (err) {
+      rej(err);
+    }
+  });
+
+const insertSubtitle = (path, imdbId, language, extension) =>
+  new Promise((res, rej) =>
+    db.run(
+      `INSERT INTO subtitles (PATH, IMDB_ID, LANG, EXT) 
+      VALUES (?,?,?,?)`,
+      [path, imdbId, language, extension],
+      (err) => (err ? rej(err) : res())
+    )
+  );
+
+const deleteExisting = (imdbId, language) =>
+  new Promise(async (res, rej) =>
+    db.run(
+      `DELETE FROM subtitles
+      WHERE IMDB_ID = ? AND LANG = ?`,
+      [imdbId, language],
+      (err) => (err ? rej(err) : res())
+    )
+  );
+
+// API Requests
 const loginUser = () =>
   new Promise(async (res, rej) => {
     try {
@@ -72,57 +103,9 @@ const infoUser = () =>
     }
   });
 
-// Database and Conversion
-const convertSubtitle = (path) =>
+const searchSubtitles = (imdbId, language) =>
   new Promise(async (res, rej) => {
     try {
-      fs.createReadStream(path)
-        .pipe(srt2vtt())
-        .pipe(
-          fs
-            .createWriteStream(`${path}.vtt`)
-            .on("finish", () => res(`${path}.vtt`))
-        );
-    } catch (err) {
-      rej(err);
-    }
-  });
-
-const insertEpisodeSubtitle = (path, episodeId, language, extension) =>
-  new Promise((res, rej) =>
-    db.run(
-      `INSERT INTO subtitles (PATH, EPISODE_ID, LANG, EXT) VALUES (?,?,?,?)`,
-      [path, episodeId, language, extension],
-      (err) => (err ? rej(err) : res())
-    )
-  );
-
-const insertMovieSubtitle = (path, mediaId, language, extension) =>
-  new Promise((res, rej) =>
-    db.run(
-      `INSERT INTO subtitles (PATH, MEDIA_ID, LANG, EXT) VALUES (?,?,?,?)`,
-      [path, mediaId, language, extension],
-      (err) => (err ? rej(err) : res())
-    )
-  );
-
-const deleteExisting = (id, isEpisode, language) =>
-  new Promise(async (res, rej) =>
-    db.run(
-      `DELETE FROM subtitles
-    WHERE ${isEpisode ? "EPISODE_ID" : "MEDIA_ID"} = ? AND LANG = ?`,
-      [id, language],
-      (err) => (err ? rej(err) : res())
-    )
-  );
-
-// Exports
-const searchSubtitles = (id, isEpisode, language) =>
-  new Promise(async (res, rej) => {
-    try {
-      const { IMDB_ID } = isEpisode
-        ? await queryEpisode(id, null)
-        : await queryMedia(id, null);
       const options = {
         headers: {
           "Api-Key": api_key,
@@ -131,7 +114,7 @@ const searchSubtitles = (id, isEpisode, language) =>
       };
 
       const response = await axios.get(
-        `${BASE}/subtitles?imdb_id=${IMDB_ID}&languages=${language}&foreign_parts_only=exclude&hearing_impaired=exclude&trusted_sources=only`,
+        `${BASE}/subtitles?imdb_id=${imdbId}&languages=${language}&foreign_parts_only=exclude&trusted_sources=only`,
         options
       );
       if (!response.data.data || response.data.data.length == 0) {
@@ -144,10 +127,13 @@ const searchSubtitles = (id, isEpisode, language) =>
     }
   });
 
+// Download functions
+
 const downloadSubtitle = (imdbId, language, fileId) =>
   new Promise(async (res, rej) => {
     try {
-      await loginUser();
+      const {token} = await loginUser();
+
       const headers = {
         "Api-Key": api_key,
         "User-Agent": user_agent,
@@ -158,9 +144,10 @@ const downloadSubtitle = (imdbId, language, fileId) =>
 
       const response = await axios.post(
         `${BASE}/download`,
-        { fileId },
+        { file_id: fileId },
         { headers }
       );
+
       const subtitle = response.data;
       const localFilePath = `${path}/${imdbId}.${language}`;
 
@@ -174,16 +161,9 @@ const downloadSubtitle = (imdbId, language, fileId) =>
           try {
             const srt = localFilePath;
             const vtt = await convertSubtitle(localFilePath);
-
-            await deleteExisting(id, isEpisode, language);
-
-            if (isEpisode) {
-              await insertEpisodeSubtitle(srt, id, language, "srt");
-              await insertEpisodeSubtitle(vtt, id, language, "vtt");
-            } else {
-              await insertMovieSubtitle(srt, id, language, "srt");
-              await insertMovieSubtitle(vtt, id, language, "vtt");
-            }
+            await deleteExisting(imdbId, language);
+            await insertSubtitle(srt, imdbId, language, "srt");
+            await insertSubtitle(vtt, imdbId, language, "vtt");
 
             res({ srt, vtt });
           } catch (err) {
@@ -196,15 +176,12 @@ const downloadSubtitle = (imdbId, language, fileId) =>
     }
   });
 
-const quickDowload = (id, isEpisode, language) =>
+const quickDowload = (imdbId, language) =>
   new Promise(async (res, rej) => {
     try {
-      const results = await searchSubtitles(id, isEpisode, language);
-      const file_id = results[0].attributes.files[0].file_id;
-      const { IMDB_ID } = isEpisode
-        ? await queryEpisode(id, null)
-        : await queryMedia(id, null);
-      const files = await downloadSubtitle(IMDB_ID, language, file_id);
+      const results = await searchSubtitles(imdbId, language);
+      const { file_id } = results[0].attributes.files[0];
+      const files = await downloadSubtitle(imdbId, language, file_id);
       res(files);
     } catch (err) {
       rej(err);

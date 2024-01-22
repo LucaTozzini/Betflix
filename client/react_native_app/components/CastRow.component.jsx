@@ -35,12 +35,16 @@ export default ({items, header, width, gap, margin}) => {
     );
   };
 
+  if(items.length === 0) {
+    return;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={[styles.header, {paddingHorizontal: margin}]}>{header}</Text>
       <FlatList
         contentContainerStyle={{gap, paddingHorizontal: margin}}
-        data={[...items, ...items]}
+        data={items}
         renderItem={({item}) => (
           <Item
             key={item.PERSON_ID}
@@ -61,7 +65,7 @@ const styles = StyleSheet.create({
 		gap: 5
 	},
   header: {
-		fontSize: 25,
+		fontSize: 20,
 		fontWeight: "bold",
 		color: "white"
 	},

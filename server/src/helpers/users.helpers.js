@@ -76,20 +76,19 @@ const userData = (userId) =>
 const inWatchlist = (userId, mediaId) =>
   new Promise((res, rej) =>
     db.get(
-      `SELECT KEY FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`,
+      `SELECT COUNT(*) AS count FROM users_watchlist WHERE USER_ID = ? AND MEDIA_ID = ?`,
       [userId, mediaId],
-      (err, row) => (err ? rej(err) : res(row != undefined))
+      (err, row) => (err ? rej(err) : res(row.count))
     )
   );
 
 const addWatchlist = (userId, mediaId) =>
   new Promise(async (res, rej) => {
     if (await inWatchlist(userId, mediaId)) return res();
-    const key = `${userId}_${mediaId}`;
     const timeStamp = new Date().toISOString();
     db.run(
-      `INSERT INTO users_watchlist(KEY, USER_ID, MEDIA_ID, TIME_STAMP) VALUES (?,?,?,?)`,
-      [key, userId, mediaId, timeStamp],
+      `INSERT INTO users_watchlist(USER_ID, MEDIA_ID, TIME_STAMP) VALUES (?,?,?)`,
+      [userId, mediaId, timeStamp],
       (err) => (err ? rej(err) : res())
     );
   });
@@ -172,24 +171,26 @@ const currentEpisode = (userId, mediaId) =>
 const hasContinue = (userId, mediaId, episodeId) =>
   new Promise((res, rej) =>
     db.get(
-      `SELECT * FROM users_continue WHERE USER_ID = ? AND MEDIA_ID = ? AND EPISODE_ID = ?`,
+      `SELECT COUNT(*) AS count FROM users_continue WHERE USER_ID = ? AND MEDIA_ID = ? AND EPISODE_ID = ?`,
       [userId, mediaId, episodeId],
-      (err, row) => (err ? rej(err) : res(row != undefined))
+      (err, row) => (err ? rej(err) : res(row.count !== 0))
     )
   );
 
 const updateContinue = (userId, mediaId, episodeId, progressTime, endTime) =>
   new Promise(async (res, rej) => {
-    const key = `${userId}_${mediaId}_${episodeId}`;
     const timeStamp = new Date().toISOString();
+    episodeId = episodeId?? -1
 
-    if (await hasContinue(userId, mediaId, episodeId)) {
-      continuePrep.update.run([progressTime, endTime, timeStamp, key], (err) =>
+    const has = await hasContinue(userId, mediaId, episodeId); 
+
+    if (has) {
+      continuePrep.update.run([progressTime, endTime, timeStamp, userId, mediaId, episodeId], (err) =>
         err ? rej(err) : res()
       );
     } else {
       continuePrep.insert.run(
-        [key, userId, mediaId, episodeId, progressTime, endTime, timeStamp],
+        [userId, mediaId, episodeId, progressTime, endTime, timeStamp],
         (err) => (err ? rej(err) : res())
       );
     }

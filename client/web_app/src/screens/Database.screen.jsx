@@ -29,7 +29,10 @@ const Database = () => {
       const { ACTION, PROGRESS, ACTIVE } = await response.json();
 
       const logs = consoleRef.current.innerHTML.split("<br>");
-      if ((logs == 1 || logs[logs.length -2] != ACTION) && consoleRef.current) {
+      if (
+        (logs == 1 || logs[logs.length - 2] != ACTION) &&
+        consoleRef.current
+      ) {
         consoleRef.current.innerHTML += `${ACTION}<br>`;
         consoleRef.current.scrollTo(0, consoleRef.current.scrollHeight);
       }
@@ -87,8 +90,8 @@ const Database = () => {
       },
       body: JSON.stringify({ userId, userPin }),
     };
-    fetch(`${serverAddress}/database/maintenance/${item}`, options).catch((err) =>
-      console.error(err.message)
+    fetch(`${serverAddress}/database/maintenance/${item}`, options).catch(
+      (err) => console.error(err.message)
     );
   };
 
@@ -103,7 +106,28 @@ const Database = () => {
     fetch(`${serverAddress}/torrents/addDB`, options).catch((err) =>
       console.error(err.message)
     );
-  }
+  };
+
+  const msToString = (ms) => {
+    let seconds = ms / 1000;
+    const hours = Math.floor(seconds / 3600);
+    seconds -= hours * 3600;
+    const minutes = Math.floor(seconds / 60);
+    seconds -= minutes * 60;
+    seconds = Math.floor(seconds);
+    return `${hours}h : ${minutes}m : ${seconds}s`;
+  };
+
+  const handleRemoveTorrent = (magnetURI) => {
+    const options = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({magnetURI})
+    };
+    fetch(`${serverAddress}/torrents/rem`, options).catch(err => console.log(err.message));
+  };
 
   useEffect(() => {
     fetchDrives();
@@ -117,27 +141,6 @@ const Database = () => {
   useEffect(() => {
     fetchTorrents();
   }, [loopAlt2]);
-
-  const Torrent = ({ name, timeRemaining, progress }) => {
-    const time = () => {
-      let seconds = timeRemaining / 1000;
-      const hours = Math.floor(seconds / 3600);
-      seconds -= hours * 3600;
-      const minutes = Math.floor(seconds / 60);
-      seconds -= minutes * 60;
-      seconds = Math.floor(seconds);
-      return `${hours}h : ${minutes}m : ${seconds}s`;
-    };
-    return (
-      <div>
-        <p>{name}</p>
-        <p>{time()}</p>
-        <div className={styles.progressBar}>
-          <div style={{ width: progress * 100 + "%" }} />
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className={styles.container}>
@@ -200,21 +203,23 @@ const Database = () => {
       </div>
 
       {/* Torrents */}
-      <div
-        className={styles.section}
-      >
+      <div className={styles.section}>
         <h2>{"> Torrents"}</h2>
         <div className={styles.buttons}>
           <button onClick={addTorrentsFromDB}>Add From DB</button>
         </div>
         <div className={styles.list}>
           {torrents.map((i) => (
-            <Torrent
-              key={i.magnetURI}
-              name={i.name}
-              timeRemaining={i.timeRemaining}
-              progress={i.progress}
-            />
+            <div>
+              <p>{i.name}</p>
+              <p>{msToString(i.timeRemaining)}</p>
+              <div className={styles.progressBar}>
+                <div style={{ width: i.progress * 100 + "%" }} />
+              </div>
+              <button onClick={() => handleRemoveTorrent(i.magnetURI)}>
+                Remove
+              </button>
+            </div>
           ))}
         </div>
       </div>

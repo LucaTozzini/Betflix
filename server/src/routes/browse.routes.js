@@ -32,10 +32,12 @@ router.post("/item", async (req, res) => {
     }
 
     const data = await queryMedia(mediaId, userId);
-    data["IN_WATCHLIST"] = (await inWatchlist(userId, mediaId)) ? 1 : 0;
+    data["IN_WATCHLIST"] = await inWatchlist(userId, mediaId);
+    console.log(data["IN_WATCHLIST"]);
+
     res.json(data);
   } catch (err) {
-    console.error(err.message);
+    console.error("/browse/item", err.message);
     res.sendStatus(500);
   }
 });
@@ -166,7 +168,7 @@ router.get("/person/filmography", async (req, res) => {
     const data = await queryFilmography(personId);
     res.json(data);
   } catch (err) {
-    console.error(err.message);
+    console.error("/browse/person/filmography", err.message);
     res.sendStatus(500);
   }
 });

@@ -94,11 +94,10 @@ const insertMedia = (mediaData) =>
         ),
         companies: db.prepare(
           `INSERT INTO media_companies (
-            KEY, 
             MEDIA_ID, 
             COMPANY_NAME
           ) 
-          VALUES (?,?,?)`
+          VALUES (?,?)`
         ),
         info: db.prepare(
           `INSERT INTO media_info (
@@ -114,29 +113,26 @@ const insertMedia = (mediaData) =>
         ),
         genres: db.prepare(
           `INSERT INTO media_genres (
-            KEY, 
             MEDIA_ID, 
             GENRE_ID
           ) 
-          VALUES (?,?,?)`
+          VALUES (?,?)`
         ),
         cast: db.prepare(
           `INSERT INTO cast (
-            KEY, 
             MEDIA_ID, 
             PERSON_ID, 
             CHARACTER, 
             CAST_ORDER
           ) 
-          VALUES (?,?,?,?,?)`
+          VALUES (?,?,?,?)`
         ),
         directors: db.prepare(
           `INSERT INTO directors (
-            KEY, 
             MEDIA_ID, 
             PERSON_ID
           )
-          VALUES (?,?,?)`
+          VALUES (?,?)`
         ),
       };
 
@@ -163,12 +159,12 @@ const insertMedia = (mediaData) =>
         content_rating,
         duration,
         vote,
-        collection_id
+        collection_id,
       ];
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
           if (err) {
-            // console.error("media main", err.message);
+            console.error("Main Insert", err.message);
           }
           res();
         })
@@ -176,7 +172,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.images.run(images_data, (err) => {
           if (err) {
-            // console.error("media images", err.message);
+            console.error("Images Insert", err.message);
           }
           res();
         })
@@ -184,7 +180,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.dates.run(dates_data, (err) => {
           if (err) {
-            // console.error("media dates", err.message);
+            console.error("Dates Insert", err.message);
           }
           res();
         })
@@ -192,7 +188,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.finances.run(finances_data, (err) => {
           if (err) {
-            // console.error("media finances", err.message);
+            console.error("Finances Insert", err.message);
           }
           res();
         })
@@ -200,7 +196,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.info.run(info_data, (err) => {
           if (err) {
-            // console.error("media info", err.message);
+            console.error("Info Insert", err.message);
           }
           res();
         })
@@ -208,42 +204,33 @@ const insertMedia = (mediaData) =>
 
       for (const genre of genres) {
         await new Promise((res) =>
-          mediaPrep.genres.run(
-            [`KEY_${media_id}_${genre}`, media_id, genre],
-            (err) => {
-              res();
+          mediaPrep.genres.run([media_id, genre], (err) => {
+            if (err) {
+              console.error("Genre Insert", err.message);
             }
-          )
+            res();
+          })
         );
       }
 
       for (const company of companies) {
         await new Promise((res) =>
-          mediaPrep.companies.run(
-            [`KEY_${media_id}_${company}`, media_id, company],
-            (err) => {
-              res();
+          mediaPrep.companies.run([media_id, company], (err) => {
+            if (err) {
+              console.error("Company Insert", err.message);
             }
-          )
+            res();
+          })
         );
       }
 
       for (const person of credits) {
         await new Promise((res) =>
           mediaPrep.cast.run(
-            [
-              `KEY_${media_id}_${person.id}_${person.character}`,
-              media_id,
-              person.id,
-              person.character,
-              person.order,
-            ],
+            [media_id, person.id, person.character, person.order],
             (err) => {
               if (err) {
-                // console.error(
-                //   err.message,
-                //   `KEY_${media_id}_${person.id}_${person.character}`
-                // );
+                console.error("Credit Insert", err.message);
               }
               res();
             }
@@ -253,15 +240,12 @@ const insertMedia = (mediaData) =>
 
       for (const id of directors) {
         await new Promise((res) =>
-          mediaPrep.directors.run(
-            [`KEY_${media_id}_${id}`, media_id, id],
-            (err) => {
-              if (err) {
-                // console.log("Director Insert", err.message);
-              }
-              res();
+          mediaPrep.directors.run([media_id, id], (err) => {
+            if (err) {
+              console.error("Director Insert", err.message);
             }
-          )
+            res();
+          })
         );
       }
 
@@ -416,7 +400,9 @@ const insertPerson = (personData) =>
       prep.run(
         [person_id, name, birth_date, death_date, biography, profile_image],
         (err) => {
-          if (err) console.error(err.message);
+          if (err) {
+            console.error("Person Insert", err.message);
+          }
           res();
         }
       )

@@ -7,6 +7,7 @@ export default ({address}) => {
   const [userImage, setUserImage] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [child, setChild] = useState(null);
+  const [watchlist, setWatchlist] = useState([]);
 
   const login = ({userId, userPin}) =>
     new Promise(async res => {
@@ -36,14 +37,60 @@ export default ({address}) => {
       res({success});
     });
 
-  logout = () => {
+  const logout = () => {
     setUserId(null);
     setUserPin(null);
     setUserName(null);
     setUserImage(null);
     setAdmin(null);
     setChild(null);
+    setWatchlist([]);
   };
 
-  return {userId, userPin, userName, userImage, admin, child, login, logout};
+  const deleteUser = () => {
+    const options = {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({userId, userPin}),
+    };
+    fetch(`${address}/users/delete`, options)
+      .then(logout)
+      .catch(err => console.error(err.message));
+  };
+
+  const fetchWatchlist = async () => {
+    try {
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userId, userPin}),
+      };
+      const response = await fetch(`${address}/watchlist/`, options);
+      const json = await response.json();
+      setWatchlist(json);
+    } catch (err) {
+      rej(err);
+    }
+  };
+
+  return {
+    // States
+    userId,
+    userPin,
+    userName,
+    userImage,
+    admin,
+    child,
+    watchlist,
+
+    // 
+    login,
+    logout, 
+    deleteUser,
+    fetchWatchlist,
+  };
 };

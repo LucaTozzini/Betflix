@@ -2,18 +2,19 @@ import { useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import styles from "../styles/Player.screen.module.css";
+
+// Icons
 import {
   FaArrowLeft,
-  FaPlay,
-  FaPause,
   FaVolumeLow,
   FaVolumeOff,
   FaRegClosedCaptioning,
   FaClosedCaptioning,
   FaX,
 } from "react-icons/fa6";
-import { RiFullscreenLine } from "react-icons/ri";
 import { useContext, useEffect } from "react";
+import { RiFullscreenLine } from "react-icons/ri";
+import { MdPlayArrow, MdPause  } from "react-icons/md";
 
 // Contexts
 import currentUserContext from "../contexts/currentUser.context";
@@ -41,7 +42,7 @@ const Player = () => {
   const [fullScreen, setFullScreen] = useState(document.fullscreenElement);
   const fillRef = useRef(null);
   const barRef = useRef(null);
-  const [ videoRef, setVideoRef ] = useState(null);
+  const [videoRef, setVideoRef] = useState(null);
   const seekRef = useRef(false);
 
   // volume
@@ -576,12 +577,12 @@ const Player = () => {
   const fetchSubtitles = async () => {
     setLoadingSubtitles(true);
     try {
-      console.log(mediaData)
+      console.log(mediaData);
       const response = await fetch(
         `${serverAddress}/subtitles/available?imdbId=${mediaData.IMDB_ID}&extension=vtt`
       );
       const json = await response.json();
-      console.log(json)
+      console.log(json);
       setAvailableSubtitles(json);
     } catch (err) {
       console.error(err.message);
@@ -610,9 +611,7 @@ const Player = () => {
     try {
       setSubtitlesResults(null);
       const response = await fetch(
-        `${serverAddress}/subtitles/search?mediaId=${mediaId}&episodeId=${
-          episodeData ? episodeData.EPISODE_ID : null
-        }&language=${language}`
+        `${serverAddress}/subtitles/search?imdbId=${mediaData.IMDB_ID}&language=${language}`
       );
       const json = await response.json();
       setSubtitlesResults(json);
@@ -624,9 +623,7 @@ const Player = () => {
     setLoadingSubtitles(true);
     try {
       const response = await fetch(
-        `${serverAddress}/subtitles/download?mediaId=${mediaId}&episodeId=${
-          episodeData ? episodeData.EPISODE_ID : null
-        }&language=${language}&fileId=${fileId}&extension=vtt`
+        `${serverAddress}/subtitles/download?imdbId=${mediaData.IMDB_ID}&language=${language}&fileId=${fileId}&extension=vtt`
       );
       if (response.status == 200) {
         setSubtitlesLanguage(language);
@@ -723,320 +720,336 @@ const Player = () => {
     window.localStorage.setItem("showSubtitles", showSubtitles);
   }, [showSubtitles]);
 
-  if(mediaData) return (
-    <>
-      <video
-        ref={setVideoRef}
-        src={videoSource}
-        className={styles.video}
-        crossOrigin="anonymous"
-      >
-        {/* Add your <track> element here */}
-        {showSubtitles ? (
-          <track
-            ref={trackRef}
-            src={`${serverAddress}/subtitles?imdbId=${mediaData.IMDB_ID}&language=${subtitlesLanguage}&extension=vtt&arbNumber=${arbNumber}`}
-            kind="subtitles"
-            srcLang="en"
-            label="English"
-            default
-          />
-        ) : (
-          <></>
-        )}
-      </video>
-
-      <div
-        className={styles.overlay}
-        style={{
-          opacity: overlay ? 1 : 0,
-          cursor: overlay ? "default" : "none",
-        }}
-      >
-        <div className={styles.top}>
-          <Link
-            onClick={() => {
-              videoRef.pause();
-              window.history.back();
-            }}
-          >
-            <FaArrowLeft />
-          </Link>
-          <Link to={`/browse/item/${mediaId}`}>
-            {episodeData ? (
-              `S${episodeData.SEASON_NUM}:E${episodeData.EPISODE_NUM} - `
-            ) : (
-              <></>
-            )}
-            {episodeData ? episodeData.TITLE : mediaData ? mediaData.TITLE : ""}
-          </Link>
-        </div>
+  if (mediaData)
+    return (
+      <>
+        <video
+          ref={setVideoRef}
+          src={videoSource}
+          className={styles.video}
+          crossOrigin="anonymous"
+        >
+          {/* Add your <track> element here */}
+          {showSubtitles ? (
+            <track
+              ref={trackRef}
+              src={`${serverAddress}/subtitles?imdbId=${mediaData.IMDB_ID}&language=${subtitlesLanguage}&extension=vtt&arbNumber=${arbNumber}`}
+              kind="subtitles"
+              srcLang="en"
+              label="English"
+              default
+            />
+          ) : (
+            <></>
+          )}
+        </video>
 
         <div
-          className={styles.middle}
-          onClick={() => (paused ? videoRef.play() : videoRef.pause())}
+          className={styles.overlay}
+          style={{
+            opacity: overlay ? 1 : 0,
+            cursor: overlay ? "default" : "none",
+          }}
         >
-          <div className={styles.middlePlay}>
-            {paused ? <FaPlay /> : <FaPause />}
-          </div>
-        </div>
-
-        <div
-          className={styles.controls}
-          onMouseEnter={() => (controlsHover.current = true)}
-          onMouseLeave={() => (controlsHover.current = false)}
-        >
-          <div
-            className={styles.progressFrame}
-            onMouseUp={(e) => {
-              if (seekRef.current) handleSeek(e);
-            }}
-            onMouseDown={() => (seekRef.current = true)}
-          >
-            <div className={styles.progressBar} ref={barRef}>
-              <div className={styles.progressFill} ref={fillRef}>
-                <div className={styles.progressKnob} />
-              </div>
-            </div>
-          </div>
-          <div className={styles.buttonRow}>
-            <div className={styles.buttonSection}>
-              <button className={styles.volume}>
-                {mute ? (
-                  <FaVolumeOff size={"2rem"} onClick={() => setMute(false)} />
-                ) : (
-                  <FaVolumeLow size={"2rem"} onClick={() => setMute(true)} />
-                )}
-                <div
-                  className={styles.volumeSliderFrame}
-                  onMouseUp={(e) => {
-                    if (setVolumeRef.current) handleVolume(e);
-                  }}
-                  onMouseDown={() => (setVolumeRef.current = true)}
-                  ref={volumeSliderRef}
-                >
-                  <div className={styles.volumeSlider}>
-                    <div
-                      className={styles.volumeFill}
-                      style={{ width: `${volume * 100}%` }}
-                      ref={volumeFillRef}
-                    >
-                      <div className={styles.volumeKnob} />
-                    </div>
-                  </div>
-                </div>
-              </button>
-              <h3 className={styles.time}>
-                {timeString || "--:--"} / {durationString || "--:--"}
-              </h3>
-            </div>
-            <div className={styles.buttonSection}>
-              {showSubtitles ? (
-                <button
-                  className={styles.languageButton}
-                  onClick={() => setShowSubtitlesModal(true)}
-                >
-                  { availableSubtitles.length ?
-                    langDict.filter(
-                      (i) => i.language_code == subtitlesLanguage.toLowerCase()
-                    )[0].language_name
-                   : "Not Available"}
-                </button>
+          <div className={styles.top}>
+            <Link
+              onClick={() => {
+                videoRef.pause();
+                window.history.back();
+              }}
+            >
+              <FaArrowLeft />
+            </Link>
+            <Link to={`/browse/item/${mediaId}`}>
+              {episodeData ? (
+                `S${episodeData.SEASON_NUM}:E${episodeData.EPISODE_NUM} - `
               ) : (
                 <></>
               )}
-              <button
-                className={styles.b}
-                onClick={() => setShowSubtitles(!showSubtitles)}
-              >
-                {showSubtitles ? (
-                  <FaClosedCaptioning />
-                ) : (
-                  <FaRegClosedCaptioning />
-                )}
-              </button>
-              <button
-                className={styles.b}
-                onClick={() => setFullScreen(!fullScreen)}
-              >
-                <RiFullscreenLine />
-              </button>
+              {episodeData
+                ? episodeData.TITLE
+                : mediaData
+                ? mediaData.TITLE
+                : ""}
+            </Link>
+          </div>
+
+          <div
+            className={styles.middle}
+            onClick={() => (paused ? videoRef.play() : videoRef.pause())}
+          >
+            <div className={styles.middlePlay}>
+              {paused ? <MdPlayArrow /> : <MdPause />}
             </div>
           </div>
-        </div>
-      </div>
 
-      {nextEpisode &&
-      videoRef &&
-      videoRef.duration - videoRef.currentTime < 60 ? (
-        <Link
-          className={styles.nextUp}
-          to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`}
-          replace
-        >
-          <FaPlay />
-          <div>
-            S{nextEpisode.SEASON_NUM}:E{nextEpisode.EPISODE_NUM} -{" "}
-            {nextEpisode.TITLE}
-          </div>
-        </Link>
-      ) : (
-        <></>
-      )}
-
-      {showSubtitlesModal ? (
-        <div className={styles.subtitlesModal} onClick={() => setShowSubtitlesModal(false)}>
-          <div className={styles.subtitlesContainer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.subtitlesTop}>
-              <div
-                className={styles.subtitlesSection}
-                style={{ alignItems: "flex-end" }}
-              >
+          <div
+            className={styles.controls}
+            onMouseEnter={() => (controlsHover.current = true)}
+            onMouseLeave={() => (controlsHover.current = false)}
+          >
+            <div
+              className={styles.progressFrame}
+              onMouseUp={(e) => {
+                if (seekRef.current) handleSeek(e);
+              }}
+              onMouseDown={() => (seekRef.current = true)}
+            >
+              <div className={styles.progressBar} ref={barRef}>
+                <div className={styles.progressFill} ref={fillRef}>
+                  <div className={styles.progressKnob} />
+                </div>
+              </div>
+            </div>
+            <div className={styles.buttonRow}>
+              <div className={styles.buttonSection}>
+                <button className={styles.volume}>
+                  {mute ? (
+                    <FaVolumeOff size={"2rem"} onClick={() => setMute(false)} />
+                  ) : (
+                    <FaVolumeLow size={"2rem"} onClick={() => setMute(true)} />
+                  )}
+                  <div
+                    className={styles.volumeSliderFrame}
+                    onMouseUp={(e) => {
+                      if (setVolumeRef.current) handleVolume(e);
+                    }}
+                    onMouseDown={() => (setVolumeRef.current = true)}
+                    ref={volumeSliderRef}
+                  >
+                    <div className={styles.volumeSlider}>
+                      <div
+                        className={styles.volumeFill}
+                        style={{ width: `${volume * 100}%` }}
+                        ref={volumeFillRef}
+                      >
+                        <div className={styles.volumeKnob} />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                <h3 className={styles.time}>
+                  {timeString || "--:--"} / {durationString || "--:--"}
+                </h3>
+              </div>
+              <div className={styles.buttonSection}>
+                {showSubtitles ? (
+                  <button
+                    className={styles.languageButton}
+                    onClick={() => setShowSubtitlesModal(true)}
+                  >
+                    {availableSubtitles.length
+                      ? langDict.filter(
+                          (i) =>
+                            i.language_code == subtitlesLanguage.toLowerCase()
+                        )[0].language_name
+                      : "Not Available"}
+                  </button>
+                ) : (
+                  <></>
+                )}
                 <button
-                  className={styles.closeSubtitles}
-                  onClick={() => setShowSubtitlesModal(false)}
+                  className={styles.b}
+                  onClick={() => setShowSubtitles(!showSubtitles)}
                 >
-                  {" "}
-                  <FaX />{" "}
+                  {showSubtitles ? (
+                    <FaClosedCaptioning />
+                  ) : (
+                    <FaRegClosedCaptioning />
+                  )}
+                </button>
+                <button
+                  className={styles.b}
+                  onClick={() => setFullScreen(!fullScreen)}
+                >
+                  <RiFullscreenLine />
                 </button>
               </div>
-              {loadingSubtitles ? <div>Loading</div> : <></>}
             </div>
-
-            {availableSubtitles.length ? <div className={styles.subtitlesSection}>
-              <h1>Available</h1>
-              <div className={styles.subtitlesList}>
-                {availableSubtitles
-                  .filter((i) => i.EXT == "vtt")
-                  .map((i) => (
-                    <button
-                      key={i.LANG}
-                      onClick={() => setSubtitlesLanguage(i.LANG)}
-                      className={
-                        i.LANG == subtitlesLanguage
-                          ? styles.selectedSubtitle
-                          : ""
-                      }
-                    >
-                      {
-                        langDict.filter(
-                          (x) => x.language_code == i.LANG.toLowerCase()
-                        )[0].language_name
-                      }
-                    </button>
-                  ))}
-              </div>
-            </div> : <></>}
-
-            {availableSubtitles.find((i) => i.LANG == "en") &&
-            availableSubtitles.find((i) => i.LANG == "it") &&
-            availableSubtitles.find((i) => i.LANG == "es") &&
-            availableSubtitles.find((i) => i.LANG == "fr") ? (
-              <></>
-            ) : (
-              <div className={styles.subtitlesSection}>
-                <h1>Quick Download</h1>
-                <div className={styles.subtitlesList}>
-                  {availableSubtitles.find((i) => i.LANG == "en") ? (
-                    <></>
-                  ) : (
-                    <button onClick={() => quickDownloadSubtitle("en")}>
-                      English
-                    </button>
-                  )}
-                  {availableSubtitles.find((i) => i.LANG == "it") ? (
-                    <></>
-                  ) : (
-                    <button onClick={() => quickDownloadSubtitle("it")}>
-                      Italian
-                    </button>
-                  )}
-                  {availableSubtitles.find((i) => i.LANG == "es") ? (
-                    <></>
-                  ) : (
-                    <button onClick={() => quickDownloadSubtitle("es")}>
-                      Spanish
-                    </button>
-                  )}
-                  {availableSubtitles.find((i) => i.LANG == "fr") ? (
-                    <></>
-                  ) : (
-                    <button onClick={() => quickDownloadSubtitle("fr")}>
-                      French
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className={styles.subtitlesSection}>
-              <h1>Manual Download</h1>
-              <input
-                type="text"
-                placeholder="Search Language"
-                className={styles.subtitlesLanguageInput}
-                onChange={(e) => setManualSearch(e.target.value)}
-              />
-              <div className={styles.subtitlesList}>
-                {langDict
-                  .filter((i) =>
-                    manualSearch.length > 0
-                      ? manualSearch == "*"
-                        ? true
-                        : i.language_name
-                            .toLowerCase()
-                            .includes(manualSearch.toLowerCase())
-                      : false
-                  )
-                  .map((i) => (
-                    <button
-                      key={i.language_code}
-                      onClick={() => searchSubtitles(i.language_code)}
-                    >
-                      {i.language_name}
-                    </button>
-                  ))}
-              </div>
-            </div>
-
-            {subtitlesResults ? (
-              <div className={styles.subtitlesSection}>
-                <h1>
-                  Results -{" "}
-                  {
-                    langDict.find(
-                      (i) =>
-                        i.language_code ==
-                        subtitlesResults[0].attributes.language.toLowerCase()
-                    ).language_name
-                  }
-                </h1>
-                <div className={styles.subtitlesList}>
-                  {subtitlesResults.map((i) => (
-                    <button
-                      key={i.attributes.files[0].file_id}
-                      onClick={() =>
-                        downloadSubtitles(
-                          i.attributes.files[0].file_id,
-                          i.attributes.language
-                        )
-                      }
-                    >
-                      {i.attributes.release}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <></>
-            )}
           </div>
         </div>
-      ) : (
-        <></>
-      )}
-    </>
-  );
+
+        {nextEpisode &&
+        videoRef &&
+        videoRef.duration - videoRef.currentTime < 60 ? (
+          <Link
+            className={styles.nextUp}
+            to={`/player/reroute/${nextEpisode.MEDIA_ID}/${nextEpisode.EPISODE_ID}`}
+            replace
+          >
+            <MdPlayArrow />
+            <div>
+              S{nextEpisode.SEASON_NUM}:E{nextEpisode.EPISODE_NUM} -{" "}
+              {nextEpisode.TITLE}
+            </div>
+          </Link>
+        ) : (
+          <></>
+        )}
+
+        {showSubtitlesModal ? (
+          <div
+            className={styles.subtitlesModal}
+            onClick={() => setShowSubtitlesModal(false)}
+          >
+            <div
+              className={styles.subtitlesContainer}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.subtitlesTop}>
+                <div
+                  className={styles.subtitlesSection}
+                  style={{ alignItems: "flex-end" }}
+                >
+                  <button
+                    className={styles.closeSubtitles}
+                    onClick={() => setShowSubtitlesModal(false)}
+                  >
+                    {" "}
+                    <FaX />{" "}
+                  </button>
+                </div>
+                {loadingSubtitles ? <div>Loading</div> : <></>}
+              </div>
+
+              {availableSubtitles.length ? (
+                <div className={styles.subtitlesSection}>
+                  <h1>Available</h1>
+                  <div className={styles.subtitlesList}>
+                    {availableSubtitles
+                      .filter((i) => i.EXT == "vtt")
+                      .map((i) => (
+                        <button
+                          key={i.LANG}
+                          onClick={() => setSubtitlesLanguage(i.LANG)}
+                          className={
+                            i.LANG == subtitlesLanguage
+                              ? styles.selectedSubtitle
+                              : ""
+                          }
+                        >
+                          {
+                            langDict.filter(
+                              (x) => x.language_code == i.LANG.toLowerCase()
+                            )[0].language_name
+                          }
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              ) : (
+                <></>
+              )}
+
+              {availableSubtitles.find((i) => i.LANG == "en") &&
+              availableSubtitles.find((i) => i.LANG == "it") &&
+              availableSubtitles.find((i) => i.LANG == "es") &&
+              availableSubtitles.find((i) => i.LANG == "fr") ? (
+                <></>
+              ) : (
+                <div className={styles.subtitlesSection}>
+                  <h1>Quick Download</h1>
+                  <div className={styles.subtitlesList}>
+                    {availableSubtitles.find((i) => i.LANG == "en") ? (
+                      <></>
+                    ) : (
+                      <button onClick={() => quickDownloadSubtitle("en")}>
+                        English
+                      </button>
+                    )}
+                    {availableSubtitles.find((i) => i.LANG == "it") ? (
+                      <></>
+                    ) : (
+                      <button onClick={() => quickDownloadSubtitle("it")}>
+                        Italian
+                      </button>
+                    )}
+                    {availableSubtitles.find((i) => i.LANG == "es") ? (
+                      <></>
+                    ) : (
+                      <button onClick={() => quickDownloadSubtitle("es")}>
+                        Spanish
+                      </button>
+                    )}
+                    {availableSubtitles.find((i) => i.LANG == "fr") ? (
+                      <></>
+                    ) : (
+                      <button onClick={() => quickDownloadSubtitle("fr")}>
+                        French
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.subtitlesSection}>
+                <h1>Manual Download</h1>
+                <input
+                  type="text"
+                  placeholder="Search Language"
+                  className={styles.subtitlesLanguageInput}
+                  onChange={(e) => setManualSearch(e.target.value)}
+                />
+                <div className={styles.subtitlesList}>
+                  {langDict
+                    .filter((i) =>
+                      manualSearch.length > 0
+                        ? manualSearch == "*"
+                          ? true
+                          : i.language_name
+                              .toLowerCase()
+                              .includes(manualSearch.toLowerCase())
+                        : false
+                    )
+                    .map((i) => (
+                      <button
+                        key={i.language_code}
+                        onClick={() => searchSubtitles(i.language_code)}
+                      >
+                        {i.language_name}
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {subtitlesResults ? (
+                <div className={styles.subtitlesSection}>
+                  <h1>
+                    Results -{" "}
+                    {
+                      langDict.find(
+                        (i) =>
+                          i.language_code ==
+                          subtitlesResults[0].attributes.language.toLowerCase()
+                      ).language_name
+                    }
+                  </h1>
+                  <div className={styles.subtitlesList}>
+                    {subtitlesResults.map((i) => (
+                      <button
+                        key={i.attributes.files[0].file_id}
+                        onClick={() =>
+                          downloadSubtitles(
+                            i.attributes.files[0].file_id,
+                            i.attributes.language
+                          )
+                        }
+                      >
+                        {i.attributes.release}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <></>
+              )}
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+      </>
+    );
 };
 
 export default Player;

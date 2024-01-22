@@ -4,7 +4,7 @@ import env from "../../env.js";
 import episode from "episode";
 import { publicManager } from "./database.helpers.js";
 import { db } from "../helpers/database.helpers.js";
-import { haveMedia, haveEpisode, queryDrivePaths } from "./queries.helpers.js";
+import { haveMedia, haveEpisode } from "./queries.helpers.js";
 import { getVideoDurationInSeconds } from "get-video-duration";
 
 const parseString = (string) => {

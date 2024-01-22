@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 
-const itemSize = 22;
+const itemSize = 30;
 
 const color = '#212121';
 export default ({show}) => {
@@ -20,64 +20,25 @@ export default ({show}) => {
     SystemNavigationBar.setNavigationColor(color);
   }, []);
 
+  const Tab = ({routeName, iconName, iconNameSelected, index, imageUri}) => (
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => navigate(index, routeName)}>
+      <Icon
+        name={selected === index ? iconNameSelected : iconName}
+        size={itemSize}
+        color={selected === index ? "white" : "rgb(180,180,180)"}
+      />
+    </TouchableOpacity>
+  );
+
   if (show) {
     return (
       <View style={styles.main}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigate(0, 'browse')}>
-          <Icon
-            name={selected === 0 ? 'grid' : 'grid-outline'}
-            size={itemSize}
-            color="white"
-          />
-          <Text
-            style={[styles.text, selected === 0 ? {fontWeight: 'bold'} : {}]}>
-            Browse
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigate(1, 'search')}>
-          <Icon
-            name={selected === 1 ? 'search' : 'search-outline'}
-            size={itemSize}
-            color="white"
-          />
-          <Text
-            style={[styles.text, selected === 1 ? {fontWeight: 'bold'} : {}]}>
-            Search
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigate(2, 'watchlist')}>
-          <Icon
-            name={selected === 2 ? 'bookmark' : 'bookmark-outline'}
-            size={itemSize}
-            color="white"
-          />
-          <Text
-            style={[styles.text, selected === 2 ? {fontWeight: 'bold'} : {}]}>
-            My List
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigate(3, 'user')}>
-          <Icon
-            name={selected === 3 ? 'person' : 'person-outline'}
-            size={itemSize}
-            color="white"
-          />
-          <Text
-            style={[styles.text, selected === 3 ? {fontWeight: 'bold'} : {}]}>
-            User
-          </Text>
-        </TouchableOpacity>
+        <Tab index={0} routeName="browse"    iconName="home-outline"   iconNameSelected="home"   />
+        <Tab index={1} routeName="search"    iconName="search-outline" iconNameSelected="search" />
+        <Tab index={2} routeName="watchlist" iconName="albums-outline" iconNameSelected="albums" />
+        <Tab index={3} routeName="user"      iconName="person-outline" iconNameSelected="person" />
       </View>
     );
   }
@@ -85,8 +46,7 @@ export default ({show}) => {
 
 const styles = StyleSheet.create({
   main: {
-    paddingTop: 10,
-    paddingBottom: 3,
+    paddingVertical: 10,
     flexDirection: 'row',
     backgroundColor: color,
   },
@@ -95,9 +55,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-  },
-  text: {
-    color: 'white',
-    fontSize: 11,
   },
 });
