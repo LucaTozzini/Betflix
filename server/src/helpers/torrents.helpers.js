@@ -5,6 +5,7 @@ import webtorrent from "webtorrent";
 import env from "../../env.js";
 const { torrents_downloading_path } = env;
 import { validExt, validSubExt } from "./filesUtil.helpers.js";
+import { publicManager } from "./database.helpers.js";
 import { getTorrents, addTorrent, remTorrent } from "./database.helpers.js";
 
 // Helpers
@@ -21,23 +22,18 @@ client.on("torrent", (torrent) => {
       }
       await new Promise((res) => fs.unlink(thisPath, res));
     }
-
-    // not working :(
-    //
-    // const dir = path.parse(torrent.files[0].path).dir;
-    // const folder = path.join(
-    //   env.torrents_downloading_path,
-    //   dir.split(/\/\\/g)[0]
-    // );
-    // fs.rmSync(folder, {recursive: true});
-    //
-
-    client.remove(torrent.magnetURI);
-    remTorrent(torrent.magnetURI).catch((err) => console.error(err.message));
+    remMagnet(torrent.magnetURI);
+    try {
+      if (!publicManager.status.ACTIVE) {
+        await publicManager.run(1);
+        await publicManager.run(2);
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
   });
   torrent.on("error", (err) => {
-    console.error(err.message);
-    client.remove(torrent.magnetURI);
+    console.error("torrent error:", err.message);
     remTorrent(torrent.magnetURI).catch((err) => console.error(err.message));
   });
 });
@@ -48,22 +44,33 @@ client.on("error", (err) => {
 
 // Exports
 const addMagnet = async (magnetURI) => {
-  if (!(await client.get(magnetURI))) {
-    client.add(magnetURI, { path: torrents_downloading_path });
-  } else {
-    console.log("Duplicate");
+  try {
+    console.log(fs.existsSync(torrents_downloading_path))
+    if (!fs.existsSync(torrents_downloading_path)) {
+      throw new Error(
+        "addMagnet Error: torrents_downloading_path does not exist"
+      );
+    }
+    if (!(await client.get(magnetURI))) {
+      client.add(magnetURI, { path: torrents_downloading_path });
+    } else {
+    }
+  } catch (err) {
+    console.error(err.message);
   }
 };
 
-const remMagnet = (magnetURI) => new Promise(async (res, rej) => {
-  try {
-    await new Promise((res, rej) => client.remove(magnetURI, (err) => err ? rej(err) : res()));
-    await remTorrent(magnetURI);
-    res();
-  } catch(err) {
-    rej(err);
-  }
-});
+const remMagnet = (magnetURI) =>
+  new Promise(async (res, rej) => {
+    try {
+      const torrent = await client.get(magnetURI);
+      await new Promise((res, rej) => torrent.destroy(res));
+      await remTorrent(magnetURI);
+      res();
+    } catch (err) {
+      rej(err);
+    }
+  });
 
 const activeTorrents = () => {
   const data = [];

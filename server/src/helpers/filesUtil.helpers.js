@@ -7,13 +7,35 @@ import { db } from "../helpers/database.helpers.js";
 import { haveMedia, haveEpisode } from "./queries.helpers.js";
 import { getVideoDurationInSeconds } from "get-video-duration";
 
-const parseString = (string) => {
-  const split = string.split("/");
-  const match = split[split.length - 1].match(/(.*)\W((19|20)\d{2})/i);
-  return {
-    year: parseInt(match[2]),
-    title: match[1].replaceAll(/[^A-Za-z0-9\'\s]/g, " ").trim(),
-  };
+const parseString = (string, folder) => {
+  try {
+    const split = string.split("/");
+    const fileName = split[split.length - 1];
+    let titleRaw;
+    if (folder) {
+      titleRaw = fileName.match(/(^.+?)(?=(19|20)\d{2}[^p]|\d{3,4}p|$)/g)[0];
+    } else {
+      titleRaw = fileName.match(
+        /(^.+?)(?=(19|20)\d{2}[^p]|\d{3,4}p|\.[^.]*$)/g
+      )[0];
+    }
+    if (!titleRaw) {
+      return -1;
+    }
+
+    const title = titleRaw
+      .replaceAll(/[^A-Z0-9]/gi, " ")
+      .trim()
+      .replaceAll(/\s{2,}/g, " ");
+    const year = fileName.replace(titleRaw, "").match(/(?:19|20)\d{2}/g);
+
+    return {
+      title,
+      year: year ? parseInt(year[0]) : -1,
+    };
+  } catch (err) {
+    return -1;
+  }
 };
 
 const validExt = (filename) =>
@@ -68,20 +90,39 @@ const moviesInDirectory = (path) =>
   });
 
 const scanMovies = () =>
-  new Promise(async (res) => {
-    const filePaths = await moviesInDirectory(env.moviesPath);
-    const fileObjects = [];
-    for (const filePath of filePaths) {
-      const { title, year } = parseString(filePath);
-      const duration = await getVideoDurationInSeconds(filePath);
-      fileObjects.push({
-        path: filePath,
-        title,
-        year,
-        duration,
-      });
+  new Promise(async (res, rej) => {
+    try {
+      const moviesExist = fs.existsSync(env.moviesPath);
+      if (!moviesExist) {
+        throw new Error("scanMovies Error: moviesPath doesn't exist");
+      }
+
+      publicManager.status.setAction("Scanning Movies");
+      const filePaths = await moviesInDirectory(env.moviesPath);
+      const fileObjects = [];
+      let i = 0;
+      for (const filePath of filePaths) {
+        i++;
+        publicManager.status.PROGRESS = (100 / filePaths.length) * i;
+
+        const parse = parseString(filePath, false);
+        if (parse === -1) {
+          console.error("FILENAME PARSE FAIL", filePath);
+          continue;
+        }
+        const { title, year } = parse;
+        const duration = await getVideoDurationInSeconds(filePath);
+        fileObjects.push({
+          path: filePath,
+          title,
+          year,
+          duration,
+        });
+      }
+      res(fileObjects);
+    } catch (err) {
+      rej(err);
     }
-    res(fileObjects);
   });
 
 const scanEpisodes = (folderPath) =>
@@ -116,10 +157,14 @@ const scanShow = (folderPath) =>
       }
       const pathSplit = folderPath.split("/");
       const folderName = pathSplit[pathSplit.length - 1];
-      const folderInfo = parseString(folderName);
+      const folderInfo = parseString(folderName, true);
+      if (folderInfo === -1) {
+        throw new Error("parseString Error: Can't parse folder name");
+      }
+
       const episodesPaths = await scanEpisodes(folderPath);
-      if (episodesPaths.length == 0) {
-        throw new Error("No new episodes");
+      if (episodesPaths.length === 0) {
+        return res(-1);
       }
       const episodesData = [];
       for (const episodePath of episodesPaths) {
@@ -148,6 +193,10 @@ const scanShow = (folderPath) =>
 const getShowFolders = () =>
   new Promise(async (res, rej) => {
     try {
+      const showsExists = fs.existsSync(env.showsPath);
+      if (!showsExists) {
+        throw new Error("getShowFolders Error: showsPath doesn't exist");
+      }
       const showFolders = fs
         .readdirSync(env.showsPath)
         .filter((folderName) =>

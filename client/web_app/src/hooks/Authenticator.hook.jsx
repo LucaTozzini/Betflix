@@ -12,7 +12,7 @@ const Authenticator = () => {
 
     const authenticateUser = async () => {
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({userId, userPin})}
-        const response = await fetch(`${serverAddress}/users/data`, options);
+        const response = await fetch(`${serverAddress}/user/data`, options);
         const auth = response.status == 200;
         console.log('auth:', auth);
         if(auth) {

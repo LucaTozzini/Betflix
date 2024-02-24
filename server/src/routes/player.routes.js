@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import env from "../../env.js";
 import send from "send";
 import express from "express";
@@ -19,11 +20,12 @@ const router = express.Router();
 
 router.get("/stream", async (req, res) => {
   try {
+    console.log(req.headers)
     if (!req.headers.range) {
       req.headers.range = "bytes=0-";
     }
 
-    const { type, mediaId, episodeId } = req.query;
+    const { type, mediaId, episodeId, cast } = req.query;
     if (type != 1 && type != 2) {
       return res.status(400).send("Invalid type");
     }
@@ -48,12 +50,17 @@ router.get("/stream", async (req, res) => {
 
     const contentLength = end - start + 1;
 
+    const extension = path.extname(filePath);
+    console.log(extension, cast);
     const headers = {
       "Content-Length": contentLength,
       "Accept-Ranges": "bytes",
       "Content-Range": `bytes ${start}-${end}/${size}`,
-      "Content-Type": "video/mp4",
+      "Content-Type": cast && extension === ".mkv" ? "video/x-matroska" : "video/mp4",
+      "Content-Language": "en-US"
     };
+
+    console.log(headers);
 
     res.writeHead(206, headers);
     const stream = fs.createReadStream(filePath, { start, end });
@@ -99,12 +106,9 @@ router.post("/current-episode", async (req, res) => {
   }
 });
 
-router.post("/resume", async (req, res) => {
+router.get("/resume", async (req, res) => {
   try {
-    const { userId, userPin, mediaId, episodeId } = req.body;
-
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) return res.sendStatus(401);
+    const { userId, mediaId, episodeId } = req.query;
 
     const data = episodeId
       ? await episodeResumeTime(userId, episodeId)

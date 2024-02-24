@@ -8,11 +8,12 @@ import styles from '../styles/SelectUser.screen.module.css';
 // Contexts
 import serverContext from "../contexts/server.context";
 import currentUserContext from "../contexts/currentUser.context";
+import { globalContext } from "../App";
 
 const SelectUser = () => {
+    const {useUser} = useContext(globalContext);
+    
     const { serverAddress } = useContext(serverContext);
-    const { setUserId, setUserPin } = useContext(currentUserContext);
-
     const [ userList, setUserList ] = useState([]);
 
     const [ showModal, setShowModal ] = useState(false);
@@ -27,7 +28,7 @@ const SelectUser = () => {
 
     const FetchUserList = async () => {
         try{
-            const response = await fetch(`${serverAddress}/users/list`);
+            const response = await fetch(`${serverAddress}/user/list`);
             const json = await response.json();
             setUserList(json);
         }
@@ -35,31 +36,10 @@ const SelectUser = () => {
         }
     };
 
-    const FetchAuth = (userId, userPin) => new Promise( async (res, rej) => {
-        try {
-            const options = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({userId, userPin})
-            }
-            const response = await fetch(`${serverAddress}/users/data`, options);
-            console.log(response.status)
-            res(response.status == 200);
-        }
-        catch(err) {
-            rej(err);
-        }
-    });
-
     const handleSelect = async (data, pin) => {
-        const auth = await FetchAuth(data.USER_ID, pin);
-        if(auth) {
-            setUserId(data.USER_ID);
-            setUserPin(pin || null);
-            window.location.href = '/';
-        }
-        else {
-
+        const auth = await useUser.login({id: data.USER_ID, pin});
+        if(!auth) {
+            
         }
     };
 

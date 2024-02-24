@@ -164,7 +164,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.main.run(main_data, (err) => {
           if (err) {
-            console.error("Main Insert", err.message);
+            // console.error("Main Insert", err.message);
           }
           res();
         })
@@ -172,7 +172,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.images.run(images_data, (err) => {
           if (err) {
-            console.error("Images Insert", err.message);
+            // console.error("Images Insert", err.message);
           }
           res();
         })
@@ -180,7 +180,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.dates.run(dates_data, (err) => {
           if (err) {
-            console.error("Dates Insert", err.message);
+            // console.error("Dates Insert", err.message);
           }
           res();
         })
@@ -188,7 +188,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.finances.run(finances_data, (err) => {
           if (err) {
-            console.error("Finances Insert", err.message);
+            // console.error("Finances Insert", err.message);
           }
           res();
         })
@@ -196,7 +196,7 @@ const insertMedia = (mediaData) =>
       await new Promise((res) =>
         mediaPrep.info.run(info_data, (err) => {
           if (err) {
-            console.error("Info Insert", err.message);
+            // console.error("Info Insert", err.message);
           }
           res();
         })
@@ -206,7 +206,7 @@ const insertMedia = (mediaData) =>
         await new Promise((res) =>
           mediaPrep.genres.run([media_id, genre], (err) => {
             if (err) {
-              console.error("Genre Insert", err.message);
+              // console.error("Genre Insert", err.message);
             }
             res();
           })
@@ -217,7 +217,7 @@ const insertMedia = (mediaData) =>
         await new Promise((res) =>
           mediaPrep.companies.run([media_id, company], (err) => {
             if (err) {
-              console.error("Company Insert", err.message);
+              // console.error("Company Insert", err.message);
             }
             res();
           })
@@ -230,7 +230,7 @@ const insertMedia = (mediaData) =>
             [media_id, person.id, person.character, person.order],
             (err) => {
               if (err) {
-                console.error("Credit Insert", err.message);
+                // console.error("Credit Insert", err.message);
               }
               res();
             }
@@ -242,7 +242,7 @@ const insertMedia = (mediaData) =>
         await new Promise((res) =>
           mediaPrep.directors.run([media_id, id], (err) => {
             if (err) {
-              console.error("Director Insert", err.message);
+              // console.error("Director Insert", err.message);
             }
             res();
           })
@@ -296,7 +296,7 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
     await new Promise((res) =>
       episodePrep.main.run(main_data, (err) => {
         if (err) {
-          console.error("episode main", err.message);
+          // console.error("episode main", err.message);
         }
         res();
       })
@@ -306,7 +306,7 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
     await new Promise((res) =>
       episodePrep.images.run(images_data, (err) => {
         if (err) {
-          console.error("episode images", err.message);
+          // console.error("episode images", err.message);
         }
         res();
       })
@@ -316,7 +316,7 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
     await new Promise((res) =>
       episodePrep.dates.run(dates_data, (err) => {
         if (err) {
-          console.error("episode dates", err.message);
+          // console.error("episode dates", err.message);
         }
         res();
       })
@@ -326,7 +326,7 @@ const insertEpisode = (media_id, episodeData, episodePrep) =>
     await new Promise((res) =>
       episodePrep.info.run(info_data, (err) => {
         if (err) {
-          console.error("episode info", err.message);
+          // console.error("episode info", err.message);
         }
         res();
       })
@@ -401,7 +401,7 @@ const insertPerson = (personData) =>
         [person_id, name, birth_date, death_date, biography, profile_image],
         (err) => {
           if (err) {
-            console.error("Person Insert", err.message);
+            // console.error("Person Insert", err.message);
           }
           res();
         }

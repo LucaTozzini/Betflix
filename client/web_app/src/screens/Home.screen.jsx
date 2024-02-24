@@ -17,9 +17,6 @@ import serverContext from "../contexts/server.context";
 import Hero from "../components/Hero.component";
 import MediaSection from "../components/MediaSection.component";
 
-// Hooks
-import WatchlistHook from "../hooks/Watchlist.hook";
-
 // CSS
 import styles from "../styles/Browse.screen.module.css";
 
@@ -76,12 +73,7 @@ const Home = () => {
 
   const fetchContinue = async () => {
     try {
-      const options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, userPin, limit: 30 }),
-      };
-      const response = await fetch(`${serverAddress}/users/continue`, options);
+      const response = await fetch(`${serverAddress}/user/continue?userId=${userId}&limit=50`);
       const json = await response.json();
       setContinueMedia(json);
     } catch (err) {}
@@ -89,12 +81,7 @@ const Home = () => {
 
   const fetchWatchlist = async () => {
     try {
-      const options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, userPin }),
-      };
-      const response = await fetch(`${serverAddress}/watchlist/`, options);
+      const response = await fetch(`${serverAddress}/user/watchlist?userId=${userId}`);
       const json = await response.json();
       setWatchlistMedia(json);
     } catch (err) {}
@@ -168,7 +155,6 @@ const Home = () => {
 
   return (
     <div className={styles.container}>
-      <WatchlistHook />
       <Hero
         key={"hr"}
         items={continueMedia}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   Text,
   View,
@@ -9,15 +9,21 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // Icons
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
+// Contexts
+import { globalContext } from '../App';
+
 export default ({route}) => {
-  const {userName, userImage, admin, logout, deleteUser} = route.params;
+  const {userName, userImage, admin, logout, deleteUser} = useContext(globalContext);
   const [deleteModal, setDeleteModal] = useState(false);
   const [nameModal, setNameModal] = useState(false);
   const [imageModal, setImageModal] = useState(false);
+
+  const navigation = useNavigation();
 
   const styles = StyleSheet.create({
     container: {
@@ -73,14 +79,14 @@ export default ({route}) => {
       <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit>
         {userName}
       </Text>
-      <Option text="Change Image" handlePress={() => setImageModal(true)}/>
-      <Option text="Edit Name" handlePress={() => setNameModal(true)}/>
+      {/* <Option text="Change Image" handlePress={() => setImageModal(true)}/>
+      <Option text="Edit Name" handlePress={() => setNameModal(true)}/> */}
       <Option text="Delete User" handlePress={() => setDeleteModal(true)}/>
       <Option text="Log Out" handlePress={logout}/>
 
 
       {/* Modals */}
-      <Modal visible={nameModal} onRequestClose={() => setImageModal(false)}>
+      <Modal visible={nameModal} onRequestClose={() => setNameModal(false)}>
 
       </Modal>
       <Modal visible={imageModal} onRequestClose={() => setImageModal(false)}>

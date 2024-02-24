@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
         error: "Subtitles path not found, make sure needed drive is mounted",
       });
     }
-    const { imdbId, language, extension } = req.query;
+    const { imdbId, parentImdbId, language, extension } = req.query;
     if (!imdbId) {
       return res.sendStatus(400);
     }
@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
     );
 
     if (!path) {
-      const files = await quickDowload(imdbId, language || "en");
+      const files = await quickDowload({imdbId, parentImdbId, language});
       path = extension == "vtt" ? files.vtt : files.srt;
     }
     if (!path) {
@@ -70,12 +70,12 @@ router.get("/available", async (req, res) => {
 
 router.get("/search", async (req, res) => {
   try {
-    const { imdbId, language } = req.query;
+    const { imdbId, parentImdbId, language } = req.query;
 
     if (!language || !imdbId) {
       return res.sendStatus(400);
     }
-    const data = await searchSubtitles(imdbId, language);
+    const data = await searchSubtitles({imdbId, parentImdbId, language});
     res.json(data);
   } catch (err) {
     if (err.cause == "no results") {

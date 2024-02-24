@@ -8,53 +8,70 @@ import {
   View,
 } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
-
+import {useNavigation} from '@react-navigation/native';
 
 export default ({items, header, width, gap, margin}) => {
   const navigation = useNavigation();
   const Item = ({title, image, mediaId}) => (
-    <TouchableOpacity style={styles.item} activeOpacity={0.9} onPress={() => navigation.navigate("media", {mediaId})}>
-      <Image source={{uri: image}} style={[styles.image, {width, height: width * 1.6, borderRadius: width * 0.05}]} />
-      <Text numberOfLines={1} style={[styles.title, {maxWidth: width * 0.9}]}>{title}</Text>
+    <TouchableOpacity
+      style={styles.item}
+      activeOpacity={0.9}
+      onPress={() => navigation.push('media', {mediaId})}>
+      <Image
+        source={{uri: image}}
+        style={[
+          styles.image,
+          {width, height: width * 1.6, borderRadius: width * 0.05},
+        ]}
+      />
+      {/* <Text numberOfLines={1} style={[styles.title, {maxWidth: width * 0.92}]}>{title}</Text> */}
     </TouchableOpacity>
   );
-  if(items.length === 0) {
+  if (items.length === 0) {
     return;
   }
 
   return (
-		<View style={styles.container}> 
-		<Text style={[styles.header, {paddingHorizontal: margin}]}>{header}</Text>
-    <FlatList
-      contentContainerStyle={{gap, paddingHorizontal: margin}}
-      data={items}
-      renderItem={({item}) => <Item key={item.MEDIA_ID} image={item.POSTER_S} title={item.TITLE} mediaId={item.MEDIA_ID}/>}
-      horizontal
-			showsHorizontalScrollIndicator={false}
-    />
-		</View>
+    <View style={styles.container}>
+      <Text style={[styles.header, {paddingHorizontal: margin}]}>{header}</Text>
+      <FlatList
+        contentContainerStyle={{gap, paddingHorizontal: margin}}
+        data={items}
+        renderItem={({item}) => (
+          <Item
+            key={item.MEDIA_ID}
+            image={item.POSTER_S}
+            title={item.TITLE}
+            mediaId={item.MEDIA_ID}
+          />
+        )}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-	container: {
-		gap: 5,
-	},
-	header: {
-		fontSize: 20,
-		fontWeight: "bold",
-		color: "white"
-	},
+  container: {
+    gap: 5,
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
   item: {
-		gap: 3,
-    alignItems: "center"
-	},
+    gap: 3,
+    alignItems: 'center',
+  },
   image: {
-    resizeMode: "cover"
+    resizeMode: 'cover',
+    borderWidth: .5,
+    borderColor: 'rgba(255,255,255, 0.1)',
   },
   title: {
-		color: "rgb(200, 200, 200)",
-		fontSize: 15,
-	},
+    color: 'rgb(200, 200, 200)',
+    fontSize: 13,
+  },
 });

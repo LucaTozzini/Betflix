@@ -103,7 +103,7 @@ const infoUser = () =>
     }
   });
 
-const searchSubtitles = (imdbId, language) =>
+const searchSubtitles = ({ imdbId, parentImdbId, language }) =>
   new Promise(async (res, rej) => {
     try {
       const options = {
@@ -112,12 +112,13 @@ const searchSubtitles = (imdbId, language) =>
           "User-Agent": user_agent,
         },
       };
-
       const response = await axios.get(
-        `${BASE}/subtitles?imdb_id=${imdbId}&languages=${language}&foreign_parts_only=exclude&trusted_sources=only`,
+        `${BASE}/subtitles?imdb_id=${imdbId}${
+          parentImdbId ? `&parent_imdb_id=${parentImdbId}` : ""
+        }&languages=${language}&foreign_parts_only=exclude&trusted_sources=only`,
         options
       );
-      if (!response.data.data || response.data.data.length == 0) {
+      if (response.data.data?.length === 0) {
         throw new Error("No Results", { cause: "no results" });
       }
       const results = response.data.data;
@@ -132,7 +133,7 @@ const searchSubtitles = (imdbId, language) =>
 const downloadSubtitle = (imdbId, language, fileId) =>
   new Promise(async (res, rej) => {
     try {
-      const {token} = await loginUser();
+      const { token } = await loginUser();
 
       const headers = {
         "Api-Key": api_key,
@@ -176,12 +177,16 @@ const downloadSubtitle = (imdbId, language, fileId) =>
     }
   });
 
-const quickDowload = (imdbId, language) =>
+const quickDowload = ({ imdbId, parentImdbId, language }) =>
   new Promise(async (res, rej) => {
     try {
-      const results = await searchSubtitles(imdbId, language);
+      console.log("Quick Download ==>", imdbId, parentImdbId, language);
+      const results = await searchSubtitles({ imdbId, parentImdbId, language });
+      console.log(results.length, "Hits");
       const { file_id } = results[0].attributes.files[0];
+      console.log("File Id ==>", file_id);
       const files = await downloadSubtitle(imdbId, language, file_id);
+      console.log("Download Finished");
       res(files);
     } catch (err) {
       rej(err);

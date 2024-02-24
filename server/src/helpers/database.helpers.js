@@ -466,22 +466,26 @@ const run = async (action) => {
 
     // Update Movies
     if (action == 1) {
-      publicManager.status.ACTION = "Updating Movies";
+      publicManager.status.setAction("Updating Movies");
       await updateMovies();
+      await updateCollections();
+      await updatePeople();
     }
     // Update Shows
     else if (action == 2) {
-      publicManager.status.ACTION = "Updating Shows";
+      publicManager.status.setAction("Updating Shows");
       await updateShows();
+      await updateCollections();
+      await updatePeople();
     }
     // Update People
     else if (action == 3) {
-      publicManager.status.ACTION = "Updating people";
+      publicManager.status.setAction("Updating people");
       await updatePeople();
     }
     // Clean Database
     else if (action == 4) {
-      publicManager.status.ACTION = "Cleaning";
+      publicManager.status.setAction("Cleaning");
       await cleanMedia();
     }
   } catch (err) {
@@ -510,14 +514,17 @@ const updateShows = () =>
         publicManager.status.PROGRESS = (i / showFolders.length) * 100;
         try {
           const showObj = await scanShow(env.showsPath + "/" + showFolder);
-          publicManager.status.ACTION = `Insert Show - ${showObj.title} [${showObj.year}]`;
+          if (showObj === -1) {
+            continue;
+          }
+          publicManager.status.setAction(`Insert Show - ${showObj.title} [${showObj.year}]`);
           const data = await fetchShow(showObj);
           await insertShow(data);
         } catch (err) {
           console.error(err.message);
         }
       }
-      publicManager.status.ACTION = "Finished Updating Shows";
+      publicManager.status.setAction("Finished Updating Shows");
       res();
     } catch (err) {
       rej(err);
@@ -537,7 +544,7 @@ const updateMovies = () =>
       for (const fileObject of movieFiles) {
         i++;
         publicManager.status.PROGRESS = (100 / movieFiles.length) * i;
-        publicManager.status.ACTION = `Insert Movies - ${fileObject.title} [${fileObject.year}]`;
+        publicManager.status.setAction(`Insert Movies - ${fileObject.title} [${fileObject.year}]`);
 
         try {
           const data = await fetchItem(1, fileObject);
@@ -546,8 +553,7 @@ const updateMovies = () =>
           console.error(err.message);
         }
       }
-      await updateCollections();
-      publicManager.status.ACTION = "Finished Updating Movies";
+      publicManager.status.setAction("Finished Updating Movies");
       res();
     } catch (err) {
       rej(err);
@@ -570,13 +576,13 @@ const updatePeople = () =>
 
         try {
           const data = await fetchPerson(personId);
-          publicManager.status.ACTION = `Updating people - ${data.name}`;
+          publicManager.status.setAction(`Updating people - ${data.name}`);
           await insertPerson(data);
         } catch (err) {
           console.error(err.message);
         }
       }
-      publicManager.status.ACTION = "Finished Updating People";
+      publicManager.status.setAction("Finished Updating People");
       res();
     } catch (err) {
       rej(err);
@@ -587,7 +593,7 @@ const updateCollections = () =>
   new Promise(async (res, rej) => {
     try {
       const missing = await missingCollections();
-      publicManager.status.ACTION = `Updating Collections`;
+      publicManager.status.setAction(`Updating Collections`);
       const prep = db.prepare(
         `INSERT INTO collections (
           COLLECTION_ID,
@@ -627,7 +633,7 @@ const updateCollections = () =>
           )
         );
       }
-      publicManager.status.ACTION = "Finished Updating Collections";
+      publicManager.status.setAction("Finished Updating Collections");
       res();
     } catch (err) {
       console.error("Whoops");
@@ -695,8 +701,11 @@ const setLogo = (mediaId, large, small) =>
 const cleanMedia = () =>
   new Promise(async (res, rej) => {
     try {
-      if (!(fs.existsSync(env.moviesPath) && fs.existsSync(env.showsPath))) {
-        rej("Missing Root Folder(s)");
+      const movieExist = fs.existsSync(env.moviesPath);
+      const showsExist = fs.existsSync(env.showsPath);
+
+      if (!movieExist || !showsExist) {
+        throw new Error("Missing Root Folder(s)");
       }
 
       let prep = db.prepare("DELETE FROM media_main WHERE PATH = ?");
@@ -716,7 +725,7 @@ const cleanMedia = () =>
           prep.run([path], (err) => (err ? rej(err) : res()))
         );
       }
-      publicManager.status.ACTION = "Finished Clean";
+      publicManager.status.setAction("Finished Clean");
       res();
     } catch (err) {
       rej(err);
@@ -784,6 +793,15 @@ const publicManager = {
     ACTIVE: false,
     ACTION: null,
     PROGRESS: null,
+    LOGS: [],
+    setAction: (action) => {
+      const logs = publicManager.status.LOGS;
+      if(logs.length == 100) {
+        logs.shift();
+      }
+      logs.push(action);
+      publicManager.status.ACTION = action;
+    },
   },
   images: {
     setPoster,

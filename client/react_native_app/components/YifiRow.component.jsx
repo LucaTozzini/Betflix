@@ -10,18 +10,27 @@ import {
   ScrollView,
 } from 'react-native';
 
+
+// Hooks
 import {useNavigation} from '@react-navigation/native';
+import useTorrents from '../hooks/useTorrents.hook';
 
 export default ({items, header, width, gap, margin}) => {
   const navigation = useNavigation();
+  const {addTorrent} = useTorrents();
   const [modal, setModal] = useState(false);
   const [title, setTitle] = useState(null);
   const [year, setYear] = useState(null);
   const [torrents, setTorrents] = useState([]);
 
-  const Torrent = ({peers, seeds, quality, size}) => {
+  
+
+  const Torrent = ({peers, seeds, quality, size, hash}) => {
+    const magnetURI = `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(
+      title,
+    )}&tr=http://track.one:1234/announce&tr=udp://track.two:80`;
     return (
-      <TouchableOpacity style={styles.torrent}>
+      <TouchableOpacity style={styles.torrent} onPress={() => addTorrent(magnetURI)}>
         <Text style={styles.torrentText}>{seeds} seeds</Text>
         <Text style={styles.torrentText}>{peers} peers</Text>
         <Text style={styles.torrentText}>{quality}</Text>
@@ -58,7 +67,7 @@ export default ({items, header, width, gap, margin}) => {
   if (items.length === 0) {
     return;
   }
-  
+
   return (
     <>
       <View style={styles.container}>
@@ -88,7 +97,10 @@ export default ({items, header, width, gap, margin}) => {
         <ScrollView style={styles.modal} stickyHeaderIndices={[1]}>
           <View style={{height: 100}} />
           <View>
-            <Text style={styles.modalHeader} adjustsFontSizeToFit={true} numberOfLines={2}>
+            <Text
+              style={styles.modalHeader}
+              adjustsFontSizeToFit={true}
+              numberOfLines={2}>
               {title} ({year})
             </Text>
           </View>
@@ -99,6 +111,8 @@ export default ({items, header, width, gap, margin}) => {
                 seeds={item.seeds}
                 quality={item.quality}
                 size={item.size}
+                hash={item.hash}
+                title={title}
               />
             ))}
           </View>
@@ -135,8 +149,8 @@ const styles = StyleSheet.create({
   modalHeader: {
     color: 'white',
     fontSize: 30,
-		backgroundColor: "black",
-		paddingVertical: 20,
+    backgroundColor: 'black',
+    paddingVertical: 20,
   },
   torrents: {
     gap: 10,
@@ -147,11 +161,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(30, 30, 30)',
     borderWidth: 1,
     borderColor: 'rgb(50, 50, 50)',
-		padding: 15,
-		flexWrap: "wrap",
+    padding: 15,
+    flexWrap: 'wrap',
   },
   torrentText: {
     color: 'white',
-		fontSize: 20,
+    fontSize: 20,
   },
 });

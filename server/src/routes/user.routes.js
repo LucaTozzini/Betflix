@@ -89,12 +89,8 @@ router.post("/data", async (req, res) => {
 
 router.post("/update-continue", async (req, res) => {
   try {
-    const { userId, userPin, mediaId, episodeId, progressTime, endTime } =
+    const { userId, mediaId, episodeId, progressTime, endTime } =
       req.body;
-
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) return res.sendStatus(401);
-
     await updateContinue(userId, mediaId, episodeId, progressTime, endTime);
     res.sendStatus(200);
   } catch (err) {
@@ -103,12 +99,9 @@ router.post("/update-continue", async (req, res) => {
   }
 });
 
-router.post("/continue", async (req, res) => {
+router.get("/continue", async (req, res) => {
   try {
-    const { userId, userPin, limit } = req.body;
-
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) return res.sendStatus(401);
+    const { userId, limit } = req.query;
 
     const data = await continueList(userId, limit || 30);
     res.json(data);

@@ -22,18 +22,12 @@ import {
 const router = express.Router();
 
 // Global Media
-router.post("/item", async (req, res) => {
+router.get("/item", async (req, res) => {
   try {
-    const { mediaId, userId, userPin } = req.body;
-
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
-    }
+    const { mediaId, userId } = req.query;
 
     const data = await queryMedia(mediaId, userId);
     data["IN_WATCHLIST"] = await inWatchlist(userId, mediaId);
-    console.log(data["IN_WATCHLIST"]);
 
     res.json(data);
   } catch (err) {
@@ -70,7 +64,7 @@ router.get("/range/date", async (req, res) => {
     const data = await queryDateRange(startDate, endDate, orderBy, limit || 30);
     res.json(data);
   } catch (err) {
-    console.log(err.message);
+    console.error(err.message);
     res.sendStatus(500);
   }
 });
@@ -111,16 +105,12 @@ router.get("/latest/releases", async (req, res) => {
 });
 
 // Shows
-router.post("/season", async (req, res) => {
+router.get("/season", async (req, res) => {
   try {
-    const { userId, userPin, mediaId, seasonNum } = req.body;
+    const { userId, mediaId, seasonNum } = req.query;
 
     if (isNaN(seasonNum) || !mediaId) {
       return res.sendStatus(400);
-    }
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
     }
 
     const EPISODES = await querySeason(mediaId, seasonNum, userId);
@@ -132,17 +122,11 @@ router.post("/season", async (req, res) => {
   }
 });
 
-router.post("/episode", async (req, res) => {
+router.get("/episode", async (req, res) => {
   try {
-    const { episodeId, userId, userPin } = req.body;
-    if (isNaN(episodeId)) {
-      return res.sendStatus(400);
-    }
-    const auth = await authenticateUser(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
-    }
+    const { episodeId, userId } = req.query;
     const data = await queryEpisode(episodeId, userId);
+    console.log(episodeId, userId,data);
     res.json(data);
   } catch (err) {
     console.error(err.message);

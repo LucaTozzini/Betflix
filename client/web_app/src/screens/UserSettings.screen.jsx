@@ -10,7 +10,7 @@ const UserSettings = () => {
 
     const handleDelete = async () => {
         const options = { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId, userPin}) }
-        const response = await fetch(`${serverAddress}/users/delete`, options);
+        const response = await fetch(`${serverAddress}/user/delete`, options);
         if(response.status == 200) window.location.href = '/users';
     };
 

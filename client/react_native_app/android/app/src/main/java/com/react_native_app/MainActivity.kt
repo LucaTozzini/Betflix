@@ -5,7 +5,15 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
+import com.google.android.gms.cast.framework.CastContext
+import android.os.Bundle
+
 class MainActivity : ReactActivity() {
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    CastContext.getSharedInstance(this)
+  }
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule

@@ -21,12 +21,18 @@ const fetchItem = (type, item) =>
               `${BASE}/search/tv?first_air_date_year=${item.year}&query=${item.title}&api_key=${TMDb_Key}`
             );
       const results = search_response.data.results;
-      const filtered = results.filter(
-        (curr) =>
-          item.title == curr.title &&
-          item.year == parseInt(curr.release_date.split("-")[0])
-      );
-      const match = filtered[0] || results[0];
+      let filtered;
+      let match;
+      if(item.year !== -1) {
+        filtered = results.filter(
+          (curr) =>
+            item.title == curr.title &&
+            item.year == parseInt(curr.release_date.split("-")[0])
+        );
+        match = filtered[0] || results[0];
+      } else {
+        match = results[0];
+      }
 
       if (match == undefined) {
         throw new Error(`No match for ${item.title}`);
@@ -211,6 +217,7 @@ const fetchShow = (show) =>
       showData["episodes"] = episodeArray;
       res(showData);
     } catch (err) {
+      console.error("fetchShow Error -", show.title, show.year);
       rej(err);
     }
   });
@@ -310,9 +317,6 @@ const fetchPerson = (id) =>
 const fetchCollection = (id) =>
   new Promise(async (res, rej) => {
     try {
-      console.log(
-        `${BASE}/collection/${id}?api_key=${TMDb_Key}&language=en&append_to_response=images`
-      );
       const { data } = await axios.get(
         `${BASE}/collection/${id}?api_key=${TMDb_Key}&language=en&append_to_response=images`
       );

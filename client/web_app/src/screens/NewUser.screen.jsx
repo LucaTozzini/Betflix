@@ -25,7 +25,7 @@ const NewUser = () => {
     const [ pin4, setPin4 ] = useState(false);
 
     const FetchUserImages = async () => {
-        const response = await fetch(`${serverAddress}/users/images`);
+        const response = await fetch(`${serverAddress}/user/images`);
         const json = await response.json();
         setUserImages(json);
     };
@@ -73,7 +73,7 @@ const NewUser = () => {
         });
         
         const options = { method: "POST", headers: { "Content-Type": "application/json" }, body: data }
-        const response = await fetch(`${serverAddress}/users/add`, options);
+        const response = await fetch(`${serverAddress}/user/add`, options);
         if(response.status == 201) setConfirm(true);
     };
 
@@ -91,7 +91,7 @@ const NewUser = () => {
 
     const Imgs = () => userImages.map(i => <img key={i} className={styles.selectImage} src={`${serverAddress}/${i}`} onClick={() => {setSelectedImage(i); setShowImgs(false)}}/> );
 
-    if(confirm) return <Navigate to="/users"/>;
+    if(confirm) return <Navigate to="/"/>;
 
     return (
         <div className={styles.container}>

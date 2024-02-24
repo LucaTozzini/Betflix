@@ -14,24 +14,33 @@ import {
 } from "react-icons/fa6";
 import { useContext, useEffect } from "react";
 import { RiFullscreenLine } from "react-icons/ri";
-import { MdPlayArrow, MdPause  } from "react-icons/md";
+import { MdPlayArrow, MdPause } from "react-icons/md";
 
 // Contexts
-import currentUserContext from "../contexts/currentUser.context";
+import {globalContext} from "../App.js";
 import serverContext from "../contexts/server.context";
+
+// Hooks
+import useSubtitlesHook from "../hooks/useSubtitles.hook";
 
 const Player = () => {
   //
   const { serverAddress } = useContext(serverContext);
 
   // data
-  const { userId, userPin } = useContext(currentUserContext);
+  const { useUser } = useContext(globalContext);
+  const {userId, userPin} = useUser;
+  
   const { mediaId, episodeId } = useParams();
   const [episodeData, setEpisodeData] = useState(null);
   const [mediaData, setMediaData] = useState(null);
   const mediaRef = useRef(null);
   const episodeRef = useRef(null);
   const [nextEpisode, setNextEpisode] = useState(null);
+
+  const [imdbId, setImdbId] = useState(null);
+  const [pImdbId, setPImdbId] = useState(null);
+  const useSubtitles = useSubtitlesHook({imdbId, pImdbId});
 
   // video
   const [paused, setPaused] = useState(true);
@@ -573,68 +582,6 @@ const Player = () => {
     }, 3000);
   };
 
-  // Subtitles
-  const fetchSubtitles = async () => {
-    setLoadingSubtitles(true);
-    try {
-      console.log(mediaData);
-      const response = await fetch(
-        `${serverAddress}/subtitles/available?imdbId=${mediaData.IMDB_ID}&extension=vtt`
-      );
-      const json = await response.json();
-      console.log(json);
-      setAvailableSubtitles(json);
-    } catch (err) {
-      console.error(err.message);
-    }
-    setLoadingSubtitles(false);
-  };
-
-  const quickDownloadSubtitle = async (language) => {
-    setLoadingSubtitles(true);
-    try {
-      const response = await fetch(
-        `${serverAddress}/subtitles?imdbId=${mediaData.IMDB_ID}&language=${language}`
-      );
-      if (response.status == 200) {
-        setSubtitlesLanguage(language);
-        fetchSubtitles();
-      }
-    } catch (err) {
-      console.error(err.message);
-    }
-    setLoadingSubtitles(false);
-  };
-
-  const searchSubtitles = async (language) => {
-    setLoadingSubtitles(true);
-    try {
-      setSubtitlesResults(null);
-      const response = await fetch(
-        `${serverAddress}/subtitles/search?imdbId=${mediaData.IMDB_ID}&language=${language}`
-      );
-      const json = await response.json();
-      setSubtitlesResults(json);
-    } catch (err) {}
-    setLoadingSubtitles(false);
-  };
-
-  const downloadSubtitles = async (fileId, language) => {
-    setLoadingSubtitles(true);
-    try {
-      const response = await fetch(
-        `${serverAddress}/subtitles/download?imdbId=${mediaData.IMDB_ID}&language=${language}&fileId=${fileId}&extension=vtt`
-      );
-      if (response.status == 200) {
-        setSubtitlesLanguage(language);
-        setSubtitlesResults(null);
-        fetchSubtitles();
-        setArbNumber(arbNumber + 1);
-      }
-    } catch (err) {}
-    setLoadingSubtitles(false);
-  };
-
   useEffect(() => {
     FetchMedia();
     const mouseUp = () => {
@@ -659,7 +606,6 @@ const Player = () => {
       FetchSource();
       if (mediaData.TYPE == 1) {
         FetchResume();
-        fetchSubtitles();
       }
     }
   }, [mediaData, videoRef]);
@@ -669,7 +615,6 @@ const Player = () => {
       episodeRef.current = episodeData;
       FetchResume();
       FetchNext();
-      fetchSubtitles();
     }
   }, [episodeData]);
 
@@ -719,6 +664,8 @@ const Player = () => {
   useEffect(() => {
     window.localStorage.setItem("showSubtitles", showSubtitles);
   }, [showSubtitles]);
+
+
 
   if (mediaData)
     return (
@@ -953,28 +900,28 @@ const Player = () => {
                     {availableSubtitles.find((i) => i.LANG == "en") ? (
                       <></>
                     ) : (
-                      <button onClick={() => quickDownloadSubtitle("en")}>
+                      <button onClick={() => useSubtitles.quickFetch("en")}>
                         English
                       </button>
                     )}
                     {availableSubtitles.find((i) => i.LANG == "it") ? (
                       <></>
                     ) : (
-                      <button onClick={() => quickDownloadSubtitle("it")}>
+                      <button onClick={() => useSubtitles.quickFetch("it")}>
                         Italian
                       </button>
                     )}
                     {availableSubtitles.find((i) => i.LANG == "es") ? (
                       <></>
                     ) : (
-                      <button onClick={() => quickDownloadSubtitle("es")}>
+                      <button onClick={() => useSubtitles.quickFetch("es")}>
                         Spanish
                       </button>
                     )}
                     {availableSubtitles.find((i) => i.LANG == "fr") ? (
                       <></>
                     ) : (
-                      <button onClick={() => quickDownloadSubtitle("fr")}>
+                      <button onClick={() => useSubtitles.quickFetch("fr")}>
                         French
                       </button>
                     )}
@@ -1004,7 +951,7 @@ const Player = () => {
                     .map((i) => (
                       <button
                         key={i.language_code}
-                        onClick={() => searchSubtitles(i.language_code)}
+                        onClick={() => useSubtitles.search(i.language_code)}
                       >
                         {i.language_name}
                       </button>
@@ -1029,9 +976,9 @@ const Player = () => {
                       <button
                         key={i.attributes.files[0].file_id}
                         onClick={() =>
-                          downloadSubtitles(
-                            i.attributes.files[0].file_id,
-                            i.attributes.language
+                          useSubtitles.download(
+                            i.attributes.language,
+                            i.attributes.files[0].file_id
                           )
                         }
                       >

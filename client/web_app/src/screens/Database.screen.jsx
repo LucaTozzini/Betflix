@@ -174,32 +174,9 @@ const Database = () => {
           </button>
         </div>
         <div className={styles.progressBar}>
-          <div style={{ width: progress || 0 }} />
+          <div style={{ width: progress ? progress + "%" : 0}} />
         </div>
         <div className={styles.console} ref={consoleRef}></div>
-      </div>
-
-      {/* Drives */}
-      <div className={styles.section}>
-        <h2>{"> Drives"}</h2>
-        <div className={styles.list}>
-          {drives.map((i) => (
-            <div>
-              <p>Movies</p>
-              <p>D:/</p>
-              <button>Remove</button>
-            </div>
-          ))}
-
-          <div>
-            <select>
-              <option value={1}>Movies</option>
-              <option value={2}>Shows</option>
-            </select>
-            <input type="text" placeholder="Location" />
-            <button>Add</button>
-          </div>
-        </div>
       </div>
 
       {/* Torrents */}

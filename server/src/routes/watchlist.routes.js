@@ -34,13 +34,9 @@ router.delete('/remove', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
     try{
-        const { userId, userPin } = req.body;
-    
-        const auth = await authenticateUser(userId, userPin);
-        if(!auth) return res.sendStatus(401);
-    
+        const { userId } = req.query;
         const data = await watchlist(userId);
         res.json(data);
     }

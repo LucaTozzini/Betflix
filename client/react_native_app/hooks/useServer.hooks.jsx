@@ -1,53 +1,57 @@
 import {useEffect, useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const ENDPOINT = 'ciao';
+const PORT = 2000;
 
 export default () => {
   const [address, setAddress] = useState(null);
-	const [port, setPort] = useState(2000);
+  
+  const search = async () => {
+    let kill = false;
+    for (let i = 0; i < 256; i++) {
+      if (kill) {
+        break;
+      }
+      for (let x = 0; x < 256; x++) {
+        if (kill) {
+          break;
+        }
+        const a = `http://192.168.${i}.${x}:${PORT}`;
+        fetch(`${a}/${ENDPOINT}`)
+          .then(async res => {
+            const text = await res.text();
+            if (text === 'yellow') {
+              setAddress(a);
+              AsyncStorage.setItem('address', a);
+              kill = true;
+            }
+          })
+          .catch(err => {});
+        await new Promise(res => setTimeout(res, 100));
+      }
+    }
+  };
 
   const init = async () => {
-    // const valid = await check(lastAddress)
-		// if(valid) {
-			// setAddress(lastAddress);
-		// } else {
-			// searchAddress();	
-		// }
-		searchAddress();
-  };
-
-  const check = address =>
-    new Promise(async (res) => {
-      try {
-        const response = await fetch(address + '/ciao');
-        if (response.status === 200) {
-          const text = await response.text();
-          if (text === 'yellow') {
-            setAddress(address);
-						return res(true);
-          }
-        }
-      } catch (err) {
-
-			}
-			res(false);
-    });
-
-  const searchAddress = async () => {
-		setAddress(null);
-		// const thisPort = port;
-    // for (let d = 0; d <= 255; d++) {
-    //   for (let i = 0; i <= 255; i++) {
-		// 		check(`http://192.168.${x}.${i}:${thisPort}`)
-    //     if (address || port !== thisPort) {
-    //       break;
-    //     }
-    //   }
-    // }
-    setAddress('http://192.168.1.89:2000');
-  };
+    const value = await AsyncStorage.getItem('address');
+    try {
+      const response = await fetch(value+"/"+ENDPOINT);
+      const text = await response.text();
+      if(text === "yellow") {
+        setAddress(value);
+        return;
+      }
+    } catch(err) {
+      console.log(err)
+    }
+    search();
+  }
 
   useEffect(() => {
     init();
-  }, [port]);
+  }, []);
 
-  return {address, port, searchAddress};
+  return {address};
 };

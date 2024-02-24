@@ -44,12 +44,9 @@ const Item = () => {
 
   const FetchMediaInfo = async () => {
     try {
-      const options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mediaId, userId, userPin }),
-      };
-      const response = await fetch(`${serverAddress}/browse/item`, options);
+      const response = await fetch(
+        `${serverAddress}/browse/item?mediaId=${mediaId}`
+      );
       const json = await response.json();
       setAdded(json.IN_WATCHLIST);
       setData(json);
@@ -61,12 +58,9 @@ const Item = () => {
 
   const FetchSeasonData = async (seasonNum) => {
     try {
-      const options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mediaId, userId, userPin, seasonNum }),
-      };
-      const response = await fetch(`${serverAddress}/browse/season`, options);
+      const response = await fetch(
+        `${serverAddress}/browse/season?mediaId=${mediaId}&seasonNum=${seasonNum}&userId=${userId}`
+      );
       const json = await response.json();
       setCurrentSeason(json.SEASON_NUM);
       setSeasonData(json.EPISODES);
@@ -167,7 +161,7 @@ const Item = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mediaId, userId, userPin }),
       };
-      const response = await fetch(`${serverAddress}/watchlist/add`, options);
+      const response = await fetch(`${serverAddress}/user/watchlist/add`, options);
       if (response.status == 201) {
         setAdded(true);
       }
@@ -184,7 +178,7 @@ const Item = () => {
         body: JSON.stringify({ mediaId, userId, userPin }),
       };
       const response = await fetch(
-        `${serverAddress}/watchlist/remove`,
+        `${serverAddress}/user/watchlist/remove`,
         options
       );
       if (response.status == 202) setAdded(false);

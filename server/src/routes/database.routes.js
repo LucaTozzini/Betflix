@@ -11,7 +11,8 @@ const router = express.Router();
 
 router.get("/status", (req, res) => {
   try {
-    res.json(publicManager.status);
+    const {ACTION, ACTIVE, LOGS, PROGRESS} = publicManager.status;
+    res.json({ACTION, ACTIVE, LOGS, PROGRESS});
   } catch (err) {
     console.error(err.message);
     res.sendStatus(500);
@@ -21,11 +22,7 @@ router.get("/status", (req, res) => {
 router.post("/update/:item", async (req, res) => {
   try {
     const { item } = req.params;
-    const { userId, userPin, mediaId, large, small } = req.body;
-    const auth = await authenticateAdmin(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
-    }
+    const { mediaId, large, small } = req.body;
 
     if (item == "poster") {
       await publicManager.images.setPoster(mediaId, large, small);
@@ -55,11 +52,6 @@ router.post("/update/:item", async (req, res) => {
 router.post("/maintenance/:action", async (req, res) => {
   try {
     const { action } = req.params;
-    const { userId, userPin } = req.body;
-    const auth = await authenticateAdmin(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
-    }
     if (action == "clean") {
       publicManager.run(4);
     }
@@ -83,7 +75,7 @@ router.get("/drives", async (req, res) => {
 router.post("/drives/:action", async (req, res) => {
   try {
     const { action } = req.params;
-    const { userId, userPin, path, type } = req.body;
+    const { path, type } = req.body;
     const auth = await authenticateAdmin(userId, userPin);
     if (!auth) {
       return res.sendStatus(401);

@@ -7,13 +7,14 @@ import { IoHomeSharp, IoHomeOutline, IoSearchSharp, IoSearchOutline, IoServerSha
 
 // Contexts
 import serverContext from '../contexts/server.context';
-import currentUserContext from '../contexts/currentUser.context';
+import { globalContext } from '../App';
 
 // CSS
 import styles from '../styles/Menu.component.module.css';
 
 const Menu = () => {
-    const { userName, userImage, isAdmin } = useContext(currentUserContext);
+    const {useUser} = useContext(globalContext);
+    const {userName, userImage, logout, admin} = useUser;
     const { serverAddress } = useContext(serverContext);
     const location = useLocation();
 
@@ -58,7 +59,7 @@ const Menu = () => {
                     { location.pathname == '/browse/search' || location.pathname == '/browse/search/' ? <IoSearchSharp/> : <IoSearchOutline/>}
                     <h3>Search</h3>
                 </Link>
-                { isAdmin ?
+                { admin ?
                 <Link className={styles.link} to="/database">
                     { location.pathname == '/database' || location.pathname == '/database/' ? <IoServerSharp/> : <IoServerOutline/>}
                     <h3>Server</h3>
@@ -75,8 +76,8 @@ const Menu = () => {
 
 
             { dropDown ? <div className={styles.dropDown}>
-                <Link to={'/users/settings'}>User Settings</Link>
-                <Link to={'/users'}>Change User</Link>
+                <Link to={'/user'}>User Settings</Link>
+                <button onClick={logout}>Logout</button>
             </div> : <></>}
 
         </nav>

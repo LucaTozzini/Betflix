@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -18,8 +18,11 @@ import MediaRowComponent from '../components/MediaRow.component';
 import CastRowComponent from '../components/CastRow.component';
 import YifiRowComponent from '../components/YifiRow.component';
 
-export default ({route}) => {
-  const {address} = route.params;
+// Contexts
+import { globalContext } from '../App';
+
+export default () => {
+  const {address} = useContext(globalContext);
   const [titles, setTitles] = useState([]);
   const [people, setPeople] = useState([]);
   const [yifi, setYifi] = useState([]);
@@ -54,7 +57,7 @@ export default ({route}) => {
   const fetchYifi = async query => {
     try {
       const response = await fetch(
-        `https://yts.mx/api/v2/list_movies.json?query_term=${query}&order_by=seeds`,
+        `https://yts.mx/api/v2/list_movies.json?query_term=${query}&sort_by=rating&order_by=desc`,
       );
       const json = await response.json();
       const movies = json.data.movies.map(
@@ -129,6 +132,7 @@ export default ({route}) => {
           width={itemWidth}
           gap={gap}
           margin={margin}
+          address={address}
         />
       </ScrollView>
     </>

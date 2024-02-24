@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {
   Text,
   ImageBackground,
@@ -11,7 +11,6 @@ import {
   StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {BlurView} from '@react-native-community/blur';
 import {useNavigation} from '@react-navigation/native';
 
 // Screens
@@ -24,28 +23,43 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import CastRowComponent from '../components/CastRow.component';
 import MediaRowComponent from '../components/MediaRow.component';
 import FooterComponent from '../components/Footer.component';
+import EpisodeRowComponent from '../components/EpisodeRow.component';
 
 // Hooks
 import useMediaRow from '../hooks/useMediaRow.hook';
+import useMedia from '../hooks/useMedia.hook';
+import {CastButton, useRemoteMediaClient} from 'react-native-google-cast';
+
+// Contexts
+import {globalContext} from '../App';
 
 const bkgrd = 'black';
 const mrgn = 10;
 
 export default ({route}) => {
-  const {userId, userPin, address, mediaId, setShowCast} = route.params;
+  const {address} = useContext(globalContext);
+  const client = useRemoteMediaClient();
+  const {mediaId} = route.params;
+  const {
+    item,
+    seasonNum,
+    season,
+    inWatchlist,
+    setSeasonNum,
+    addWatchlist,
+    remWatchlist,
+  } = useMedia({mediaId});
   const navigation = useNavigation();
-  const [media, setMedia] = useState(null);
   const [genre1, setGenre1] = useState(null);
   const [genre2, setGenre2] = useState(null);
-  const [inWatchlist, setInWatchlist] = useState(null);
+
+  // Season Selector
+  const [seasonModal, setSeasonModal] = useState(false);
 
   // Animation
-  const imgOpctAnim = useRef(new Animated.Value(1)).current;
-  const topBkgrdOpctAnim = useRef(new Animated.Value(0)).current;
   const titleOpctAnim = useRef(new Animated.Value(0)).current;
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  const clampY = Animated.diffClamp(scrollY, 0, 250);
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 180, 200],
     outputRange: [0, 0, 1],
@@ -57,45 +71,33 @@ export default ({route}) => {
 
   // Cast Row
   const castGap = 10;
-  const castNum = 2.5;
   const castRowHook = useMediaRow({
     gap: castGap,
-    numItems: castNum,
+    numItems: 2.5,
     margin: mrgn,
   });
 
   // Media Row
   const mediaGap = 10;
-  const mediaNum = 3;
   const mediaRowHook = useMediaRow({
     gap: mediaGap,
-    numItems: mediaNum,
+    numItems: 3,
     margin: mrgn,
   });
 
-  const fetchItem = async () => {
-    try {
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({userId, userPin, mediaId}),
-      };
-      const response = await fetch(`${address}/browse/item`, options);
-      const json = await response.json();
-      setMedia(json);
-      setInWatchlist(json.IN_WATCHLIST);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
+  // Episode Row
+  const episodeGap = 20;
+  const episodeRowHook = useMediaRow({
+    gap: episodeGap,
+    numItems: 1,
+    margin: mrgn,
+  });
 
   const fetchGenre = genre =>
     new Promise(async (res, rej) => {
       try {
         const response = await fetch(
-          `${address}/browse/genres?orderBy=random&genreName=${genre}&type=${media.TYPE}&limit=30`,
+          `${address}/browse/genres?orderBy=random&genreName=${genre}&type=${item.TYPE}&limit=30`,
         );
         const json = await response.json();
         res(json);
@@ -106,63 +108,46 @@ export default ({route}) => {
 
   const fetchSimilar = async () => {
     try {
-      if (media && media.GENRES.length !== 0) {
-        const genres = media.GENRES.map(i => i.GENRE_NAME);
+      if (item && item.GENRES.length !== 0) {
+        const genres = item.GENRES.map(i => i.GENRE_NAME);
         if (genres.length > 2) {
           const rand1 = Math.floor(Math.random() * genres.length);
           const genre1 = await fetchGenre(genres[rand1]);
-          setGenre1({genre_name: genres[rand1], items: genre1});
+          setGenre1({
+            genre_name: genres[rand1],
+            items: genre1.filter(i => i.MEDIA_ID !== mediaId),
+          });
           let rand2 = rand1;
           while (rand2 === rand1) {
             rand2 = Math.floor(Math.random() * genres.length);
           }
           const genre2 = await fetchGenre(genres[rand2]);
-          setGenre2({genre_name: genres[rand2], items: genre2});
+          setGenre2({
+            genre_name: genres[rand2],
+            items: genre2.filter(i => i.MEDIA_ID !== mediaId),
+          });
         } else if (genres.length === 2) {
           const genre1 = await fetchGenre(genres[0]);
           const genre2 = await fetchGenre(genres[1]);
-          setGenre1({genre_name: genres[0], items: genre1});
-          setGenre2({genre_name: genres[1], items: genre2});
+          setGenre1({
+            genre_name: genres[0],
+            items: genre1.filter(i => i.MEDIA_ID !== mediaId),
+          });
+          setGenre2({
+            genre_name: genres[1],
+            items: genre2.filter(i => i.MEDIA_ID !== mediaId),
+          });
         } else if (genres.length === 1) {
           const genre1 = await fetchGenre(genres[0]);
-          setGenre1({genre_name: genres[0], items: genre1});
+          setGenre1({
+            genre_name: genres[0],
+            items: genre1.filter(i => i.MEDIA_ID !== mediaId),
+          });
         }
       }
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
     }
-  };
-
-  const addWatchlist = async () => {
-    try {
-      const options = {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({userId, userPin, mediaId: media.MEDIA_ID}),
-      };
-      const response = await fetch(`${address}/watchlist/add`, options);
-      if (response.status === 201) {
-        setInWatchlist(true);
-      }
-    } catch (err) {}
-  };
-
-  const remWatchlist = async () => {
-    try {
-      const options = {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({userId, userPin, mediaId: media.MEDIA_ID}),
-      };
-      const response = await fetch(`${address}/watchlist/remove`, options);
-      if (response.status === 202) {
-        setInWatchlist(false);
-      }
-    } catch (err) {}
   };
 
   const secToString = seconds => {
@@ -188,23 +173,28 @@ export default ({route}) => {
     const y = e.nativeEvent.contentOffset.y;
 
     Animated.timing(titleOpctAnim, {
-      toValue: y > 350 ? 1 : 0,
+      toValue: y > 320 ? 1 : 0,
       duration: 100,
       useNativeDriver: false,
     }).start();
   };
 
-  const animatedEvent = Animated.event([
-    {nativeEvent: {contentOffset: {y: scrollY}}},
-  ]);
+  const animatedEvent = Animated.event(
+    [{nativeEvent: {contentOffset: {y: scrollY}}}],
+    {useNativeDriver: false},
+  );
 
   useEffect(() => {
-    fetchItem();
-  }, []);
+    if (item) {
+      fetchSimilar();
+    }
+  }, [item]);
 
   useEffect(() => {
-    fetchSimilar();
-  }, [media]);
+    if (client && item) {
+      client.loadMedia({mediaInfo: {contentUrl: item.POSTER_W_L}});
+    }
+  }, [client, item]);
 
   const styles = StyleSheet.create({
     container: {
@@ -352,9 +342,43 @@ export default ({route}) => {
       fontSize: 17,
       marginHorizontal: mrgn,
     },
+    seasonTouch: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      margin: mrgn,
+      padding: 10,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderWidth: 0.1,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
+    seasonText: {
+      color: 'white',
+      fontSize: 20,
+    },
+    seasonModal: {
+      backgroundColor: 'black',
+      flex: 1,
+    },
+
+    seasonModalScroll: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 200,
+      // backgroundColor: 'red',
+    },
+
+    seasonModalText: {
+      backgroundColor: 'black',
+      textAlign: 'center',
+      fontSize: 29,
+      color: 'white',
+      fontWeight: 'bold',
+      padding: 10,
+    },
   });
 
-  if (!media) {
+  if (!item) {
     return <LoadingScreen />;
   }
 
@@ -363,7 +387,7 @@ export default ({route}) => {
       <Animated.View style={styles.topBkgrd} />
       <View style={styles.topTitleContainer}>
         <Animated.Text style={styles.topTitleText} numberOfLines={1}>
-          {media.TITLE}
+          {item.TITLE}
         </Animated.Text>
       </View>
       <View style={styles.top}>
@@ -372,11 +396,7 @@ export default ({route}) => {
           onPress={() => navigation.goBack()}>
           <MaterialIcon name="arrow-back" color="white" size={25} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={() => setShowCast(true)}>
-          <MaterialIcon name="cast" color="white" size={25} />
-        </TouchableOpacity>
+        <CastButton style={styles.topButton} />
       </View>
 
       <ScrollView
@@ -388,7 +408,7 @@ export default ({route}) => {
         <Animated.View style={{opacity: posterOpacity}}>
           <ImageBackground
             style={styles.poster}
-            source={{uri: media.POSTER_NT_L}}
+            source={{uri: item.POSTER_NT_L ?? item.BACKDROP_S}}
           />
         </Animated.View>
 
@@ -399,21 +419,21 @@ export default ({route}) => {
 
         <View style={styles.main}>
           <View style={styles.info}>
-            <Text style={styles.infoText}>{media.YEAR}</Text>
+            <Text style={styles.infoText}>{item.YEAR}</Text>
             <View style={styles.infoBreak} />
-            <Text style={styles.infoText}>{secToString(media.DURATION)}</Text>
-            <View style={styles.infoBreak} />
-            <Text style={styles.infoText}>{Math.floor(media.VOTE * 10)}%</Text>
+            <Text style={styles.infoText}>{secToString(item.DURATION)}</Text>
+            {item.DURATION ? <View style={styles.infoBreak} /> : <></>}
+            <Text style={styles.infoText}>{Math.floor(item.VOTE * 10)}%</Text>
           </View>
           <Text style={styles.title} adjustsFontSizeToFit numberOfLines={2}>
-            {media.TITLE}
+            {item.TITLE}
           </Text>
           <View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.genres}>
-              {media.GENRES.map(genre => (
+              {item.GENRES.map(genre => (
                 <Text style={styles.genre}>{genre.GENRE_NAME}</Text>
               ))}
             </ScrollView>
@@ -422,9 +442,7 @@ export default ({route}) => {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={styles.play}
-            onPress={() =>
-              navigation.navigate('player', {mediaId: media.MEDIA_ID})
-            }>
+            onPress={() => navigation.navigate('player', {mediaId})}>
             <MaterialIcon name="play-arrow" size={50} color="black" />
             <Text style={styles.playText}>Play</Text>
           </TouchableOpacity>
@@ -437,10 +455,29 @@ export default ({route}) => {
           </TouchableOpacity>
         </View>
         <Text style={styles.overview} numberOfLines={3}>
-          {media.OVERVIEW}
+          {item.OVERVIEW}
         </Text>
+
+        {item.TYPE === 2 && (
+          <TouchableOpacity
+            style={styles.seasonTouch}
+            onPress={() => setSeasonModal(true)}>
+            <Text style={styles.seasonText}>Season {seasonNum}</Text>
+            <MaterialIcon name="expand-more" color="white" size={20} />
+          </TouchableOpacity>
+        )}
+
+        {season && season.length > 0 && (
+          <EpisodeRowComponent
+            items={season}
+            gap={episodeGap}
+            margin={mrgn}
+            width={episodeRowHook.itemWidth}
+          />
+        )}
+
         <CastRowComponent
-          items={media.CAST}
+          items={item.CAST}
           gap={castGap}
           margin={mrgn}
           width={castRowHook.itemWidth}
@@ -452,7 +489,7 @@ export default ({route}) => {
             gap={mediaGap}
             margin={mrgn}
             width={mediaRowHook.itemWidth}
-            header={genre1.genre_name}
+            header={`More In ${genre1.genre_name}`}
             items={genre1.items}
           />
         ) : (
@@ -464,7 +501,7 @@ export default ({route}) => {
             gap={mediaGap}
             margin={mrgn}
             width={mediaRowHook.itemWidth}
-            header={genre2.genre_name}
+            header={`More In ${genre2.genre_name}`}
             items={genre2.items}
           />
         ) : (
@@ -473,6 +510,25 @@ export default ({route}) => {
 
         <FooterComponent />
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        visible={seasonModal}
+        onRequestClose={() => setSeasonModal(false)}>
+        <View style={styles.seasonModal}>
+          <ScrollView contentContainerStyle={styles.seasonModalScroll}>
+            {item.AVAILABLE_SEASONS?.map(({SEASON_NUM}) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setSeasonNum(SEASON_NUM);
+                  setSeasonModal(false);
+                }}>
+                <Text style={styles.seasonModalText}>SEASON {SEASON_NUM}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
