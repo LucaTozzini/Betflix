@@ -16,7 +16,6 @@ import HeroComponent from '../components/Hero.component';
 
 // Hooks
 import useMediaRow from '../hooks/useMediaRow.hook';
-import useMediaRowHook from '../hooks/useMediaRow.hook';
 import useBrowseHook from '../hooks/useBrowse.hook';
 
 import { CastButton } from 'react-native-google-cast'
@@ -30,7 +29,7 @@ import {globalContext} from '../App';
 import MediaWideComponent from '../components/MediaWide.component';
 
 // Variables
-const gap = 6;
+const gap = 10;
 const margin = 8;
 const numItems = 3;
 
@@ -45,7 +44,7 @@ export default () => {
   const {topVoted, latest, fetchLatest, fetchTopVoted} = useBrowseHook();
 
   const mediaHook = useMediaRow({gap, margin, numItems});
-  const wideHook = useMediaRow({gap, margin, numItems: 1.5});
+  const wideHook = useMediaRow({gap, margin, numItems: 1});
 
   // Animation Refs
   const scrollY = useRef(new Animated.Value(0)).current;

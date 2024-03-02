@@ -67,8 +67,6 @@ const styles = StyleSheet.create({
   },
   image: {
     resizeMode: 'cover',
-    borderWidth: .5,
-    borderColor: 'rgba(255,255,255, 0.1)',
   },
   title: {
     color: 'rgb(200, 200, 200)',

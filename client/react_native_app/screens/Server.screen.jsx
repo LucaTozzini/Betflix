@@ -25,7 +25,7 @@ export default () => {
       </View>
       <View style={styles.terminal}>
         <ScrollView contentContainerStyle={styles.terminalScroll}>
-          {logs.map(i => (
+          {logs?.map(i => (
             <Text style={styles.log}>{i}</Text>
           ))}
         </ScrollView>

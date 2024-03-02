@@ -1,16 +1,9 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
+import LoadingScreen from './Loading.screen';
 
 export default () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Searching...</Text>
-      <Image
-        style={styles.loading}
-        source={{
-          uri: 'https://i.gifer.com/origin/34/34338d26023e5515f6cc8969aa027bca.gif',
-        }}
-      />
-    </View>
+    <LoadingScreen header={"Searching For Server"}/>
   );
 };
 

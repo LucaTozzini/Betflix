@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import bonjour from "bonjour";
 
 import database_routes from "./src/routes/database.routes.js";
 import user_routes from "./src/routes/user.routes.js";
@@ -34,4 +35,12 @@ app.get("/ciao", (req, res) => res.send("yellow"));
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+// broadcast service
+const service = bonjour();
+service.publish({
+  name: "Betflix Server",
+  port: PORT,
+  type: "http",
 });

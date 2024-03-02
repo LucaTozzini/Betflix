@@ -337,7 +337,7 @@ export default () => {
   const [imdbId, setImdbId] = useState(null);
   const [parentImdbId, setParentImdbId] = useState(null);
   const [subtitles, setSubtitles] = useState(null);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(null);
 
   const fetchSubtitles = async () => {
     try {

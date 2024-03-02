@@ -26,6 +26,7 @@
     "react-native-system-navigation-bar": "^2.6.3",
     "react-native-vector-icons": "^10.0.3",
     "react-native-video": "^5.2.1",
+    "react-native-zeroconf": "^0.13.8",
     "vtt-2-json": "^1.1.4"
   },
   "devDependencies": {

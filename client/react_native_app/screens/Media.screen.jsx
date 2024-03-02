@@ -73,12 +73,12 @@ export default ({route}) => {
   const castGap = 10;
   const castRowHook = useMediaRow({
     gap: castGap,
-    numItems: 2.5,
+    numItems: 3,
     margin: mrgn,
   });
 
   // Media Row
-  const mediaGap = 10;
+  const mediaGap = 8;
   const mediaRowHook = useMediaRow({
     gap: mediaGap,
     numItems: 3,
@@ -86,10 +86,10 @@ export default ({route}) => {
   });
 
   // Episode Row
-  const episodeGap = 20;
+  const episodeGap = mediaGap;
   const episodeRowHook = useMediaRow({
     gap: episodeGap,
-    numItems: 1,
+    numItems: 1.5,
     margin: mrgn,
   });
 
@@ -247,7 +247,6 @@ export default ({route}) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-
     poster: {
       position: 'absolute',
       left: 0,
@@ -263,7 +262,6 @@ export default ({route}) => {
       top: 50,
       height: StatusBar.currentHeight + 400,
     },
-
     scroll: {
       gap: 15,
     },
@@ -300,9 +298,9 @@ export default ({route}) => {
     },
     genre: {
       color: 'white',
-      fontSize: 17,
-      paddingHorizontal: 18,
-      paddingVertical: 7,
+      fontSize: 12,
+      paddingHorizontal: 15,
+      paddingVertical: 5,
       borderRadius: 10,
       backgroundColor: 'rgb(40,40,40)',
       borderWidth: 1,
@@ -346,11 +344,14 @@ export default ({route}) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      margin: mrgn,
-      padding: 10,
+      marginHorizontal: mrgn,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
       backgroundColor: 'rgba(255, 255, 255, 0.2)',
       borderWidth: 0.1,
       borderColor: 'rgba(255, 255, 255, 0.3)',
+      width: 160,
+      borderRadius: 25,
     },
     seasonText: {
       color: 'white',
@@ -360,14 +361,11 @@ export default ({route}) => {
       backgroundColor: 'black',
       flex: 1,
     },
-
     seasonModalScroll: {
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 200,
-      // backgroundColor: 'red',
     },
-
     seasonModalText: {
       backgroundColor: 'black',
       textAlign: 'center',
@@ -433,8 +431,8 @@ export default ({route}) => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.genres}>
-              {item.GENRES.map(genre => (
-                <Text style={styles.genre}>{genre.GENRE_NAME}</Text>
+              {item.GENRES.map(({GENRE_NAME}) => (
+                <Text key={"GENRE_"+GENRE_NAME} style={styles.genre}>{GENRE_NAME}</Text>
               ))}
             </ScrollView>
           </View>
@@ -484,7 +482,7 @@ export default ({route}) => {
           header="Cast"
         />
 
-        {genre1 ? (
+        {genre1 && (
           <MediaRowComponent
             gap={mediaGap}
             margin={mrgn}
@@ -492,11 +490,9 @@ export default ({route}) => {
             header={`More In ${genre1.genre_name}`}
             items={genre1.items}
           />
-        ) : (
-          <></>
         )}
 
-        {genre2 ? (
+        {genre2 && (
           <MediaRowComponent
             gap={mediaGap}
             margin={mrgn}
@@ -504,8 +500,6 @@ export default ({route}) => {
             header={`More In ${genre2.genre_name}`}
             items={genre2.items}
           />
-        ) : (
-          <></>
         )}
 
         <FooterComponent />
@@ -519,6 +513,7 @@ export default ({route}) => {
           <ScrollView contentContainerStyle={styles.seasonModalScroll}>
             {item.AVAILABLE_SEASONS?.map(({SEASON_NUM}) => (
               <TouchableOpacity
+                key={"SEASON_NUM_"+SEASON_NUM}
                 onPress={() => {
                   setSeasonNum(SEASON_NUM);
                   setSeasonModal(false);

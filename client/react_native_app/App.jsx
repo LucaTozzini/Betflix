@@ -34,7 +34,7 @@ import NavMenuComponent from './components/NavMenu.component';
 
 // Hooks
 import useUserHook from './hooks/useUser.hook';
-import useServer from './hooks/useServer.hooks';
+import useAddress from './hooks/useAddress.hook';
 import {useRemoteMediaClient} from 'react-native-google-cast';
 //
 const Stack = createNativeStackNavigator();
@@ -52,7 +52,7 @@ function App() {
   const [showNav, setShowNav] = useState(true);
   const [showStatusBar, setShowStatusBar] = useState(true);
   const [route, setRoute] = useState(null);
-  const {address} = useServer();
+  const address = useAddress();
   const [orientation, setOrientation] = useState(PORTRAIT);
   const userHook = useUserHook({address});
   const client = useRemoteMediaClient();

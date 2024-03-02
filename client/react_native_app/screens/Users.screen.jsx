@@ -131,7 +131,6 @@ export default ({login, address}) => {
           <Image style={pinStyles.image} source={{uri: userImage}}/>
           <Text style={pinStyles.name}>{userName}</Text>
           <TextInput
-            textContentType='pin'
             keyboardType="numeric"
             style={[pinStyles.input, wrongPin ? {borderColor: 'red'} : {}]}
             onChangeText={value => setUserPin(value)}

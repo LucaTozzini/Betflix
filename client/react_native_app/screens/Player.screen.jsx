@@ -1,14 +1,11 @@
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {
   StyleSheet,
   View,
-  Animated,
   TouchableOpacity,
   Text,
   Modal,
   ScrollView,
-  StatusBar,
-  TextInput,
 } from 'react-native';
 import Slider from 'react-native-slider';
 import Video from 'react-native-video';
