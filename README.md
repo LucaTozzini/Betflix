@@ -4,7 +4,7 @@ This project aims to create a local media server able to organize existing media
 
 ## Backend
 A node.js server using the following libraries:
-- **Express**: implements REST API
+- **[Express](https://expressjs.com/)**: implements REST API
 - **WebTorrent**: manages torrents
 - **SQLite3**: relational database
 - **Bonjour**: broadcast service
