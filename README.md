@@ -1,6 +1,6 @@
 # Betflix - Movies & TV Shows Organizer and Streamer
 
-This project aims to create a local media server able to organize existing media, as well as managing torrents.
+This project aims to create a local media server able to organize existing media, as well as providinging on-demand subtitles and torrents.
 
 ## Backend
 A [node.js](https://nodejs.org/en/about) server using the following libraries:
