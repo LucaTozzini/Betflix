@@ -15,5 +15,6 @@ Also makes use of the following APIs:
 
 ## Frontend
 Both web and native apps developed with [React](https://react.dev/).
+https://github.com/LucaTozzini/Betflix/assets/46906302/89f0cc9e-3a74-4e94-ad62-82ea218284fc
 
 
