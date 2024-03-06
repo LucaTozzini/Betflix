@@ -15,4 +15,5 @@ Also makes use of the following APIs:
 
 ## Frontend
 Both web and native apps developed with [React](https://react.dev/).
-![](docs/docfx/images/MixtureOpen.gif)
+Native Demo:
+"docs/video/Native_Demo.mp4
