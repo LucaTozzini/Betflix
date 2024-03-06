@@ -6,6 +6,7 @@ export default ({mediaId, episodeId}) => {
   const [episode, setEpisode] = useState(null);
   const [resume, setResume] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
+  const [streamUrl, setStreamUrl] = useState(null);
   const [available, setAvailable] = useState(null);
 
   const fetchItem = async () => {
@@ -61,7 +62,7 @@ export default ({mediaId, episodeId}) => {
 
   const checkAvailable = async() => {
     try {
-      const response = await fetch(videoUrl);
+      const response = await fetch(streamUrl);
       console.log(response.status);
       setAvailable(true);
     } catch(err) {
@@ -81,6 +82,7 @@ export default ({mediaId, episodeId}) => {
       } else {
         fetchResume();
         setVideoUrl(`${address}/player/video?mediaId=${mediaId}&type=1`)
+        setStreamUrl(`${address}/player/stream?mediaId=${mediaId}&type=1`)
       }
     }
   }, [item]);
@@ -89,14 +91,16 @@ export default ({mediaId, episodeId}) => {
     if(episode) {
       fetchResume();
       setVideoUrl(`${address}/player/video?mediaId=${mediaId}&type=2&episodeId=${episode.EPISODE_ID}`);
+      setStreamUrl(`${address}/player/stream?mediaId=${mediaId}&type=2&episodeId=${episode.EPISODE_ID}`);
     }
   }, [episode]);
 
   useEffect(() => {
-    if(videoUrl) {
+    if(streamUrl) {
+      console.log(streamUrl);
       checkAvailable();
     }
-  }, [videoUrl])
+  }, [streamUrl])
 
   return {item, episode, updateContinue, resume, videoUrl, available};
 };

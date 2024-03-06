@@ -88,7 +88,6 @@ export default ({route, navigation}) => {
   };
 
   const handleSeek = time => {
-    console.log('SEEK', time);
     if (videoRef) {
       videoRef.seek(time);
     }
@@ -344,7 +343,7 @@ export default ({route, navigation}) => {
               </Text>
             </TouchableOpacity>
             {langDict.map(i => (
-              <TouchableOpacity onPress={() => setLanguage(i.language_code)}>
+              <TouchableOpacity key={"LANG_"+i.language_code} onPress={() => setLanguage(i.language_code)}>
                 <Text
                   style={{
                     color: 'white',
