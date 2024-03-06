@@ -15,3 +15,4 @@ Also makes use of the following APIs:
 
 ## Frontend
 Both web and native apps developed with [React](https://react.dev/).
+![](https://photos.app.goo.gl/NCTym58kmDzFZecV6)
