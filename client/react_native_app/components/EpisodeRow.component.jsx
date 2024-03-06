@@ -82,6 +82,8 @@ export default ({items, header, width, gap, margin}) => {
             style={styles.modalTouch}
             onPress={() => setModal(false)}>
             <ScrollView contentContainerStyle={styles.modalScroll}>
+              <View style={styles.modalBackground}>
+
               <TouchableOpacity
                 style={styles.modalInfo}
                 onPress={() => {}}
@@ -110,6 +112,7 @@ export default ({items, header, width, gap, margin}) => {
                 <MaterialIcon name="remove-done" color="white" size={30} />
                 <Text style={styles.modalText}>Mark as unwatched</Text>
               </TouchableOpacity>
+              </View>
 
             </ScrollView>
           </TouchableOpacity>
@@ -166,6 +169,7 @@ const styles = StyleSheet.create({
   image: {
     overflow: 'hidden',
     justifyContent: 'flex-end',
+    backgroundColor: "rgb(80, 80, 80)",
   },
   progressBar: {height: 6, backgroundColor: 'dodgerblue'},
   info: {
@@ -183,8 +187,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
-  modalInfo: {
+  modalBackground: {
     backgroundColor: mdlClr,
+  },
+  modalInfo: {
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: 'rgb(50,50,50)',
@@ -209,7 +215,6 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flexDirection: 'row',
-    backgroundColor: mdlClr,
     paddingHorizontal: 20,
     paddingVertical: 10,
     alignItems: 'center',

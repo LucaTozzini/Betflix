@@ -1,10 +1,6 @@
 import express from "express";
-import { authenticateAdmin } from "../helpers/users.helpers.js";
 import {
   publicManager,
-  drivesStatus,
-  addDrive,
-  remDrive
 } from "../helpers/database.helpers.js";
 
 const router = express.Router();
@@ -58,39 +54,6 @@ router.post("/maintenance/:action", async (req, res) => {
     res.sendStatus(200);
   } catch (err) {
     console.log(err.message);
-    res.sendStatus(500);
-  }
-});
-
-router.get("/drives", async (req, res) => {
-  try {
-    const drives = await drivesStatus();
-    res.json(drives);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
-});
-
-router.post("/drives/:action", async (req, res) => {
-  try {
-    const { action } = req.params;
-    const { path, type } = req.body;
-    const auth = await authenticateAdmin(userId, userPin);
-    if (!auth) {
-      return res.sendStatus(401);
-    }
-    if (action === "add" && type && path) {
-      await addDrive(path, type);
-      res.sendStatus(201);
-    } else if (action === "rem" && path) {
-      await remDrive(path)
-      res.sendStatus(200);
-    } else {
-      return res.status(400);
-    }
-  } catch (err) {
-    console.error(err.message);
     res.sendStatus(500);
   }
 });

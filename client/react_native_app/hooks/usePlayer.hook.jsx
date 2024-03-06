@@ -5,11 +5,17 @@ export default ({mediaId, episodeId}) => {
   const [item, setItem] = useState(null);
   const [episode, setEpisode] = useState(null);
   const [resume, setResume] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [available, setAvailable] = useState(null);
 
   const fetchItem = async () => {
-    const response = await fetch(`${address}/browse/item?mediaId=${mediaId}`);
-    const json = await response.json();
-    setItem(json);
+    try {
+      const response = await fetch(`${address}/browse/item?mediaId=${mediaId}`);
+      const json = await response.json();
+      setItem(json);
+    } catch(err) {
+      console.error(err)
+    }
   };
 
   const fetchEpisode = async () => {
@@ -17,12 +23,10 @@ export default ({mediaId, episodeId}) => {
       const response = await fetch(
         `${address}/browse/episode?episodeId=${episodeId}`,
       );
-      console.log(response.status);
       const json = await response.json();
-      console.log(json);
       setEpisode(json);
     } catch (err) {
-      console.error(err.message)
+      console.error(err)
     }
   };
 
@@ -35,7 +39,7 @@ export default ({mediaId, episodeId}) => {
       console.log("RESUME", json);
       setResume(json);
     } catch (err) {
-      console.log(err.message);
+      console.error(err)
       setResume(0);
     }
   };
@@ -55,11 +59,44 @@ export default ({mediaId, episodeId}) => {
     }
   };
 
+  const checkAvailable = async() => {
+    try {
+      const response = await fetch(videoUrl);
+      console.log(response.status);
+      setAvailable(true);
+    } catch(err) {
+      console.error("CHECK ERROR", err.message)
+      setAvailable(false);
+    }
+  }
+
   useEffect(() => {
     fetchItem();
-    fetchEpisode();
-    fetchResume();
   }, []);
+  
+  useEffect(() => {
+    if(item) {
+      if(item.TYPE === 2) {
+        fetchEpisode();
+      } else {
+        fetchResume();
+        setVideoUrl(`${address}/player/video?mediaId=${mediaId}&type=1`)
+      }
+    }
+  }, [item]);
 
-  return {item, episode, updateContinue, resume};
+  useEffect(() => {
+    if(episode) {
+      fetchResume();
+      setVideoUrl(`${address}/player/video?mediaId=${mediaId}&type=2&episodeId=${episode.EPISODE_ID}`);
+    }
+  }, [episode]);
+
+  useEffect(() => {
+    if(videoUrl) {
+      checkAvailable();
+    }
+  }, [videoUrl])
+
+  return {item, episode, updateContinue, resume, videoUrl, available};
 };

@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import env from "../../env.js";
 import send from "send";
 import express from "express";
 import {

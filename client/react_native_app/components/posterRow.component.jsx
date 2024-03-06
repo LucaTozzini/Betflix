@@ -12,19 +12,28 @@ import {useNavigation} from '@react-navigation/native';
 
 export default ({items, header, width, gap, margin}) => {
   const navigation = useNavigation();
-  const Item = ({title, image, mediaId}) => (
+  const Item = ({image, title, mediaId}) => (
     <TouchableOpacity
       style={styles.item}
       activeOpacity={0.9}
-      onPress={() => navigation.push('media', {mediaId})}>
-      <Image
-        source={{uri: image}}
-        style={[
-          styles.image,
-          {width, height: width * 1.6, borderRadius: width * 0.05},
-        ]}
-      />
-      {/* <Text numberOfLines={1} style={[styles.title, {maxWidth: width * 0.92}]}>{title}</Text> */}
+      onPress={() => navigation.push('item', {mediaId})}>
+      {image ? (
+        <Image
+          source={{uri: image}}
+          style={[
+            styles.image,
+            {width, height: width * 1.6, borderRadius: width * 0.05},
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            styles.noImage,
+            {width, height: width * 1.6, borderRadius: width * 0.05},
+          ]}>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+      )}
     </TouchableOpacity>
   );
   if (items.length === 0) {
@@ -67,9 +76,17 @@ const styles = StyleSheet.create({
   },
   image: {
     resizeMode: 'cover',
+    backgroundColor: "rgb(80, 80, 80)",
+  },
+  noImage: {backgroundColor: "rgb(80, 80, 80)", alignItems: "center", justifyContent: "center"},
+  title: {
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
   },
   title: {
     color: 'rgb(200, 200, 200)',
     fontSize: 13,
+    color: "lightgrey"
   },
 });

@@ -1,4 +1,4 @@
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState, useCallback} from 'react';
 import {
   Text,
   ImageBackground,
@@ -10,8 +10,11 @@ import {
   Animated,
   StatusBar,
 } from 'react-native';
+
 import LinearGradient from 'react-native-linear-gradient';
-import {useNavigation} from '@react-navigation/native';
+
+//
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 
 // Screens
 import LoadingScreen from './Loading.screen';
@@ -21,12 +24,11 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 // Components
 import CastRowComponent from '../components/CastRow.component';
-import MediaRowComponent from '../components/MediaRow.component';
+import MediaRowComponent from '../components/posterRow.component';
 import FooterComponent from '../components/Footer.component';
 import EpisodeRowComponent from '../components/EpisodeRow.component';
 
 // Hooks
-import useMediaRow from '../hooks/useMediaRow.hook';
 import useMedia from '../hooks/useMedia.hook';
 import {CastButton, useRemoteMediaClient} from 'react-native-google-cast';
 
@@ -37,8 +39,16 @@ const bkgrd = 'black';
 const mrgn = 10;
 
 export default ({route}) => {
-  const {address} = useContext(globalContext);
+  const {
+    address,
+    posterRowSize,
+    castRowSize,
+    episodeRowSize,
+    rowGap,
+    horizontalMargin,
+  } = useContext(globalContext);
   const client = useRemoteMediaClient();
+  const isFocused = useIsFocused();
   const {mediaId} = route.params;
   const {
     item,
@@ -67,30 +77,6 @@ export default ({route}) => {
   const posterOpacity = scrollY.interpolate({
     inputRange: [0, 200],
     outputRange: [1, 0],
-  });
-
-  // Cast Row
-  const castGap = 10;
-  const castRowHook = useMediaRow({
-    gap: castGap,
-    numItems: 3,
-    margin: mrgn,
-  });
-
-  // Media Row
-  const mediaGap = 8;
-  const mediaRowHook = useMediaRow({
-    gap: mediaGap,
-    numItems: 3,
-    margin: mrgn,
-  });
-
-  // Episode Row
-  const episodeGap = mediaGap;
-  const episodeRowHook = useMediaRow({
-    gap: episodeGap,
-    numItems: 1.5,
-    margin: mrgn,
   });
 
   const fetchGenre = genre =>
@@ -191,10 +177,23 @@ export default ({route}) => {
   }, [item]);
 
   useEffect(() => {
-    if (client && item) {
-      client.loadMedia({mediaInfo: {contentUrl: item.POSTER_W_L}});
+    if (client && item && isFocused) {
+      if (item.POSTER_W_L || item.BACKDROP_L) {
+        client
+          .queueInsertAndPlayItem({
+            mediaInfo: {contentUrl: item.POSTER_W_L || item.BACKDROP_L},
+          })
+          .catch(err => console.error(err));
+      } else {
+        client.queueInsertAndPlayItem({
+          mediaInfo: {
+            contentUrl:
+              'https://images.squarespace-cdn.com/content/v1/520b6dcee4b0734e32e29746/1553092004466-AP3WPCPOMHBJ87PJ67LG/Netflix_anim.gif',
+          },
+        });
+      }
     }
-  }, [client, item]);
+  }, [client, item, isFocused]);
 
   const styles = StyleSheet.create({
     container: {
@@ -266,13 +265,11 @@ export default ({route}) => {
       gap: 15,
     },
     main: {
-      // backgroundColor: 'green',
       height: 450,
       justifyContent: 'flex-end',
     },
     info: {
       flexDirection: 'row',
-      marginHorizontal: mrgn,
       gap: 7,
       alignItems: 'center',
     },
@@ -416,28 +413,36 @@ export default ({route}) => {
         />
 
         <View style={styles.main}>
-          <View style={styles.info}>
+          <View style={[styles.info, {marginHorizontal: horizontalMargin}]}>
             <Text style={styles.infoText}>{item.YEAR}</Text>
             <View style={styles.infoBreak} />
             <Text style={styles.infoText}>{secToString(item.DURATION)}</Text>
             {item.DURATION ? <View style={styles.infoBreak} /> : <></>}
             <Text style={styles.infoText}>{Math.floor(item.VOTE * 10)}%</Text>
           </View>
-          <Text style={styles.title} adjustsFontSizeToFit numberOfLines={2}>
+          <Text
+            style={[styles.title, {marginHorizontal: horizontalMargin}]}
+            adjustsFontSizeToFit
+            numberOfLines={2}>
             {item.TITLE}
           </Text>
           <View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.genres}>
+              contentContainerStyle={[
+                styles.genres,
+                {paddingHorizontal: horizontalMargin},
+              ]}>
               {item.GENRES.map(({GENRE_NAME}) => (
-                <Text key={"GENRE_"+GENRE_NAME} style={styles.genre}>{GENRE_NAME}</Text>
+                <Text key={'GENRE_' + GENRE_NAME} style={styles.genre}>
+                  {GENRE_NAME}
+                </Text>
               ))}
             </ScrollView>
           </View>
         </View>
-        <View style={styles.buttons}>
+        <View style={[styles.buttons, {marginHorizontal: horizontalMargin}]}>
           <TouchableOpacity
             style={styles.play}
             onPress={() => navigation.navigate('player', {mediaId})}>
@@ -452,13 +457,15 @@ export default ({route}) => {
             />
           </TouchableOpacity>
         </View>
-        <Text style={styles.overview} numberOfLines={3}>
+        <Text
+          style={[styles.overview, {marginHorizontal: horizontalMargin}]}
+          numberOfLines={3}>
           {item.OVERVIEW}
         </Text>
 
         {item.TYPE === 2 && (
           <TouchableOpacity
-            style={styles.seasonTouch}
+            style={[styles.seasonTouch, {marginHorizontal: horizontalMargin}]}
             onPress={() => setSeasonModal(true)}>
             <Text style={styles.seasonText}>Season {seasonNum}</Text>
             <MaterialIcon name="expand-more" color="white" size={20} />
@@ -468,37 +475,37 @@ export default ({route}) => {
         {season && season.length > 0 && (
           <EpisodeRowComponent
             items={season}
-            gap={episodeGap}
-            margin={mrgn}
-            width={episodeRowHook.itemWidth}
+            gap={rowGap}
+            margin={horizontalMargin}
+            width={episodeRowSize.itemWidth}
           />
         )}
 
         <CastRowComponent
           items={item.CAST}
-          gap={castGap}
-          margin={mrgn}
-          width={castRowHook.itemWidth}
-          header="Cast"
+          header={'Cast'}
+          gap={rowGap}
+          margin={horizontalMargin}
+          width={castRowSize.itemWidth}
         />
 
         {genre1 && (
           <MediaRowComponent
-            gap={mediaGap}
-            margin={mrgn}
-            width={mediaRowHook.itemWidth}
-            header={`More In ${genre1.genre_name}`}
             items={genre1.items}
+            header={`More In ${genre1.genre_name}`}
+            gap={rowGap}
+            margin={horizontalMargin}
+            width={posterRowSize.itemWidth}
           />
         )}
 
         {genre2 && (
           <MediaRowComponent
-            gap={mediaGap}
-            margin={mrgn}
-            width={mediaRowHook.itemWidth}
-            header={`More In ${genre2.genre_name}`}
             items={genre2.items}
+            header={`More In ${genre2.genre_name}`}
+            gap={rowGap}
+            margin={horizontalMargin}
+            width={posterRowSize.itemWidth}
           />
         )}
 
@@ -513,7 +520,7 @@ export default ({route}) => {
           <ScrollView contentContainerStyle={styles.seasonModalScroll}>
             {item.AVAILABLE_SEASONS?.map(({SEASON_NUM}) => (
               <TouchableOpacity
-                key={"SEASON_NUM_"+SEASON_NUM}
+                key={'SEASON_NUM_' + SEASON_NUM}
                 onPress={() => {
                   setSeasonNum(SEASON_NUM);
                   setSeasonModal(false);

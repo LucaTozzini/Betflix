@@ -42,20 +42,21 @@ export default () => {
         {torrents.length === 0 ? (
           <Text style={styles.noDownloads}>No Downloads</Text>
         ) : (
-          torrents.map(i => (
+          torrents.map((value, index) => (
             <TouchableOpacity
+              key={"Torrent_"+index}
               style={styles.torrent}
               onPress={() => setModal(true)}>
-              <Text style={styles.torrentText}>{i.name}</Text>
+              <Text style={styles.torrentText}>{value.name}</Text>
               <Text style={styles.torrentText}>
-                {msToString(i.timeRemaining)}
+                {msToString(value.timeRemaining)}
               </Text>
               <View style={styles.torrentProgress}>
                 <View
                   style={[
                     styles.torrentProgressFill,
                     {
-                      width: i.progress * 100 + '%',
+                      width: value.progress * 100 + '%',
                     },
                   ]}
                 />

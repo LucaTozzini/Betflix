@@ -2,14 +2,14 @@ import { db, continuePrep } from "./database.helpers.js";
 import { queryNextEpisode, queryEpisode } from "./queries.helpers.js";
 import uniqid from "uniqid";
 
-const addUser = (userName, userImage, childAccount, adminAccount, userPin) =>
+const addUser = (userName, userImage) =>
   new Promise(async (res, rej) => {
     try {
       const userId = uniqid("user-");
       await new Promise((res, rej) =>
         db.run(
-          `INSERT INTO users_main (USER_ID, USER_NAME, USER_IMAGE, CHILD, ADMIN, USER_PIN) VALUES (?,?,?,?,?,?)`,
-          [userId, userName, userImage, childAccount, adminAccount, userPin],
+          `INSERT INTO users_main (USER_ID, USER_NAME, USER_IMAGE) VALUES (?,?,?)`,
+          [userId, userName, userImage],
           (err) => (err ? rej(err) : res())
         )
       );
@@ -33,32 +33,19 @@ const deleteUser = (userId) =>
 const userList = () =>
   new Promise((res, rej) =>
     db.all(
-      `SELECT USER_ID, USER_NAME, USER_IMAGE, ADMIN, CHILD  
+      `SELECT USER_ID, USER_NAME, USER_IMAGE  
     FROM users_main`,
       (err, rows) => (err ? rej(err) : res(rows))
     )
   );
 
-const authenticateUser = (userId, userPin) =>
+const authenticateUser = (userId) =>
   new Promise((res, rej) =>
     db.get(
       `SELECT * 
     FROM users_main 
-    WHERE USER_ID = ? AND USER_PIN ${
-      userPin == null || isNaN(userPin) ? "IS" : "="
-    } ?`,
-      [userId, userPin == null || isNaN(userPin) ? null : userPin],
-      (err, row) => (err ? rej(err) : res(row != undefined))
-    )
-  );
-
-const authenticateAdmin = (userId, userPin) =>
-  new Promise((res, rej) =>
-    db.get(
-      `SELECT USER_NAME
-    FROM users_main
-    WHERE USER_ID = ? AND USER_PIN = ? AND ADMIN = 1`,
-      [userId, userPin],
+    WHERE USER_ID = ?`,
+      [userId],
       (err, row) => (err ? rej(err) : res(row != undefined))
     )
   );
@@ -66,7 +53,7 @@ const authenticateAdmin = (userId, userPin) =>
 const userData = (userId) =>
   new Promise((res, rej) =>
     db.get(
-      `SELECT USER_NAME, USER_IMAGE, ADMIN, CHILD 
+      `SELECT USER_NAME, USER_IMAGE 
     FROM users_main WHERE USER_ID = ?`,
       [userId],
       (err, row) => (err ? rej(err) : res(row))
@@ -180,13 +167,14 @@ const hasContinue = (userId, mediaId, episodeId) =>
 const updateContinue = (userId, mediaId, episodeId, progressTime, endTime) =>
   new Promise(async (res, rej) => {
     const timeStamp = new Date().toISOString();
-    episodeId = episodeId?? -1
+    episodeId = episodeId ?? -1;
 
-    const has = await hasContinue(userId, mediaId, episodeId); 
+    const has = await hasContinue(userId, mediaId, episodeId);
 
     if (has) {
-      continuePrep.update.run([progressTime, endTime, timeStamp, userId, mediaId, episodeId], (err) =>
-        err ? rej(err) : res()
+      continuePrep.update.run(
+        [progressTime, endTime, timeStamp, userId, mediaId, episodeId],
+        (err) => (err ? rej(err) : res())
       );
     } else {
       continuePrep.insert.run(
@@ -254,20 +242,30 @@ const watchAgain = (userId, limit) =>
   );
 
 export {
+  // 
+  userList,
+
+  // 
   addUser,
   deleteUser,
-  userList,
+
+  // 
   authenticateUser,
-  authenticateAdmin,
   userData,
-  addWatchlist,
-  removeWatchlist,
+
+  // 
   watchlist,
   inWatchlist,
+  addWatchlist,
+  removeWatchlist,
+  
+  // 
   updateContinue,
   currentEpisode,
   continueList,
+  watchAgain,
+
+  // 
   movieResumeTime,
   episodeResumeTime,
-  watchAgain,
 };

@@ -1,16 +1,25 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 
 export default ({address}) => {
   const [userId, setUserId] = useState(null);
-  const [userPin, setUserPin] = useState(null);
   const [userName, setUserName] = useState(null);
   const [userImage, setUserImage] = useState(null);
-  const [admin, setAdmin] = useState(null);
-  const [child, setChild] = useState(null);
   const [watchlist, setWatchlist] = useState([]);
   const [continueList, setContinueList] = useState([]);
+  const [userImages, setUserImages] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  const login = ({userId, userPin}) =>
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${address}/user/list`);
+      const json = await response.json();
+      setUsers(json);
+    } catch (err) {
+      
+    }
+  };
+
+  const login = ({userId}) =>
     new Promise(async res => {
       let success = false;
       try {
@@ -19,17 +28,14 @@ export default ({address}) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({userId, userPin}),
+          body: JSON.stringify({userId}),
         };
         const response = await fetch(`${address}/user/data`, options);
         if (response.status === 200) {
-          const {USER_IMAGE, USER_NAME, ADMIN, CHILD} = await response.json();
+          const {USER_IMAGE, USER_NAME} = await response.json();
           setUserId(userId);
-          setUserPin(userPin);
           setUserName(USER_NAME);
           setUserImage(`${address}/${USER_IMAGE}`);
-          setAdmin(ADMIN);
-          setChild(CHILD);
           success = true;
         }
       } catch (err) {
@@ -40,31 +46,17 @@ export default ({address}) => {
 
   const logout = () => {
     setUserId(null);
-    setUserPin(null);
     setUserName(null);
     setUserImage(null);
-    setAdmin(null);
-    setChild(null);
     setWatchlist([]);
     setContinueList([]);
   };
 
-  const deleteUser = () => {
-    const options = {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({userId, userPin}),
-    };
-    fetch(`${address}/user/delete`, options)
-      .then(logout)
-      .catch(err => console.error(err.message));
-  };
-
   const fetchWatchlist = async () => {
     try {
-      const response = await fetch(`${address}/user/watchlist?userId=${userId}`);
+      const response = await fetch(
+        `${address}/user/watchlist?userId=${userId}`,
+      );
       const json = await response.json();
       setWatchlist(json);
     } catch (err) {
@@ -74,7 +66,9 @@ export default ({address}) => {
 
   const fetchContinue = async () => {
     try {
-      const response = await fetch(`${address}/user/continue?userId=${userId}&limit=50`);
+      const response = await fetch(
+        `${address}/user/continue?userId=${userId}&limit=50`,
+      );
       const json = await response.json();
       setContinueList(json);
     } catch (err) {
@@ -82,14 +76,68 @@ export default ({address}) => {
     }
   };
 
+  const fetchImages = async () => {
+    try {
+      const response = await fetch(`${address}/user/images`);
+      const json = await response.json();
+      setUserImages(json);
+    } catch (err) {}
+  };
+
+  const createUser = ({userName, userImage}) => new Promise(async (res, rej) => {
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({userName, userImage})
+      }
+      const response = await fetch(`${address}/user/add`, options);
+      if(response.status === 201) {
+        res(1);
+        fetchUsers();
+      } else {
+        res(0);
+      }
+    } catch (err) {
+      rej(err);
+    }
+  })
+
+  const deleteUser = async () => {
+    try {
+      const options = {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userId}),
+      };
+      const response = await fetch(`${address}/user/delete`, options);
+      if(response.status === 200) {
+        logout();
+        fetchUsers();
+      }
+    } catch(err) {
+      console.error(err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchImages();
+    fetchUsers();
+  }, [address]);
+
   return {
     // User States
     userId,
-    userPin,
     userName,
     userImage,
-    admin,
-    child,
+    users,
+
+    //
+    userImages,
 
     // MediaStates
     watchlist,
@@ -101,5 +149,6 @@ export default ({address}) => {
     deleteUser,
     fetchWatchlist,
     fetchContinue,
+    createUser,
   };
 };

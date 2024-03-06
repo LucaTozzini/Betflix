@@ -1,36 +1,32 @@
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useState} from 'react';
 import {
   StyleSheet,
-  View,
-  Text,
   TextInput,
   StatusBar,
   ScrollView,
   ImageBackground,
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-// Hooks
-import useMediaRowHook from '../hooks/useMediaRow.hook';
-
 // Components
-import MediaRowComponent from '../components/MediaRow.component';
+import MediaRowComponent from '../components/posterRow.component';
 import CastRowComponent from '../components/CastRow.component';
 import YifiRowComponent from '../components/YifiRow.component';
+import FooterComponent from '../components/Footer.component';
 
 // Contexts
-import { globalContext } from '../App';
+import {globalContext} from '../App';
+
+// Var
+const searchTime = 1000;
 
 export default () => {
-  const {address} = useContext(globalContext);
+  const {address, posterRowSize, castRowSize, horizontalMargin, rowGap} =
+    useContext(globalContext);
   const [titles, setTitles] = useState([]);
   const [people, setPeople] = useState([]);
   const [yifi, setYifi] = useState([]);
-  const numItems = 3,
-    gap = 5,
-    margin = 10;
-  const {itemWidth} = useMediaRowHook({gap, margin, numItems});
-  const searchTime = 1000;
   const [searchTimeout, setSearchTimeout] = useState(null);
 
   const fetchTitle = async query => {
@@ -70,12 +66,12 @@ export default () => {
       );
       setYifi(movies);
     } catch (err) {
-      console.error(err.message);
+      setYifi([]);
     }
   };
 
   const handleInput = e => {
-    e = e.trim(); 
+    e = e.trim();
     clearTimeout(searchTimeout);
     if (e.length !== 0) {
       const newTimeout = setTimeout(() => {
@@ -87,7 +83,7 @@ export default () => {
     } else {
       setYifi([]);
       setTitles([]);
-      setPeople([]); 
+      setPeople([]);
     }
   };
 
@@ -110,37 +106,42 @@ export default () => {
       />
 
       <ScrollView contentContainerStyle={styles.container}>
-        <MediaRowComponent
-          items={titles}
-          header="Matches"
-          width={itemWidth}
-          gap={gap}
-          margin={margin}
-        />
+        <View style={styles.rows}>
+          <MediaRowComponent
+            items={titles}
+            header="In Library"
+            width={posterRowSize.itemWidth}
+            gap={rowGap}
+            margin={horizontalMargin}
+          />
 
-        <CastRowComponent
-          items={people}
-          header="People"
-          width={itemWidth}
-          gap={gap}
-          margin={margin}
-        />
+          <CastRowComponent
+            items={people}
+            header="People"
+            width={castRowSize.itemWidth}
+            gap={rowGap}
+            margin={horizontalMargin}
+          />
 
-        <YifiRowComponent
-          items={yifi}
-          header="Available Downloads"
-          width={itemWidth}
-          gap={gap}
-          margin={margin}
-          address={address}
-        />
+          <YifiRowComponent
+            items={yifi}
+            header="Available Downloads"
+            width={posterRowSize.itemWidth}
+            gap={rowGap}
+            margin={horizontalMargin}
+          />
+        </View>
+        <FooterComponent />
       </ScrollView>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  rows: {
+    marginTop: 20,
+    gap: 20,
+  },
   input: {
     fontSize: 15,
     backgroundColor: 'white',

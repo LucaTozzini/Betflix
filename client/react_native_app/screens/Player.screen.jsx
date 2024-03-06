@@ -1,3 +1,4 @@
+// React
 import {useContext, useEffect, useState} from 'react';
 import {
   StyleSheet,
@@ -6,10 +7,12 @@ import {
   Text,
   Modal,
   ScrollView,
+  ImageBackground,
 } from 'react-native';
-import Slider from 'react-native-slider';
+
+//
+import Slider from '@react-native-community/slider';
 import Video from 'react-native-video';
-import {useNavigation} from '@react-navigation/native';
 
 // Screens
 import LoadingScreen from './Loading.screen';
@@ -29,19 +32,20 @@ import {useRemoteMediaClient, CastButton} from 'react-native-google-cast';
 import usePlayer from '../hooks/usePlayer.hook';
 import useSubtitles from '../hooks/useSubtitles.hook';
 
-export default ({route}) => {
-  const navigation = useNavigation();
+export default ({route, navigation}) => {
   const client = useRemoteMediaClient();
   const {mediaId, episodeId} = route.params;
   const {address} = useContext(globalContext);
 
-  const {item, episode, resume, updateContinue} = usePlayer({
-    mediaId,
-    episodeId,
-  });
+  const {item, episode, resume, updateContinue, videoUrl, available} =
+    usePlayer({
+      mediaId,
+      episodeId,
+    });
   const {subtitles, setLanguage, langDict, setImdbId, setParentImdbId} =
     useSubtitles();
   const [subModal, setSubModal] = useState(false);
+
   // Video States/Refs
   const [videoRef, setVideoRef] = useState(null);
   const [paused, setPaused] = useState(false);
@@ -106,9 +110,7 @@ export default ({route}) => {
         playbackRate: 1,
         startTime: currentTime,
         mediaInfo: {
-          contentUrl: `${address}/player/video?mediaId=${mediaId}&type=${
-            item.TYPE
-          }&episodeId=${episode ? episode.EPISODE_ID : -1}`,
+          contentUrl: videoUrl,
           contentType: 'video/mp4',
           metadata:
             item.TYPE === 1
@@ -154,11 +156,11 @@ export default ({route}) => {
   }, [currentTime]);
 
   useEffect(() => {
-    if (client && item && (item.TYPE === 1 || episode)) {
+    if (client && videoUrl) {
       setOverlay(true);
       castVideo();
     }
-  }, [client, item, episode]);
+  }, [client, videoUrl]);
 
   useEffect(() => {
     if (resume) {
@@ -166,11 +168,20 @@ export default ({route}) => {
     }
   }, [resume]);
 
-  if (!item || (item.TYPE === 2 && !episode) || resume === null) {
+  if (available === null) {
+    return <LoadingScreen />;
+  }
+
+  if (available === false) {
     return (
-      <>
-        <LoadingScreen />
-      </>
+      <ImageBackground style={styles.unavailable} source={{uri: "https://cdn.vox-cdn.com/thumbor/DJhS12dS2ZgM9DqXrqBzmC_xJW4=/0x340:2040x1360/fit-in/1200x600/cdn.vox-cdn.com/uploads/chorus_asset/file/19299843/IMG_6C0791D334EA_1.jpeg"}}>
+        <View style={styles.unavailableView}>
+          <Text style={styles.unavailableText}>
+            Whoops, this video isn't available. Check that the needed drives are
+            connected to the server.
+          </Text>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -187,7 +198,7 @@ export default ({route}) => {
             style={{flex: 1}}
             repeat={true}
             source={{
-              uri: `${address}/player/video?mediaId=${mediaId}&type=${item.TYPE}&episodeId=${episode?.EPISODE_ID}`,
+              uri: videoUrl,
             }}
             rate={rate}
             paused={paused}
@@ -352,6 +363,22 @@ export default ({route}) => {
 };
 
 const styles = StyleSheet.create({
+  unavailable: {
+    flex: 1,
+  }, 
+  unavailableView: {
+    padding: 100,
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  unavailableText: {
+    color: "white",
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
   video: {
     position: 'absolute',
     top: 0,

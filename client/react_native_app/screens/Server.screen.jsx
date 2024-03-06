@@ -4,29 +4,24 @@ import {
   Text,
   StatusBar,
   ScrollView,
-  Touchable,
   TouchableOpacity,
 } from 'react-native';
 
 // Hooks
 import useServer from '../hooks/useServer.hook';
-import {useEffect} from 'react';
 
 export default () => {
   const {active, action, progress, logs, update} = useServer();
-  useEffect(() => {
-    console.log(progress + '%');
-  }, [progress]);
   return (
     <ScrollView contentContainerStyle={[styles.container,{paddingTop: StatusBar.currentHeight + 80}]}>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={styles.action}>{action || "No Active Actions"}</Text>
+      <Text numberOfLines={1} style={styles.action}>{action || "No Active Actions"}</Text>
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, {width: (progress || 0) + '%'}]} />
       </View>
       <View style={styles.terminal}>
         <ScrollView contentContainerStyle={styles.terminalScroll}>
-          {logs?.map(i => (
-            <Text style={styles.log}>{i}</Text>
+          {logs?.map((value, index) => (
+            <Text key={"Terminal_Text_"+index} style={styles.log}>{value}</Text>
           ))}
         </ScrollView>
       </View>

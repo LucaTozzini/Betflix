@@ -171,8 +171,8 @@ router.get("/person/directed", async (req, res) => {
 // User
 router.post("user/watched", async (req, res) => {
   try {
-    const { userId, userPin, limit } = req.body;
-    const auth = await authenticateUser(userId, userPin);
+    const { userId, limit } = req.body;
+    const auth = await authenticateUser(userId);
     if (!auth) return res.sendStatus(401);
     const data = await watchAgain(userId, limit);
     res.json(data);

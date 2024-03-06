@@ -1,98 +1,84 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useRef} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Zeroconf from 'react-native-zeroconf'
+import Zeroconf from 'react-native-zeroconf';
 
 const ENDPOINT = 'ciao';
 const PORT = 2000;
 
 export default () => {
-  const [address, setAddress] = useState(null);
   const zeroconf = new Zeroconf();
-  
+  const [address, setAddress] = useState(null);
+  const addressRef = useRef(null);
+  useEffect(() => {
+    addressRef.current = address;
+  }, [address]);
+
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+
   const handleFound = address => {
-    console.log("FOUND:", address);
     setAddress(address);
+    AsyncStorage.setItem('address', address);
     zeroconf.stop();
-  }
+  };
 
-  const testAddress = address => new Promise(async (res, rej) => {
+  const testAddress = async address => {
     try {
-      console.log("TEST:", address);
-      const response = await fetch(address+"/ciao");
+      const timeout = 5000;
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      const response = await fetch(`${address}/${ENDPOINT}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(id);
       const text = await response.text();
-      res(text === "yellow");
-    } catch(err) {
-      rej(err);
-    }
-  });
-
-  const handleResolved = async ({name, addresses, port}) => {
-    try {
-      const address = addresses.find(i => i.startsWith("192.168"));
-      if(name === "Betflix Server" && address && port) {
-        const fullAddress = `http://${address}:${port}`;
-        const valid = await testAddress(fullAddress);
-        if(valid) {
-          handleFound(fullAddress);
-        }
+      if (text === 'yellow') {
+        handleFound(address);
       }
-    } catch(err) {
-      console.error(err.message);
-    }
-  }
+    } catch (err) {}
+  };
 
-  const scanServices = () => {
-    zeroconf.scan(type = 'http', protocol = 'tcp', domain = 'local.');
-    zeroconf.on("found", service => console.log(service));
-    zeroconf.on("resolved", handleResolved);
-  }
-
-  const search = async () => {
-    let kill = false;
-    for (let i = 0; i < 256; i++) {
-      if (kill) {
-        break;
-      }
-      for (let x = 0; x < 256; x++) {
-        if (kill) {
-          break;
-        }
-        const a = `http://192.168.${i}.${x}:${PORT}`;
-        fetch(`${a}/${ENDPOINT}`)
-          .then(async res => {
-            const text = await res.text();
-            if (text === 'yellow') {
-              setAddress(a);
-              AsyncStorage.setItem('address', a);
-              kill = true;
-            }
-          })
-          .catch(err => {
-            console.error(err.message);
-          });
-        await new Promise(res => setTimeout(res, 100));
-      }
+  const handleResolved = ({name, addresses, port}) => {
+    const address = addresses.find(i => i.startsWith('192.168'));
+    if (name === 'Betflix Server' && address && port) {
+      const fullAddress = `http://${address}:${port}`;
+      testAddress(fullAddress);
     }
   };
 
-  const init = async () => {
-    const value = await AsyncStorage.getItem('address');
-    try {
-      const response = await fetch(value+"/"+ENDPOINT);
-      const text = await response.text();
-      if(text === "yellow") {
-        setAddress(value);
-        return;
+  const scanServices = () => {
+    zeroconf.scan((type = 'http'), (protocol = 'tcp'), (domain = 'local.'));
+    zeroconf.on('resolved', handleResolved);
+  };
+
+  const bruteForce = async () => {
+    for (let j = 0; j <= 255; j++) {
+      for (let k = 0; k <= 255; k++) {
+        if (addressRef.current) {
+          return;
+        }
+        const ip = `http://192.168.${j}.${k}:${PORT}`;
+        testAddress(ip);
+        await sleep(20);
       }
-    } catch(err) {
-      console.log(err)
     }
-    search();
-  }
+    if (addressRef.current === null) {
+      setAddress(-1);
+    }
+  };
+
+  const startUp = async () => {
+    const lastKnown = await AsyncStorage.getItem('address');
+    if (lastKnown) {
+      testAddress(lastKnown);
+      await sleep(500);
+    }
+    scanServices();
+    await sleep(3000);
+    bruteForce();
+  };
 
   useEffect(() => {
-    // init();
-    scanServices();
+    startUp();
   }, []);
 
   return address;

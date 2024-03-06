@@ -1,3 +1,4 @@
+// React
 import {
   ImageBackground,
   StyleSheet,
@@ -7,32 +8,32 @@ import {
   Image,
   Text,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 
-// Icons
-import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 
+const PAD_TOP = 100;
+
 export default ({margin, item}) => {
-  const navigation = useNavigation();
   const {width} = useWindowDimensions();
+  const navigation = useNavigation();
   const background = item.POSTER_NT_L || item.BACKDROP_L;
   if (background) {
     return (
       <ImageBackground
         source={{uri: background}}
-        style={[styles.container, {width, height: width * 1.4}]}>
+        style={[styles.container, {width, height: (width * 1.4) + PAD_TOP}]}>
         <LinearGradient
-          locations={[0.0, 1]}
+          locations={[0.9, 1]}
           colors={['transparent', 'black']}
           style={styles.gradient}>
           <TouchableOpacity
             style={{flex: 1}}
             activeOpacity={0.8}
-            onPress={() => navigation.push('media', {mediaId: item.MEDIA_ID})}>
+            onPress={() => navigation.push('item', {mediaId: item.MEDIA_ID})}>
             <LinearGradient
-              locations={[0.3, 1]}
-              colors={['transparent', '#ffffff33']}
+              locations={[0.7, 1]}
+              colors={['transparent', '#0000004d']}
               style={[
                 styles.overlay,
                 {
@@ -70,6 +71,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+    paddingTop: PAD_TOP
   },
   overlay: {
     flex: 1,

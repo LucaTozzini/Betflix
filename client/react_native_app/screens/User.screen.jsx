@@ -9,7 +9,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // Icons
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -17,13 +16,11 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // Contexts
 import { globalContext } from '../App';
 
-export default ({route}) => {
-  const {userName, userImage, admin, logout, deleteUser} = useContext(globalContext);
+export default ({}) => {
+  const {userName, userImage, logout, deleteUser} = useContext(globalContext);
   const [deleteModal, setDeleteModal] = useState(false);
   const [nameModal, setNameModal] = useState(false);
   const [imageModal, setImageModal] = useState(false);
-
-  const navigation = useNavigation();
 
   const styles = StyleSheet.create({
     container: {

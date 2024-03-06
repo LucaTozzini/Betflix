@@ -11,7 +11,7 @@ const itemSize = 30;
 
 const color = '#212121';
 export default ({show}) => {
-  const {route} = useContext(globalContext);
+  const {routeName} = useContext(globalContext);
   const navigation = useNavigation();
   const [selected, setSelected] = useState(0);
 
@@ -25,10 +25,10 @@ export default ({show}) => {
   }, []);
 
   useEffect(() => {
-    if(route === "torrents") {
+    if(routeName === "torrents") {
       setSelected(2);
     }
-  }, [route]);
+  }, [routeName]);
 
   const Tab = ({routeName, iconName, iconNameSelected, index, imageUri}) => (
     <TouchableOpacity

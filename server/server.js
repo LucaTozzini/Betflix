@@ -29,8 +29,10 @@ app.use("/torrents", torrents_router);
 app.use("/user", user_routes);
 app.use("/user/watchlist", watchlist_routes);
 
-//
-app.get("/ciao", (req, res) => res.send("yellow"));
+// 
+app.get("/ciao", (req, res) => {
+  res.send("yellow");
+});
 
 // Start Server
 app.listen(PORT, () => {

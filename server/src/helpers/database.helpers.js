@@ -389,10 +389,7 @@ const createTables = () =>
         `CREATE TABLE IF NOT EXISTS users_main (
             USER_ID TEXT PRIMARY KEY, 
             USER_NAME TEXT NOT NULL,
-            USER_IMAGE TEXT,
-            CHILD INT NOT NULL,
-            ADMIN INT NOT NULL,
-            USER_PIN INT 
+            USER_IMAGE TEXT
         )`,
         (err) => (err ? console.error("User List", err.message) : res())
       )
@@ -517,7 +514,9 @@ const updateShows = () =>
           if (showObj === -1) {
             continue;
           }
-          publicManager.status.setAction(`Insert Show - ${showObj.title} [${showObj.year}]`);
+          publicManager.status.setAction(
+            `Insert Show - ${showObj.title} [${showObj.year}]`
+          );
           const data = await fetchShow(showObj);
           await insertShow(data);
         } catch (err) {
@@ -544,7 +543,9 @@ const updateMovies = () =>
       for (const fileObject of movieFiles) {
         i++;
         publicManager.status.PROGRESS = (100 / movieFiles.length) * i;
-        publicManager.status.setAction(`Insert Movies - ${fileObject.title} [${fileObject.year}]`);
+        publicManager.status.setAction(
+          `Insert Movies - ${fileObject.title} [${fileObject.year}]`
+        );
 
         try {
           const data = await fetchItem(1, fileObject);
@@ -732,38 +733,6 @@ const cleanMedia = () =>
     }
   });
 
-const addDrive = (path, type) =>
-  new Promise((res, rej) =>
-    db.run(
-      `INSERT INTO drives (path, type) VALUES (?,?)`,
-      [path, type],
-      (err) => (err ? rej(err) : res())
-    )
-  );
-
-const remDrive = (path) =>
-  new Promise((res, rej) =>
-    db.run(
-      `DELETE FROM drives
-      WHERE path = ?`,
-      [path],
-      (err) => (err ? rej(err) : res())
-    )
-  );
-
-const drivesStatus = () =>
-  new Promise(async (res, rej) => {
-    try {
-      const drives = await queryDrives();
-      for (const drive of drives) {
-        drive["ONLINE"] = fs.existsSync(drive.DRIVE_PATH);
-      }
-      res(drives);
-    } catch (err) {
-      rej(err);
-    }
-  });
-
 // Torrents Mainatenance
 const getTorrents = () =>
   new Promise((res, rej) =>
@@ -796,7 +765,7 @@ const publicManager = {
     LOGS: [],
     setAction: (action) => {
       const logs = publicManager.status.LOGS;
-      if(logs.length == 100) {
+      if (logs.length == 100) {
         logs.shift();
       }
       logs.push(action);
@@ -818,11 +787,6 @@ export {
   transaction,
   publicManager,
   continuePrep,
-
-  // Drives
-  drivesStatus,
-  addDrive,
-  remDrive,
 
   // Torrents
   getTorrents,

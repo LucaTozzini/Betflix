@@ -10,27 +10,24 @@ import {
   ScrollView,
 } from 'react-native';
 
-
 // Hooks
-import {useNavigation} from '@react-navigation/native';
 import useTorrents from '../hooks/useTorrents.hook';
 
 export default ({items, header, width, gap, margin}) => {
-  const navigation = useNavigation();
   const {addTorrent} = useTorrents();
   const [modal, setModal] = useState(false);
   const [title, setTitle] = useState(null);
   const [year, setYear] = useState(null);
   const [torrents, setTorrents] = useState([]);
 
-  
-
   const Torrent = ({peers, seeds, quality, size, hash}) => {
     const magnetURI = `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(
       title,
     )}&tr=http://track.one:1234/announce&tr=udp://track.two:80`;
     return (
-      <TouchableOpacity style={styles.torrent} onPress={() => addTorrent(magnetURI)}>
+      <TouchableOpacity
+        style={styles.torrent}
+        onPress={() => addTorrent(magnetURI)}>
         <Text style={styles.torrentText}>{seeds} seeds</Text>
         <Text style={styles.torrentText}>{peers} peers</Text>
         <Text style={styles.torrentText}>{quality}</Text>
@@ -57,15 +54,12 @@ export default ({items, header, width, gap, margin}) => {
             {width, height: width * 1.6, borderRadius: width * 0.05},
           ]}
         />
-        <Text numberOfLines={1} style={[styles.title, {maxWidth: width * 0.9}]}>
-          {title}
-        </Text>
       </TouchableOpacity>
     );
   };
 
-  if (items.length === 0) {
-    return;
+  if (!items || !items.length) {
+    return null;
   }
 
   return (
@@ -105,8 +99,9 @@ export default ({items, header, width, gap, margin}) => {
             </Text>
           </View>
           <View style={styles.torrents}>
-            {torrents.map(item => (
+            {torrents.map((item, index) => (
               <Torrent
+                key={"Torrent_"+index}
                 peers={item.peers}
                 seeds={item.seeds}
                 quality={item.quality}
