@@ -1,96 +1,79 @@
 import fs from "fs";
 import path from "path";
-import { moveFile } from "move-file";
+import dotenv from "dotenv";
 import webtorrent from "webtorrent";
-import env from "../../env.js";
-const { torrents_downloading_path } = env;
-import { validExt, validSubExt } from "./filesUtil.helpers.js";
-import { publicManager } from "./database.helpers.js";
-import { getTorrents, addTorrent, remTorrent } from "./database.helpers.js";
+import { moveFile } from "move-file";
+import { query_torrents } from "./db_queries.helper.js";
+import { insert_torrent } from "./db_inserts.helper.js";
+import { delete_torrent } from "./db_deletes.helper.js";
+import { validExt, validSubExt } from "./files_util.helpers.js";
+dotenv.config();
 
-// Helpers
-const client = new webtorrent();
-
-client.on("torrent", (torrent) => {
-  addTorrent(torrent.magnetURI).catch(() => {});
-  torrent.on("done", async () => {
-    for (const file of torrent.files) {
-      const thisPath = path.join(env.torrents_downloading_path, file.path);
-      if (validExt(file.path) || validSubExt(file.path)) {
-        const targetPath = path.join(env.moviesPath, file.path);
-        await moveFile(thisPath, targetPath);
-      }
-      await new Promise((res) => fs.unlink(thisPath, res));
-    }
-    remMagnet(torrent.magnetURI);
-    try {
-      if (!publicManager.status.ACTIVE) {
-        await publicManager.run(1);
-        await publicManager.run(2);
-      }
-    } catch (err) {
-      console.error(err.message);
-    }
-  });
-  torrent.on("error", (err) => {
-    console.error("torrent error:", err.message);
-    remTorrent(torrent.magnetURI).catch((err) => console.error(err.message));
-  });
-});
-
-client.on("error", (err) => {
-  console.error(err.message);
-});
-
-// Exports
-const addMagnet = async (magnetURI) => {
+const handleDone = async (torrent) => {
   try {
-    console.log(fs.existsSync(torrents_downloading_path))
-    if (!fs.existsSync(torrents_downloading_path)) {
-      throw new Error(
-        "addMagnet Error: torrents_downloading_path does not exist"
-      );
+    const t_root = process.env.TORR_ACTIVE_PATH;
+    const m_root = process.env.MOVIES_PATH;
+    if (!fs.existsSync(m_root)) throw new Error("Movies Folder Unavailable");
+    for (const { path: rel } of torrent.files) {
+      console.log("on:",rel);
+      if (!validExt(rel) && !validSubExt(rel)) continue; // skip unwanted files
+      const cur = path.join(t_root, rel); // current path of file
+      const tar = path.join(m_root, rel); // want to move here
+      await moveFile(cur, tar);
     }
-    if (!(await client.get(magnetURI))) {
-      client.add(magnetURI, { path: torrents_downloading_path });
-    } else {
-    }
+    await rem_magnet(torrent);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const destroy_torrent = (torrent) =>
+  new Promise((res, rej) => torrent.destroy((err) => (err ? rej(err) : res())));
+
+const client = new webtorrent();
+client.on("error", (err) => console.error(err.message));
+client.on("torrent", (torrent) => {
+  insert_torrent(torrent.magnetURI);
+  torrent.on("done", () => handleDone(torrent));
+  torrent.on("error", (err) => console.error(err.message));
+});
+
+export const add_magnet = async (torrentURL) => {
+  try {
+    const root = process.env.TORR_ACTIVE_PATH;
+    if (!fs.existsSync(root)) throw new Error("TORR_ACTIVE_PATH unavailable");
+    client.add(torrentURL, { path: root });
   } catch (err) {
     console.error(err.message);
   }
 };
 
-const remMagnet = (magnetURI) =>
-  new Promise(async (res, rej) => {
-    try {
-      const torrent = await client.get(magnetURI);
-      await new Promise((res, rej) => torrent.destroy(res));
-      await remTorrent(magnetURI);
-      res();
-    } catch (err) {
-      rej(err);
-    }
-  });
-
-const activeTorrents = () => {
-  const data = [];
-  for (const {
-    name,
-    progress,
-    timeRemaining,
-    magnetURI,
-    paused,
-  } of client.torrents) {
-    data.push({ name, progress, timeRemaining, magnetURI, paused });
+export const rem_magnet = async (torrent) => {
+  try {
+    await destroy_torrent(torrent);
+    await delete_torrent(torrent.magnetURI);
+  } catch (err) {
+    console.log(err);
   }
-  return data;
 };
 
-const addFromDB = async () => {
-  const torrents = await getTorrents();
+export const active_torrents = () =>
+  client.torrents.map(
+    ({ downloaded, downloadSpeed, numPeers, name, paused, progress, magnetURI, timeRemaining }) => ({
+      downloaded,
+      downloadSpeed,
+      numPeers,
+      name,
+      paused,
+      progress,
+      magnetURI,
+      timeRemaining,
+    })
+  );
+
+export const from_db = async () => {
+  const torrents = await query_torrents();
   for (const torrent of torrents) {
-    addMagnet(torrent.uri);
+    await add_magnet(torrent.uri);
   }
 };
-
-export { addMagnet, remMagnet, activeTorrents, addFromDB };

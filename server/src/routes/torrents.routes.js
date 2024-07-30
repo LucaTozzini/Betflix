@@ -1,59 +1,35 @@
 import express from "express";
 import {
-  addMagnet,
-  remMagnet,
-  activeTorrents,
-  addFromDB,
+  add_magnet,
+  rem_magnet,
+  from_db,
+  active_torrents,
 } from "../helpers/torrents.helpers.js";
 
 const router = express.Router();
 
-router.post("/add", (req, res) => {
-  try {
-    const { magnetURI } = req.body;
-    if (!magnetURI) {
-      return res.sendStatus(400);
-    }
-    addMagnet(magnetURI);
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
+router.get("/", (req, res) => {
+  const data = active_torrents();
+  res.json(data);
 });
 
-router.delete("/rem", async (req, res) => {
-  try {
-    const { magnetURI } = req.body;
-    if (!magnetURI) {
-      return res.sendStatus(400);
-    }
-    await remMagnet(magnetURI);
-    res.sendStatus(200);
-  } catch(err) {
-    console.log(err.message);
-    res.sendStatus(500);
-  }
-})
-
-router.post("/addDB", (req, res) => {
-  try {
-    addFromDB();
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
+router.post("/", async (req, res) => {
+  const uri = req.body?.uri;
+  if (!uri) return res.sendStatus(400);
+  await add_magnet(uri);
+  res.sendStatus(201);
 });
 
-router.get("/active", (req, res) => {
-  try {
-    const data = activeTorrents();
-    res.json(data);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
+router.delete("/", async (req, res) => {
+  const { uri } = req.body;
+  if (!uri) return res.sendStatus(400);
+  await rem_magnet(uri);
+  res.sendStatus(200);
+});
+
+router.post("/db", async (req, res) => {
+  await from_db();
+  res.sendStatus(201);
 });
 
 export default router;

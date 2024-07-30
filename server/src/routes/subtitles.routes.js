@@ -1,129 +1,50 @@
 import express from "express";
-import env from "../../env.js";
-import fs from "fs";
 import {
-  queryMedia,
-  queryMediaPath,
-  queryEpisode,
-  querySubtitlePath,
-  availableSubtitles,
-} from "../helpers/queries.helpers.js";
-import {
-  findMovieSubs,
-  findEpisodeSubs,
-} from "../helpers/filesUtil.helpers.js";
-import {
-  searchSubtitles,
-  downloadSubtitle,
-  quickDowload,
-} from "../helpers/subtitles.js";
-
+  fetch_subtitles,
+  download_subtitle,
+} from "../helpers/opensubtitles.helper.js";
+import { query_subtitle } from "../helpers/db_queries.helper.js";
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  try {
-    if (!fs.existsSync(env.subtitlesPath)) {
-      return res.status(503).json({
-        error: "Subtitles path not found, make sure needed drive is mounted",
-      });
-    }
-    const { imdbId, parentImdbId, language, extension } = req.query;
-    if (!imdbId) {
-      return res.sendStatus(400);
-    }
-    let path = await querySubtitlePath(
-      imdbId,
-      language || "en",
-      extension || "vtt"
-    );
-
-    if (!path) {
-      const files = await quickDowload({imdbId, parentImdbId, language});
-      path = extension == "vtt" ? files.vtt : files.srt;
-    }
-    if (!path) {
-      return res.sendStatus(404);
-    }
-    res.sendFile(path);
-  } catch (err) {
-    console.log(err.message);
-    if (err.cause == "no results") {
-      return res.sendStatus(404);
-    }
-    res.sendStatus(500);
-  }
-});
-
-router.get("/available", async (req, res) => {
-  try {
-    const { imdbId } = req.query;
-    if (!imdbId) {
-      return res.sendStatus(400);
-    }
-    const data = await availableSubtitles(imdbId);
-    res.json(data);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
-});
-
 router.get("/search", async (req, res) => {
-  try {
-    const { imdbId, parentImdbId, language } = req.query;
-
-    if (!language || !imdbId) {
-      return res.sendStatus(400);
-    }
-    const data = await searchSubtitles({imdbId, parentImdbId, language});
-    res.json(data);
-  } catch (err) {
-    if (err.cause == "no results") {
-      return res.sendStatus(404);
-    }
-    res.sendStatus(500);
+  const { title_id, episode_id, language } = req.query;
+  if (!title_id || !language) {
+    return res.sendStatus(400);
   }
+  const subtitles = await fetch_subtitles({ title_id, episode_id, language });
+  res.json(subtitles);
 });
 
-router.get("/download", async (req, res) => {
-  try {
-    const { imdbId, language, fileId, extension } = req.query;
-
-    if (!fileId || !imdbId || !language || !extension) {
-      return res.sendStatus(400);
-    }
-    const data = await downloadSubtitle(imdbId, language, fileId);
-    res.sendFile(extension == "vtt" ? data.vtt : data.srt);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
+router.get("/", async (req, res) => {
+  const {title_id, episode_id, language, ext} = req.query;
+  if(!title_id || !episode_id || !language || !ext) {
+    return res.sendStatus(400);
   }
-});
-
-router.get("/local", async (req, res) => {
-  try {
-    const { mediaId, episodeId } = req.query;
-    if (!mediaId) {
-      return res.sendStatus(400);
-    }
-    const { TYPE } = await queryMedia(mediaId);
-    if (TYPE == 2 && isNaN(parseInt(episodeId))) {
-      return res.sendStatus(400);
-    }
-    let path = await queryMediaPath(mediaId);
-    let data;
-    if (TYPE == 1) {
-      path = path.replace(/[\/\\][^\/\\]*$/i, "");
-      data = await findMovieSubs(path, true);
-    } else {
-      const { SEASON_NUM, EPISODE_NUM } = await queryEpisode(episodeId);
-      data = await findEpisodeSubs(path, SEASON_NUM, EPISODE_NUM);
-    }
-    res.json(data);
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
+  const query = await query_subtitle(title_id, episode_id, language, ext);
+  if(!query) {
+    return res.sendStatus(404);
   }
+  const {path} = query;
+  
+  res.sendFile(path);
+})
+
+router.put("/", async (req, res) => {
+  const { title_id, language, file_id } = req.query;
+  const episode_id = parseInt(req.query.episode_id);
+  if (!title_id || !episode_id || !language || !file_id) {
+    return res.sendStatus(400);
+  }
+  const download = await download_subtitle({
+    title_id,
+    episode_id,
+    language,
+    file_id,
+  });
+  if (!download) {
+    return res.sendStatus(503);
+  }
+  res.sendStatus(201);
 });
 
 export default router;

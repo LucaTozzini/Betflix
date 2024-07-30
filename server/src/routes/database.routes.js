@@ -1,61 +1,23 @@
 import express from "express";
-import {
-  publicManager,
-} from "../helpers/database.helpers.js";
-
+import expressWs from "express-ws";
+import { status_socket } from "../helpers/web_sockets.helpers.js";
+import db_manager, { STATUS } from "../helpers/db_manager.helper.js";
 const router = express.Router();
+// expressWs(router);
 
-router.get("/status", (req, res) => {
-  try {
-    const {ACTION, ACTIVE, LOGS, PROGRESS} = publicManager.status;
-    res.json({ACTION, ACTIVE, LOGS, PROGRESS});
-  } catch (err) {
-    console.error(err.message);
-    res.sendStatus(500);
-  }
+router.get("/task/status", (req, res) => {
+  res.json(STATUS);
 });
 
-router.post("/update/:item", async (req, res) => {
-  try {
-    const { item } = req.params;
-    const { mediaId, large, small } = req.body;
+// router.ws("/task/status", (ws, req) => {
+//   status_socket.sub(ws);
+//   ws.send(JSON.stringify(STATUS));
+//   ws.on("close", () => status_socket.unsub(ws));
+// });
 
-    if (item == "poster") {
-      await publicManager.images.setPoster(mediaId, large, small);
-    } else if (item == "poster-nt") {
-      await publicManager.images.setPosterNt(mediaId, large, small);
-    } else if (item == "poster-w") {
-      await publicManager.images.setPosterWide(mediaId, large, small);
-    } else if (item == "backdrop") {
-      await publicManager.images.setBackdrop(mediaId, large, small);
-    } else if (item == "logo") {
-      await publicManager.images.setLogo(mediaId, large, small);
-    } else if (item == "movies") {
-      publicManager.run(1);
-    } else if (item == "shows") {
-      publicManager.run(2);
-    } else if (item == "people") {
-      publicManager.run(3);
-    }
-
-    res.sendStatus(200);
-  } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
-  }
-});
-
-router.post("/maintenance/:action", async (req, res) => {
-  try {
-    const { action } = req.params;
-    if (action == "clean") {
-      publicManager.run(4);
-    }
-    res.sendStatus(200);
-  } catch (err) {
-    console.log(err.message);
-    res.sendStatus(500);
-  }
+router.post("/task/:task_number", async (req, res) => {
+  const success = await db_manager(parseInt(req.params.task_number));
+  res.json({ success });
 });
 
 export default router;
