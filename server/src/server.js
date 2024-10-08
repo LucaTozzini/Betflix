@@ -1,7 +1,8 @@
 import cors from "cors";
-import bonjour from "bonjour";
 import express from "express";
 import expressWs from "express-ws";
+import { Bonjour } from "bonjour-service";
+const bonjour = new Bonjour();
 
 import users_router from "./routes/users.routes.js";
 import titles_router from "./routes/titles.routes.js";
@@ -52,12 +53,10 @@ app.get("/ciao", handleCiao);
 
 app.listen(PORT, "0.0.0.0", handleListen);
 
-const service = bonjour().publish({
-  name: "Betflix Server",
+const service = bonjour.publish({
+  name: "Betflix_Server",
   port: PORT,
   type: "http",
   protocol: "tcp",
 });
-
-service.on("up", () => console.log("Service is up"));
-service.on("error", (err) => console.error("Service error", err.message));
+service.on("up", () => console.log("Bonjour service is up"));

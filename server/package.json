@@ -18,7 +18,7 @@
     "async": "^3.2.4",
     "balanced-match": "^1.0.2",
     "body-parser": "^1.20.0",
-    "bonjour": "^3.5.0",
+    "bonjour-service": "^1.2.1",
     "brace-expansion": "^1.1.11",
     "bytes": "^3.1.2",
     "cacache": "^15.3.0",

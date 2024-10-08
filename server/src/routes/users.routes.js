@@ -45,8 +45,6 @@ router.put("/user/image", async (req, res) => {
   res.sendStatus(200);
 })
 
-
-
 router.get("/user/:user_id", async (req, res) => {
   const user = await query_user(req.params.user_id);
   if (!user) {
