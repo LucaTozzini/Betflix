@@ -21,7 +21,7 @@ import {
   insert_directors,
   insert_episodes,
 } from "./db_inserts.helper.js";
-import { STATUS } from "./db_manager.helper.js";
+import { STATUS, updateStatus } from "./db_manager.helper.js";
 
 const genreMap = {
   // movie
@@ -319,8 +319,9 @@ async function update_show(show) {
 export async function update_movies() {
   const files = await scan_movies();
   for (const [index, file] of files.entries()) {
-    STATUS.ACTIVE_TASK = `updating movies ==> ${file.title} (${file.year})`;
-    STATUS.TASK_PROGRESS = index / files.length;
+    const task = `updating movies ==> ${file.title} (${file.year})`;
+    const task_progress = index / files.length;
+    updateStatus(task, STATUS.ACTIVE_SUBTASK, task_progress, STATUS.SUBTASK_PROGRESS)
     await update_movie(file);
   }
 }
@@ -329,8 +330,9 @@ export async function update_shows() {
   const folders = await show_folders();
   for (const [index, folder_path] of folders.entries()) {
     const show = await scan_show(folder_path);
-    STATUS.ACTIVE_TASK = `updating shows ==> ${show.title} (${show.year})`
-    STATUS.TASK_PROGRESS = index / folders.length;
+    const task = `updating shows ==> ${show.title} (${show.year})`
+    const task_progress = index / folders.length;
+    updateStatus(task, STATUS.ACTIVE_SUBTASK, task_progress, STATUS.SUBTASK_PROGRESS)
     await update_show(show);
   }
 }

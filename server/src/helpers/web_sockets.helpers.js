@@ -1,16 +1,29 @@
-export const status_socket = {
-  clients: new Set(),
-  sub: function (client) {
-    this.clients.add(client);
+const socketObject = {
+  clients: {},
+  /**
+   * @param {number} id
+   * @param {} client
+   */
+  subSocket: function (id, client) {
+    console.log("Subbing:", client)
+    this.clients[id] = client;
   },
-  unsub: function (client) {
-    this.clients.delete(client);
+  /**
+   * @param {WebSocket} client
+   */
+  unsubSocket: function (client) {
+    delete this.clients[client];
   },
   notify: function (data) {
-    for (const client of this.clients) {
-      if (client.readyState === 1) {
-        client.send(data);
-      }
+    const clients = Object.values(this.clients)
+    console.log("Notify!", data);
+    console.log("fellas:", clients);
+    for (const client of clients) {
+      // if (client.readyState === 1) {
+      //   client.send(data);
+      // }
     }
   },
 };
+
+export const status_socket = Object.create(socketObject);

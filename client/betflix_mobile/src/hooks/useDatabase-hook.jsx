@@ -1,27 +1,41 @@
 import {useContext, useState} from 'react';
-import { addressContext } from '../../App';
+import {addressContext} from '../../App';
+let WS = null;
 
 export default function useDatabase() {
   const SERVER_ADDRESS = useContext(addressContext);
   const [status, setStatus] = useState(null);
 
-  async function statusSocket() {
-    const ws = new WebSocket("ws://"+SERVER_ADDRESS+"/database/task/status");
-    ws.onmessage = e => {
-      setStatus(e.data);
+  function openSocket() {
+    if (!WS) {
+      WS = new WebSocket('ws://' + SERVER_ADDRESS + '/database/task/status');
+      WS.onmessage = e => {
+        setStatus(e.data);
+      };
+      WS.onclose = () => {
+        WS = null
+      }
     }
-  } 
+  }
+
+  function closeSocket() {
+    if (WS) {
+      WS.close(1000);
+    }
+  }
 
   async function postTask(task) {
     try {
-      const response = await fetch(`http://${SERVER_ADDRESS}/database/task/${task}`, {
-        method: 'POST',
-      });
+      const response = await fetch(
+        `http://${SERVER_ADDRESS}/database/task/${task}`,
+        {
+          method: 'POST',
+        },
+      );
       console.log(response.status);
-    } catch(err) {
+    } catch (err) {
       console.error(err.message);
     }
-    
   }
 
   async function torAddFromDb() {
@@ -30,11 +44,10 @@ export default function useDatabase() {
         method: 'POST',
       });
       return response.ok;
-    } catch(err) {
+    } catch (err) {
       console.error(err.message);
     }
   }
 
-
-  return {status, postTask, torAddFromDb, statusSocket};
+  return {status, postTask, torAddFromDb, openSocket, closeSocket};
 }

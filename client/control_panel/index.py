@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("My App")
+        self.setWindowTitle("Control Panel | Betflix")
         self.setMinimumSize(QSize(300, 300))
         
         self.layout = QVBoxLayout()

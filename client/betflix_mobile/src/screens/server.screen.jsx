@@ -12,7 +12,10 @@ import {globalContext} from '../../App';
 
 export default function ServerScreen() {
   const database = useDatabase();
-  database.statusSocket();
+  useEffect(() => {
+    database.openSocket();
+    return () => database.closeSocket()
+  })
 
   const Actions = () => {
     return (
@@ -76,65 +79,65 @@ export default function ServerScreen() {
     );
   };
 
-  const Torrents = () => {
-    const {useTorrents} = useContext(globalContext);
-    const t_poll = useRef(true);
-    useEffect(() => {
-      poll();
-      return () => (t_poll.current = false);
-    }, []);
+  // const Torrents = () => {
+  //   const {useTorrents} = useContext(globalContext);
+  //   const t_poll = useRef(true);
+  //   useEffect(() => {
+  //     poll();
+  //     return () => (t_poll.current = false);
+  //   }, []);
 
-    async function poll() {
-      while (t_poll.current) {
-        await useTorrents.fetchActive();
-        await new Promise(res => setTimeout(res, 1000));
-      }
-    }
+  //   async function poll() {
+  //     while (t_poll.current) {
+  //       await useTorrents.fetchActive();
+  //       await new Promise(res => setTimeout(res, 1000));
+  //     }
+  //   }
 
-    const Item = ({name, progress, time}) => {
-      const ms_to_string = ms => {
-        const h = Math.floor(ms / 3_600_000);
-        ms = ms % 3600000;
-        const m = Math.floor(ms / 60_000);
-        ms = ms % 60_000;
-        const s = Math.floor(ms / 1_000);
-        return `${h}h ${('0' + m).slice(-2)}m ${('0' + s).slice(-2)}s`;
-      };
-      return (
-        <TouchableOpacity style={styles.torrents.item}>
-          <Text style={styles.torrents.text}>{name}</Text>
-          <Text style={styles.torrents.text}>{ms_to_string(time)}</Text>
-          <View style={styles.torrents.progress}>
-            <View
-              style={[
-                styles.torrents.progressFill,
-                {width: progress * 100 + '%'},
-              ]}
-            />
-          </View>
-        </TouchableOpacity>
-      );
-    };
+  //   const Item = ({name, progress, time}) => {
+  //     const ms_to_string = ms => {
+  //       const h = Math.floor(ms / 3_600_000);
+  //       ms = ms % 3600000;
+  //       const m = Math.floor(ms / 60_000);
+  //       ms = ms % 60_000;
+  //       const s = Math.floor(ms / 1_000);
+  //       return `${h}h ${('0' + m).slice(-2)}m ${('0' + s).slice(-2)}s`;
+  //     };
+  //     return (
+  //       <TouchableOpacity style={styles.torrents.item}>
+  //         <Text style={styles.torrents.text}>{name}</Text>
+  //         <Text style={styles.torrents.text}>{ms_to_string(time)}</Text>
+  //         <View style={styles.torrents.progress}>
+  //           <View
+  //             style={[
+  //               styles.torrents.progressFill,
+  //               {width: progress * 100 + '%'},
+  //             ]}
+  //           />
+  //         </View>
+  //       </TouchableOpacity>
+  //     );
+  //   };
 
-    return (
-      <ScrollView contentContainerStyle={styles.torrents.scroll}>
-        {useTorrents.active?.map(i => (
-          <Item
-            key={i.magnetURI}
-            progress={i.progress}
-            name={i.name}
-            time={i.timeRemaining}
-          />
-        ))}
-      </ScrollView>
-    );
-  };
+  //   return (
+  //     <ScrollView contentContainerStyle={styles.torrents.scroll}>
+  //       {useTorrents.active?.map(i => (
+  //         <Item
+  //           key={i.magnetURI}
+  //           progress={i.progress}
+  //           name={i.name}
+  //           time={i.timeRemaining}
+  //         />
+  //       ))}
+  //     </ScrollView>
+  //   );
+  // };
 
   return (
     <View style={styles.container}>
       <Actions />
       <Status />
-      <Torrents />
+      {/* <Torrents /> */}
     </View>
   );
 }
